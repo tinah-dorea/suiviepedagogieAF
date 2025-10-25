@@ -11,11 +11,13 @@ import sessionRoutes from './src/routes/session.routes.js';
 import roleActiviteRoutes from './src/routes/roleActivite.routes.js';
 import inscriptionRoutes from './src/routes/inscription.routes.js';
 import employeRoutes from './src/routes/employe.routes.js';
+import cors from 'cors';
 
 const app = express();
 app.use(express.json());
+app.use(cors());
 
-// ✅ Montage des routes API
+// Montage des routes API
 app.use("/api/type-services", typeServiceRoutes);
 app.use('/api/type-cours', typeCoursRoutes);
 app.use('/api/niveaux', niveauRoutes);
