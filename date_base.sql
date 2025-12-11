@@ -68,30 +68,31 @@ CREATE TABLE role (
     nom_role VARCHAR(50) NOT NULL
 );
 
-CREATE TABLE activite (
-    id SERIAL PRIMARY KEY,
-    nom_activite VARCHAR(50) NOT NULL
-);
-
-CREATE TABLE role_activite (
-    id SERIAL PRIMARY KEY,
-    id_role INT REFERENCES role(id) ON DELETE RESTRICT ON UPDATE CASCADE,
-    id_activite INT REFERENCES activite(id) ON DELETE RESTRICT ON UPDATE CASCADE
-);
-
 CREATE TABLE employe (
     id SERIAL PRIMARY KEY,
     service TEXT,
-    fonction VARCHAR(50),
     nom TEXT NOT NULL,
     prenom TEXT NOT NULL,
     age INT,
     adresse TEXT,
     tel VARCHAR(15),
     mot_passe VARCHAR(50) NOT NULL,
-    id_role_activite INT REFERENCES role_activite(id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    id_role INT REFERENCES role(id) ON DELETE RESTRICT ON UPDATE CASCADE,
     date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+-- Ajouter la colonne email (obligatoire pour l'authentification)
+ALTER TABLE employe 
+ADD COLUMN email VARCHAR(100) UNIQUE;
+
+-- 1. Augmenter la taille du mot de passe
+ALTER TABLE employe
+ALTER COLUMN mot_passe TYPE VARCHAR(255);
+
+-- 2. Ajouter un champ pour activer/désactiver un compte
+ALTER TABLE employe
+ADD COLUMN is_active BOOLEAN DEFAULT TRUE,
+ADD COLUMN deactivated_at TIMESTAMP NULL,
+ADD COLUMN deactivated_by INT NULL;
 
 -- =============================
 -- TABLE TEST NIVEAU
@@ -148,3 +149,17 @@ CREATE TABLE examen (
     auto_inscription BOOLEAN,
     verification BOOLEAN
 );
+
+-- Ajouter la colonne email (obligatoire pour l'authentification)
+ALTER TABLE employe 
+ADD COLUMN email VARCHAR(100) UNIQUE;
+
+-- 1. Augmenter la taille du mot de passe
+ALTER TABLE employe
+ALTER COLUMN mot_passe TYPE VARCHAR(255);
+
+-- 2. Ajouter un champ pour activer/désactiver un compte
+ALTER TABLE employe
+ADD COLUMN is_active BOOLEAN DEFAULT TRUE,
+ADD COLUMN deactivated_at TIMESTAMP NULL,
+ADD COLUMN deactivated_by INT NULL;

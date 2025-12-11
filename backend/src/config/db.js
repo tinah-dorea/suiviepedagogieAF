@@ -1,21 +1,25 @@
-import pg from "pg";
-import dotenv from "dotenv";
-
+import pkg from 'pg';
+import dotenv from 'dotenv';
 dotenv.config();
 
-const { Pool } = pg;
+const { Pool } = pkg;
 
 const pool = new Pool({
-  host: process.env.PGHOST,
-  user: process.env.PGUSER,
-  password: process.env.PGPASSWORD,
-  database: process.env.PGDATABASE,
-  port: process.env.PGPORT,
+  user: process.env.DB_USER || 'postgres',
+  host: process.env.DB_HOST || 'localhost',
+  database: process.env.DB_NAME || 'suivie_pedagogique_af',
+  password: process.env.DB_PASSWORD || '1234',
+  port: process.env.DB_PORT || 5432,
 });
 
 // Test de connexion
-pool.connect()
-  .then(() => console.log("✅ Connexion PostgreSQL réussie"))
-  .catch((err) => console.error("❌ Erreur de connexion :", err));
+pool.connect((err, client, release) => {
+  if (err) {
+    console.error('Erreur lors de la connexion à la base de données:', err.stack);
+  } else {
+    console.log('Connexion à la base de données réussie');
+    release();
+  }
+});
 
-export default pool;
+export { pool };
