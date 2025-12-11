@@ -1,0 +1,32 @@
+/* frontend/src/styles/globals.css */
+
+/* Directives Tailwind obligatoires */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Styles généraux pour l'Admin */
+body {
+  /* Utilise la couleur admin-bg définie dans tailwind.config.js */
+  @apply bg-admin-bg text-gray-800 antialiased;
+}
+
+/* Styles pour les liens ou boutons importants */
+.btn-primary {
+  @apply bg-admin-primary text-white font-bold py-3 px-6 rounded-lg transition duration-200 hover:bg-red-700 shadow-md;
+}
+
+/* Styles pour les champs de formulaire */
+.input-form {
+  @apply w-full p-3 border border-gray-300 rounded-lg focus:ring-admin-primary focus:border-admin-primary;
+}
+
+/* Styles pour la navigation latérale (Dashboard) */
+.sidebar-link {
+  @apply flex items-center p-3 rounded-xl transition duration-150 text-gray-700 hover:bg-red-50 hover:text-admin-primary;
+}
+
+/* Style de lien actif pour la sidebar */
+.sidebar-link.active {
+  @apply bg-red-100 font-bold text-admin-primary;
+}
