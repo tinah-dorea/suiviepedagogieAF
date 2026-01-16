@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import professeurService from '../../services/professeurService';
 import Modal from '../ui/Modal';
 
 const PROFESSOR_SERVICE = 'Professeurs';
 
-const buildEmptyForm = (roleId = '') => ({
+const buildEmptyForm = (roleId = 3) => ({
   service: PROFESSOR_SERVICE,
   nom: '',
   prenom: '',
@@ -48,7 +48,7 @@ const Professeur = () => {
   const [currentProfesseur, setCurrentProfesseur] = useState(null);
   const [formData, setFormData] = useState(buildEmptyForm());
   const [error, setError] = useState('');
-  const [roles, setRoles] = useState([]);
+  const [roles] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -58,7 +58,7 @@ const Professeur = () => {
   const loadInitialData = async () => {
     setLoading(true);
     try {
-      await Promise.all([refreshProfesseurs(), loadRoles()]);
+      await Promise.all([refreshProfesseurs()]);
     } catch (err) {
       console.error('Erreur chargement données:', err);
       setError("Erreur lors du chargement des données.");
@@ -72,21 +72,7 @@ const Professeur = () => {
     setProfesseurs(response.data);
   };
 
-  const loadRoles = async () => {
-    const response = await professeurService.getRoles();
-    setRoles(response.data);
-  };
 
-  const profRoleId = useMemo(() => {
-    const profRole = roles.find((r) => r.nom_role === 'Professeur');
-    return profRole ? profRole.id : '';
-  }, [roles]);
-
-  useEffect(() => {
-    if (modalMode === 'add' && profRoleId) {
-      setFormData((prev) => ({ ...prev, id_role: prev.id_role || profRoleId }));
-    }
-  }, [modalMode, profRoleId]);
 
   const openModal = (mode, professeur = null) => {
     setModalMode(mode);
@@ -103,11 +89,11 @@ const Professeur = () => {
         tel: professeur.tel || '',
         email: professeur.email,
         mot_passe: '',
-        id_role: professeur.id_role || profRoleId || '',
+        id_role: 3,
       });
     } else {
       setCurrentProfesseur(null);
-      setFormData(buildEmptyForm(profRoleId));
+      setFormData(buildEmptyForm());
     }
 
     setModalOpen(true);
@@ -116,7 +102,7 @@ const Professeur = () => {
   const closeModal = () => {
     setModalOpen(false);
     setCurrentProfesseur(null);
-    setFormData(buildEmptyForm(profRoleId));
+    setFormData(buildEmptyForm());
     setIsSubmitting(false);
   };
 
@@ -133,9 +119,6 @@ const Professeur = () => {
     try {
       const payload = sanitizePayload(formData);
 
-      if (!payload.id_role) {
-        throw new Error("Le rôle Professeur est requis.");
-      }
 
       if (modalMode === 'edit') {
         if (!payload.mot_passe) {
@@ -158,7 +141,7 @@ const Professeur = () => {
       setIsSubmitting(false);
     }
   };
-
+  
   const handleToggleStatus = async (id, is_active) => {
     try {
       setLoading(true);
@@ -172,15 +155,7 @@ const Professeur = () => {
     }
   };
 
-  const filteredProfesseurs = useMemo(
-    () =>
-      professeurs.filter(
-        (prof) =>
-          prof.nom_role === 'Professeur' &&
-          (prof.service || '').toLowerCase() === PROFESSOR_SERVICE.toLowerCase()
-      ),
-    [professeurs]
-  );
+  const filteredProfesseurs = professeurs;
 
   return (
     <div className="container mx-auto p-4">
@@ -361,4 +336,3 @@ const Professeur = () => {
 };
 
 export default Professeur;
-

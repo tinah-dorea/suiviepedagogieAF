@@ -4,6 +4,7 @@ import Login from '../pages/Auth/Login';
 import Dashboard from '../pages/Dashboard/Dashboard';
 import DashboardPedagogique from '../pages/Dashboard/DashboardPedagogique';
 import DashboardAccueil from '../pages/Dashboard/DashboardAccueil';
+import DashboardPedagogiqueAttribution from '../pages/Dashboard/DashboardPedagogiqueAttribution';
 import Role from '../components/GestionRoles/Role';
 import Employe from '../components/GestionEmployes/Employe';
 import DashboardRessourcesHumaines from '../pages/Dashboard/DashboardRessourcesHumaines';
@@ -11,6 +12,8 @@ import Professeur from '../components/GestionProfesseurs/Professeur';
 import DashboardPedagogiqueAccueil from '../pages/Dashboard/DashboardPedagogiqueAccueil';
 import GestionCours from '../pages/Cours/GestionCours';
 import GestionInscription from '../components/GestionInscription/GestionInscription';
+import Planning from '../components/GestionCours/Planning';
+import DashboardProfesseur from '../pages/Dashboard/DashboardProfesseur';
 import { isServiceAllowed, getServiceRoute, getPostAuthRedirectPath } from '../utils/auth';
 
 // Composant de protection des routes
@@ -95,6 +98,14 @@ const router = createBrowserRouter([
             path: 'inscriptions',
             element: <GestionInscription />,
           },
+              {
+                path: 'attribution',
+                element: <DashboardPedagogiqueAttribution />,
+              },
+          {
+            path: 'planning',
+            element: <Planning />,
+          },
         ],
       },
       {
@@ -102,6 +113,14 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute allowedServices={['accueil']}>
             <DashboardAccueil />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'dashboard-professeur',
+        element: (
+          <ProtectedRoute allowedServices={['professeurs']}>
+            <DashboardProfesseur />
           </ProtectedRoute>
         ),
       },

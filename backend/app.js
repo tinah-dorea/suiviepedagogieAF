@@ -12,6 +12,12 @@ import inscriptionRoutes from './src/routes/inscriptionRoutes.js';
 import examenRoutes from './src/routes/examenRoutes.js';
 import salleRoutes from './src/routes/salleRoutes.js';
 import roleRoutes from './src/routes/roleRoutes.js';
+import sessionCoursRoutes from './src/routes/sessionCoursRoutes.js';
+import groupeRoutes from './src/routes/groupeRoutes.js';
+import affectationSalleRoutes from './src/routes/affectationSalleRoutes.js';
+import presenceRoutes from './src/routes/presenceRoutes.js';
+import testNiveauRoutes from './src/routes/testNiveauRoutes.js';
+import motivationRoutes from './src/routes/motivationRoutes.js';
 import { authenticateToken } from './src/middlewares/authMiddleware.js';
 
 const app = express();
@@ -41,6 +47,12 @@ app.use('/api/inscriptions', inscriptionRoutes);
 app.use('/api/examens', examenRoutes);
 app.use('/api/salles', salleRoutes);
 app.use('/api/roles', roleRoutes);
+app.use('/api/session-cours', sessionCoursRoutes);
+app.use('/api/groupes', groupeRoutes);
+app.use('/api/affectation-salles', affectationSalleRoutes);
+app.use('/api/presences', presenceRoutes);
+app.use('/api/test-niveaux', testNiveauRoutes);
+app.use('/api/motivations', motivationRoutes);
 
 // Gestion des erreurs 404
 app.use((req, res, next) => {

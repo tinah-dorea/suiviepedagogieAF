@@ -5,6 +5,7 @@ import { getServiceRoute, SERVICE_CONFIG } from '../../utils/auth';
 
 export default function Login() {
   const [email, setEmail] = useState('');
+  const [telephone, setTelephone] = useState(''); // Nouveau champ pour le téléphone
   const [motPasse, setMotPasse] = useState('');
   const [message, setMessage] = useState('');
   const [isLoginMode, setIsLoginMode] = useState(true);
@@ -20,11 +21,23 @@ export default function Login() {
       return;
     }
 
+    // Vérifier qu'au moins un des champs (email ou téléphone) est rempli
+    if (!email.trim() && !telephone.trim()) {
+      setMessage("Veuillez entrer un email ou un numéro de téléphone.");
+      return;
+    }
+
     try {
-      const res = await api.post('/auth/login', {
-        email,
-        mot_passe: motPasse,
-      });
+      // Envoyer les données d'identification avec email ou téléphone
+      const loginData = {};
+      if (email.trim()) {
+        loginData.email = email;
+      } else if (telephone.trim()) {
+        loginData.telephone = telephone;
+      }
+      loginData.mot_passe = motPasse;
+
+      const res = await api.post('/auth/login', loginData);
       
       // Stockage dans localStorage
       localStorage.setItem('token', res.data.token);
@@ -35,6 +48,7 @@ export default function Login() {
       // Redirection basée sur le service
       const userService = res.data.employe.service;
       console.log("Service de l'utilisateur:", userService);
+      console.log("Informations utilisateur:", res.data.employe); // Added to see all user data including telephone
       
       if (!userService) {
         console.log("Service manquant dans la réponse:", res.data.employe);
@@ -123,28 +137,56 @@ export default function Login() {
                 className="block text-sm font-semibold mb-2" 
                 style={{ color: '#1F2937' }}
               >
-                Email *
+                Email ou Téléphone *
               </label>
-              <input
-                type="email"
-                placeholder="votre.email@alliancefrancaise.org"
-                className="w-full p-4 border-2 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4"
-                style={{ 
-                  borderColor: '#D1D5DB',
-                  fontSize: '16px'
-                }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = '#DC2626';
-                  e.target.style.boxShadow = '0 0 0 4px rgba(220, 38, 38, 0.1)';
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = '#D1D5DB';
-                  e.target.style.boxShadow = 'none';
-                }}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
+              <div className="flex space-x-2">
+                <input
+                  type="email"
+                  placeholder="Email"
+                  className="w-1/2 p-4 border-2 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4"
+                  style={{ 
+                    borderColor: '#D1D5DB',
+                    fontSize: '16px'
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = '#DC2626';
+                    e.target.style.boxShadow = '0 0 0 4px rgba(220, 38, 38, 0.1)';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = '#D1D5DB';
+                    e.target.style.boxShadow = 'none';
+                  }}
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    // Effacer le téléphone si l'email est saisi
+                    if(e.target.value) setTelephone('');
+                  }}
+                />
+                <input
+                  type="tel"
+                  placeholder="Téléphone"
+                  className="w-1/2 p-4 border-2 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4"
+                  style={{ 
+                    borderColor: '#D1D5DB',
+                    fontSize: '16px'
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = '#DC2626';
+                    e.target.style.boxShadow = '0 0 0 4px rgba(220, 38, 38, 0.1)';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = '#D1D5DB';
+                    e.target.style.boxShadow = 'none';
+                  }}
+                  value={telephone}
+                  onChange={(e) => {
+                    setTelephone(e.target.value);
+                    // Effacer l'email si le téléphone est saisi
+                    if(e.target.value) setEmail('');
+                  }}
+                />
+              </div>
             </div>
             
             <div>
@@ -245,7 +287,7 @@ export default function Login() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
             </div>
-            <p style={{ color: '#6B7280' }}>L'inscription n'est pas encore disponible.</p>
+            <p style={{ color: '#6CA3AF' }}>L'inscription n'est pas encore disponible.</p>
             <p className="text-sm mt-2" style={{ color: '#9CA3AF' }}>
               Contactez votre administrateur pour obtenir un compte.
             </p>

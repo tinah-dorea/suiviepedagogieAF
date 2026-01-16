@@ -27,34 +27,33 @@ const resolveEmployeId = (reqUser, providedId) => {
     return toNullableInt(providedId) || authId || null;
 };
 
-// Récupérer toutes les inscriptions avec leurs relations
+// Récupérer toutes les inscriptions avec leurs relations (utilise id_creneau -> creneau -> session_cours)
 const getAllInscriptions = async (req, res) => {
     try {
         const result = await pool.query(`
             SELECT i.*,
+                h.heure_debut,
+                h.heure_fin,
+                h.jour_semaine,
+                sc.id AS id_session_cours,
+                sc.id_type_cours,
+                sc.id_session,
+                sc.id_niveau,
+                sc.id_categorie,
                 tc.nom_type_cours,
                 ts.nom_service,
                 s.mois,
                 s.annee,
-                s.date_fin_inscription,
                 n.nom_niveau,
                 n.sous_niveau,
-                h.heure_debut,
-                h.heure_fin,
-                h.jours_des_cours,
-                sal.nom_salle,
-                sal.capacite_max,
-                e.nom as employe_nom,
-                e.prenom as employe_prenom,
                 m.nom_motivation
             FROM inscription i
-            LEFT JOIN type_cours tc ON i.id_type_cours = tc.id
+            LEFT JOIN creneau h ON i.id_creneau = h.id
+            LEFT JOIN session_cours sc ON h.id_session_cours = sc.id
+            LEFT JOIN type_cours tc ON sc.id_type_cours = tc.id
             LEFT JOIN type_service ts ON tc.id_type_service = ts.id
-            LEFT JOIN session s ON i.id_session = s.id
-            LEFT JOIN niveau n ON i.id_niveau = n.id
-            LEFT JOIN horaire h ON i.id_horaire = h.id
-            LEFT JOIN salle sal ON i.id_salle = sal.id
-            LEFT JOIN employe e ON i.id_employe = e.id
+            LEFT JOIN session s ON sc.id_session = s.id
+            LEFT JOIN niveau n ON sc.id_niveau = n.id
             LEFT JOIN motivation m ON i.id_motivation = m.id
             ORDER BY i.id ASC
         `);
@@ -64,35 +63,31 @@ const getAllInscriptions = async (req, res) => {
     }
 };
 
-// Récupérer une inscription par ID
+// Récupérer une inscription par ID (avec info de créneau/session_cours)
 const getInscriptionById = async (req, res) => {
     const { id } = req.params;
     try {
         const result = await pool.query(`
             SELECT i.*,
+                h.heure_debut,
+                h.heure_fin,
+                h.jour_semaine,
+                sc.id AS id_session_cours,
+                sc.id_type_cours,
                 tc.nom_type_cours,
                 ts.nom_service,
                 s.mois,
                 s.annee,
-                s.date_fin_inscription,
                 n.nom_niveau,
                 n.sous_niveau,
-                h.heure_debut,
-                h.heure_fin,
-                h.jours_des_cours,
-                sal.nom_salle,
-                sal.capacite_max,
-                e.nom as employe_nom,
-                e.prenom as employe_prenom,
                 m.nom_motivation
             FROM inscription i
-            LEFT JOIN type_cours tc ON i.id_type_cours = tc.id
+            LEFT JOIN creneau h ON i.id_creneau = h.id
+            LEFT JOIN session_cours sc ON h.id_session_cours = sc.id
+            LEFT JOIN type_cours tc ON sc.id_type_cours = tc.id
             LEFT JOIN type_service ts ON tc.id_type_service = ts.id
-            LEFT JOIN session s ON i.id_session = s.id
-            LEFT JOIN niveau n ON i.id_niveau = n.id
-            LEFT JOIN horaire h ON i.id_horaire = h.id
-            LEFT JOIN salle sal ON i.id_salle = sal.id
-            LEFT JOIN employe e ON i.id_employe = e.id
+            LEFT JOIN session s ON sc.id_session = s.id
+            LEFT JOIN niveau n ON sc.id_niveau = n.id
             LEFT JOIN motivation m ON i.id_motivation = m.id
             WHERE i.id = $1
         `, [id]);
@@ -108,12 +103,9 @@ const getInscriptionById = async (req, res) => {
 
 // Créer une nouvelle inscription
 const createInscription = async (req, res) => {
+    // Nouveau schéma: l'inscription référence un `id_creneau` (créneau -> session_cours -> type_cours/session/etc.)
     const payload = {
-        id_type_cours: toNullableInt(req.body.id_type_cours),
-        id_employe: resolveEmployeId(req.user, req.body.id_employe),
-        id_session: toNullableInt(req.body.id_session),
-        id_horaire: toNullableInt(req.body.id_horaire),
-        id_niveau: toNullableInt(req.body.id_niveau),
+        id_creneau: toNullableInt(req.body.id_creneau),
         num_carte: toNullableText(req.body.num_carte),
         etat_inscription: toBooleanValue(req.body.etat_inscription, true),
         sexe: toNullableText(req.body.sexe),
@@ -126,44 +118,17 @@ const createInscription = async (req, res) => {
         etablissement: toNullableText(req.body.etablissement),
         niveau_scolaire: toNullableText(req.body.niveau_scolaire),
         lieu_n: toNullableText(req.body.lieu_n),
-        nationalite: toNullableText(req.body.nationalite),
-        id_salle: toNullableInt(req.body.id_salle)
+        nationalite: toNullableText(req.body.nationalite)
     };
 
-    if (!payload.id_type_cours || !payload.id_session || !payload.id_horaire || !payload.id_niveau || !payload.nom || !payload.prenom || !payload.sexe) {
-        return res.status(400).json({ message: 'Les champs type de cours, session, horaire, niveau, nom, prénom et sexe sont obligatoires.' });
-    }
-
-    if (!payload.id_employe) {
-        return res.status(401).json({ message: "Impossible de déterminer l'employé ayant créé l'inscription." });
+    if (!payload.id_creneau || !payload.nom || !payload.prenom) {
+        return res.status(400).json({ message: 'Les champs id_creneau, nom et prénom sont obligatoires.' });
     }
 
     try {
-        // Vérifier la capacité de la salle si elle est spécifiée
-        if (payload.id_salle) {
-            const salleCheck = await pool.query(`
-                SELECT capacite_max,
-                       (SELECT COUNT(*) FROM inscription WHERE id_salle = $1) as inscriptions_count
-                FROM salle WHERE id = $1
-            `, [payload.id_salle]);
-
-            if (salleCheck.rows.length > 0) {
-                const { capacite_max, inscriptions_count } = salleCheck.rows[0];
-                if (inscriptions_count >= capacite_max) {
-                    return res.status(400).json({
-                        message: 'La salle a atteint sa capacité maximale'
-                    });
-                }
-            }
-        }
-
         const result = await pool.query(
             `INSERT INTO inscription (
-                id_type_cours,
-                id_employe,
-                id_session,
-                id_horaire,
-                id_niveau,
+                id_creneau,
                 num_carte,
                 etat_inscription,
                 sexe,
@@ -176,15 +141,10 @@ const createInscription = async (req, res) => {
                 etablissement,
                 niveau_scolaire,
                 lieu_n,
-                nationalite,
-                id_salle
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19) RETURNING *`,
+                nationalite
+            ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *`,
             [
-                payload.id_type_cours,
-                payload.id_employe,
-                payload.id_session,
-                payload.id_horaire,
-                payload.id_niveau,
+                payload.id_creneau,
                 payload.num_carte,
                 payload.etat_inscription,
                 payload.sexe,
@@ -197,8 +157,7 @@ const createInscription = async (req, res) => {
                 payload.etablissement,
                 payload.niveau_scolaire,
                 payload.lieu_n,
-                payload.nationalite,
-                payload.id_salle
+                payload.nationalite
             ]
         );
 
@@ -206,7 +165,7 @@ const createInscription = async (req, res) => {
     } catch (error) {
         if (error.code === '23503') {
             res.status(400).json({
-                message: 'Une des références (type_cours, employe, session, horaire, niveau, motivation ou salle) n\'existe pas'
+                message: 'Une des références (creneau, motivation, ...) n\'existe pas'
             });
         } else {
             res.status(500).json({ message: error.message });
@@ -218,11 +177,7 @@ const createInscription = async (req, res) => {
 const updateInscription = async (req, res) => {
     const { id } = req.params;
     const payload = {
-        id_type_cours: toNullableInt(req.body.id_type_cours),
-        id_employe: resolveEmployeId(req.user, req.body.id_employe),
-        id_session: toNullableInt(req.body.id_session),
-        id_horaire: toNullableInt(req.body.id_horaire),
-        id_niveau: toNullableInt(req.body.id_niveau),
+        id_creneau: toNullableInt(req.body.id_creneau),
         num_carte: toNullableText(req.body.num_carte),
         etat_inscription: toBooleanValue(req.body.etat_inscription, true),
         sexe: toNullableText(req.body.sexe),
@@ -235,57 +190,29 @@ const updateInscription = async (req, res) => {
         etablissement: toNullableText(req.body.etablissement),
         niveau_scolaire: toNullableText(req.body.niveau_scolaire),
         lieu_n: toNullableText(req.body.lieu_n),
-        nationalite: toNullableText(req.body.nationalite),
-        id_salle: toNullableInt(req.body.id_salle)
+        nationalite: toNullableText(req.body.nationalite)
     };
 
     try {
-        // Vérifier la capacité de la salle si elle est spécifiée et différente
-        if (payload.id_salle) {
-            const salleCheck = await pool.query(`
-                SELECT capacite_max,
-                       (SELECT COUNT(*) FROM inscription WHERE id_salle = $1 AND id != $2) as inscriptions_count
-                FROM salle WHERE id = $1
-            `, [payload.id_salle, id]);
-
-            if (salleCheck.rows.length > 0) {
-                const { capacite_max, inscriptions_count } = salleCheck.rows[0];
-                if (inscriptions_count >= capacite_max) {
-                    return res.status(400).json({
-                        message: 'La salle a atteint sa capacité maximale'
-                    });
-                }
-            }
-        }
-
         const result = await pool.query(
             `UPDATE inscription SET
-                id_type_cours = $1,
-                id_employe = $2,
-                id_session = $3,
-                id_horaire = $4,
-                id_niveau = $5,
-                num_carte = $6,
-                etat_inscription = $7,
-                sexe = $8,
-                nom = $9,
-                prenom = $10,
-                date_n = $11,
-                adresse = $12,
-                tel = $13,
-                id_motivation = $14,
-                etablissement = $15,
-                niveau_scolaire = $16,
-                lieu_n = $17,
-                nationalite = $18,
-                id_salle = $19
-            WHERE id = $20 RETURNING *`,
+                id_creneau = $1,
+                num_carte = $2,
+                etat_inscription = $3,
+                sexe = $4,
+                nom = $5,
+                prenom = $6,
+                date_n = $7,
+                adresse = $8,
+                tel = $9,
+                id_motivation = $10,
+                etablissement = $11,
+                niveau_scolaire = $12,
+                lieu_n = $13,
+                nationalite = $14
+            WHERE id = $15 RETURNING *`,
             [
-                payload.id_type_cours,
-                payload.id_employe,
-                payload.id_session,
-                payload.id_horaire,
-                payload.id_niveau,
+                payload.id_creneau,
                 payload.num_carte,
                 payload.etat_inscription,
                 payload.sexe,
@@ -299,7 +226,6 @@ const updateInscription = async (req, res) => {
                 payload.niveau_scolaire,
                 payload.lieu_n,
                 payload.nationalite,
-                payload.id_salle,
                 id
             ]
         );
@@ -311,7 +237,7 @@ const updateInscription = async (req, res) => {
     } catch (error) {
         if (error.code === '23503') {
             res.status(400).json({
-                message: 'Une des références (type_cours, employe, session, horaire, niveau, motivation ou salle) n\'existe pas'
+                message: 'Une des références (creneau, motivation, ...) n\'existe pas'
             });
         } else {
             res.status(500).json({ message: error.message });
@@ -339,7 +265,7 @@ const deleteInscription = async (req, res) => {
     }
 };
 
-// Récupérer les inscriptions par type de cours
+// Récupérer les inscriptions par type de cours (via session_cours)
 const getInscriptionsByTypeCours = async (req, res) => {
     const { typeCoursId } = req.params;
     try {
@@ -350,17 +276,13 @@ const getInscriptionsByTypeCours = async (req, res) => {
                 n.nom_niveau,
                 n.sous_niveau,
                 h.heure_debut,
-                h.heure_fin,
-                sal.nom_salle,
-                e.nom as employe_nom,
-                e.prenom as employe_prenom
+                h.heure_fin
             FROM inscription i
-            LEFT JOIN session s ON i.id_session = s.id
-            LEFT JOIN niveau n ON i.id_niveau = n.id
-            LEFT JOIN horaire h ON i.id_horaire = h.id
-            LEFT JOIN salle sal ON i.id_salle = sal.id
-            LEFT JOIN employe e ON i.id_employe = e.id
-            WHERE i.id_type_cours = $1
+            LEFT JOIN creneau h ON i.id_creneau = h.id
+            LEFT JOIN session_cours sc ON h.id_session_cours = sc.id
+            LEFT JOIN session s ON sc.id_session = s.id
+            LEFT JOIN niveau n ON sc.id_niveau = n.id
+            WHERE sc.id_type_cours = $1
             ORDER BY i.nom ASC, i.prenom ASC
         `, [typeCoursId]);
         res.json(result.rows);
@@ -369,7 +291,7 @@ const getInscriptionsByTypeCours = async (req, res) => {
     }
 };
 
-// Récupérer les inscriptions par session
+// Récupérer les inscriptions par session (via session_cours)
 const getInscriptionsBySession = async (req, res) => {
     const { sessionId } = req.params;
     try {
@@ -379,17 +301,13 @@ const getInscriptionsBySession = async (req, res) => {
                 n.nom_niveau,
                 n.sous_niveau,
                 h.heure_debut,
-                h.heure_fin,
-                sal.nom_salle,
-                e.nom as employe_nom,
-                e.prenom as employe_prenom
+                h.heure_fin
             FROM inscription i
-            LEFT JOIN type_cours tc ON i.id_type_cours = tc.id
-            LEFT JOIN niveau n ON i.id_niveau = n.id
-            LEFT JOIN horaire h ON i.id_horaire = h.id
-            LEFT JOIN salle sal ON i.id_salle = sal.id
-            LEFT JOIN employe e ON i.id_employe = e.id
-            WHERE i.id_session = $1
+            LEFT JOIN creneau h ON i.id_creneau = h.id
+            LEFT JOIN session_cours sc ON h.id_session_cours = sc.id
+            LEFT JOIN type_cours tc ON sc.id_type_cours = tc.id
+            LEFT JOIN niveau n ON sc.id_niveau = n.id
+            WHERE sc.id_session = $1
             ORDER BY i.nom ASC, i.prenom ASC
         `, [sessionId]);
         res.json(result.rows);

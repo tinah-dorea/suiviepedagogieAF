@@ -1,5 +1,7 @@
+
+
 -- =============================
--- CREATION DES TABLES PRINCIPALES
+-- TABLES DE BASE (TYPES)
 -- =============================
 
 CREATE TABLE type_service (
@@ -9,7 +11,7 @@ CREATE TABLE type_service (
 
 CREATE TABLE type_cours (
     id SERIAL PRIMARY KEY,
-    id_type_service INT REFERENCES type_service(id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    id_type_service INT NOT NULL REFERENCES type_service(id) ON DELETE RESTRICT ON UPDATE CASCADE,
     nom_type_cours VARCHAR(50) NOT NULL
 );
 
@@ -22,7 +24,7 @@ CREATE TABLE niveau (
 CREATE TABLE categorie (
     id SERIAL PRIMARY KEY,
     nom_categorie VARCHAR(10) NOT NULL,
-    id_type_cours INT REFERENCES type_cours(id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    id_type_cours INT NOT NULL REFERENCES type_cours(id) ON DELETE RESTRICT ON UPDATE CASCADE,
     min_age INT,
     max_age INT
 );
@@ -33,34 +35,13 @@ CREATE TABLE salle (
     capacite_max INT
 );
 
-CREATE TABLE horaire (
-    id SERIAL PRIMARY KEY,
-    id_type_cours INT REFERENCES type_cours(id) ON DELETE RESTRICT ON UPDATE CASCADE,
-    id_niveau INT REFERENCES niveau(id) ON DELETE RESTRICT ON UPDATE CASCADE,
-    id_categorie INT REFERENCES categorie(id) ON DELETE RESTRICT ON UPDATE CASCADE,
-    jours_des_cours TEXT,
-    heure_debut VARCHAR(5),
-    heure_fin VARCHAR(5)
-);
-
-CREATE TABLE session (
-    id SERIAL PRIMARY KEY,
-    mois VARCHAR(10),
-    annee INT,
-    id_type_cours INT REFERENCES type_cours(id) ON DELETE RESTRICT ON UPDATE CASCADE,
-    date_fin_inscription DATE,
-    date_debut DATE,
-    date_fin DATE,
-    date_exam DATE
-);
-
 CREATE TABLE motivation (
     id SERIAL PRIMARY KEY,
     nom_motivation VARCHAR(200)
 );
 
 -- =============================
--- EMPLOYES, ROLES, ACTIVITES
+-- EMPLOYÉS ET RÔLES
 -- =============================
 
 CREATE TABLE role (
@@ -76,26 +57,120 @@ CREATE TABLE employe (
     age INT,
     adresse TEXT,
     tel VARCHAR(15),
-    mot_passe VARCHAR(50) NOT NULL,
-    id_role INT REFERENCES role(id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    mot_passe VARCHAR(255) NOT NULL, -- Augmenté pour hash
+    email VARCHAR(100) UNIQUE NOT NULL,
+    id_role INT NOT NULL REFERENCES role(id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    is_active BOOLEAN DEFAULT TRUE,
+    deactivated_at TIMESTAMP NULL,
+    deactivated_by INT NULL REFERENCES employe(id) ON DELETE SET NULL,
     date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
--- Ajouter la colonne email (obligatoire pour l'authentification)
-ALTER TABLE employe 
-ADD COLUMN email VARCHAR(100) UNIQUE;
-
--- 1. Augmenter la taille du mot de passe
-ALTER TABLE employe
-ALTER COLUMN mot_passe TYPE VARCHAR(255);
-
--- 2. Ajouter un champ pour activer/désactiver un compte
-ALTER TABLE employe
-ADD COLUMN is_active BOOLEAN DEFAULT TRUE,
-ADD COLUMN deactivated_at TIMESTAMP NULL,
-ADD COLUMN deactivated_by INT NULL;
 
 -- =============================
--- TABLE TEST NIVEAU
+-- SESSIONS
+-- =============================
+
+CREATE TABLE session (
+    id SERIAL PRIMARY KEY,
+    mois VARCHAR(10),
+    annee INT NOT NULL,
+    date_fin_inscription DATE NOT NULL,
+    date_debut DATE NOT NULL,
+    date_fin DATE NOT NULL,
+    date_exam DATE
+);
+
+-- =============================
+-- SESSION_COURS : instance d’un type de cours dans une session
+-- =============================
+
+CREATE TABLE session_cours (
+    id SERIAL PRIMARY KEY,
+    id_session INT NOT NULL REFERENCES session(id) ON DELETE CASCADE,
+    id_type_cours INT NOT NULL REFERENCES type_cours(id),
+    id_niveau INT REFERENCES niveau(id),
+    id_categorie INT REFERENCES categorie(id),
+    UNIQUE (id_session, id_type_cours, id_niveau, id_categorie)
+);
+
+-- =============================
+-- CRENEAUX : horaires hebdomadaires d’un session_cours
+-- =============================
+
+CREATE TABLE creneau (
+    id SERIAL PRIMARY KEY,
+    id_session_cours INT NOT NULL REFERENCES session_cours(id) ON DELETE CASCADE,
+    jour_semaine VARCHAR(10) NOT NULL CHECK (jour_semaine IN ('lundi','mardi','mercredi','jeudi','vendredi','samedi','dimanche')),
+    heure_debut TIME NOT NULL,
+    heure_fin TIME NOT NULL,
+    CHECK (heure_fin > heure_debut)
+);
+
+-- =============================
+-- INSCRIPTION : étudiant s’inscrit à un créneau
+-- =============================
+
+CREATE TABLE inscription (
+    id SERIAL PRIMARY KEY,
+    id_creneau INT NOT NULL REFERENCES creneau(id) ON DELETE RESTRICT,
+    num_carte VARCHAR(20),
+    etat_inscription BOOLEAN DEFAULT TRUE,
+    sexe VARCHAR(10),
+    nom TEXT NOT NULL,
+    prenom TEXT NOT NULL,
+    date_n DATE,
+    adresse TEXT,
+    tel VARCHAR(15),
+    id_motivation INT REFERENCES motivation(id) ON DELETE SET NULL,
+    etablissement TEXT,
+    niveau_scolaire VARCHAR(50),
+    lieu_n VARCHAR(100),
+    nationalite VARCHAR(50)
+);
+
+-- =============================
+-- GROUPES : créés automatiquement si >21 inscrits à un créneau
+-- =============================
+
+CREATE TABLE groupe (
+    id SERIAL PRIMARY KEY,
+    id_creneau INT NOT NULL REFERENCES creneau(id) ON DELETE CASCADE,
+    numero_groupe INT NOT NULL CHECK (numero_groupe >= 1),
+    id_employe_prof INT REFERENCES employe(id) ON DELETE SET NULL,
+    UNIQUE (id_creneau, numero_groupe)
+);
+
+-- =============================
+-- AFFECTATION DES SALLES PAR JOUR ET PAR GROUPE
+-- =============================
+
+CREATE TABLE affectation_salle (
+    id SERIAL PRIMARY KEY,
+    id_groupe INT NOT NULL REFERENCES groupe(id) ON DELETE CASCADE,
+    date_cours DATE NOT NULL,
+    id_salle INT NOT NULL REFERENCES salle(id),
+    UNIQUE (id_groupe, date_cours)
+);
+
+-- =============================
+-- PRÉSENCES : saisies par le professeur, par groupe, par date
+-- =============================
+
+CREATE TABLE presence (
+    id SERIAL PRIMARY KEY,
+    id_inscription INT NOT NULL REFERENCES inscription(id) ON DELETE CASCADE,
+    id_groupe INT NOT NULL REFERENCES groupe(id) ON DELETE CASCADE,
+    date_cours DATE NOT NULL,
+    est_present BOOLEAN DEFAULT TRUE,
+    heure_arrivee TIME,
+    remarque TEXT,
+    id_employe_saisie INT REFERENCES employe(id) ON DELETE SET NULL,
+    date_saisie TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (id_inscription, id_groupe, date_cours)
+);
+
+-- =============================
+-- TABLES SUPPLÉMENTAIRES (EXAMEN, TEST NIVEAU)
 -- =============================
 
 CREATE TABLE test_niveau (
@@ -111,55 +186,10 @@ CREATE TABLE test_niveau (
     id_employe INT REFERENCES employe(id) ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
--- =============================
--- TABLE INSCRIPTION
--- =============================
-
-CREATE TABLE inscription (
-    id SERIAL PRIMARY KEY,
-    id_type_cours INT REFERENCES type_cours(id) ON DELETE RESTRICT ON UPDATE CASCADE,
-    id_employe INT REFERENCES employe(id) ON DELETE RESTRICT ON UPDATE CASCADE,
-    id_session INT REFERENCES session(id) ON DELETE RESTRICT ON UPDATE CASCADE,
-    id_horaire INT REFERENCES horaire(id) ON DELETE RESTRICT ON UPDATE CASCADE,
-    id_niveau INT REFERENCES niveau(id) ON DELETE RESTRICT ON UPDATE CASCADE,
-    num_carte VARCHAR(20),
-    etat_inscription BOOLEAN DEFAULT TRUE,
-    sexe VARCHAR(10),
-    nom TEXT,
-    prenom TEXT,
-    date_n DATE,
-    adresse TEXT,
-    tel VARCHAR(15),
-    id_motivation INT REFERENCES motivation(id) ON DELETE RESTRICT ON UPDATE CASCADE,
-    etablissement TEXT,
-    niveau_scolaire VARCHAR(50),
-    lieu_n VARCHAR(100),
-    nationalite VARCHAR(50),
-    id_salle INT REFERENCES salle(id) ON DELETE RESTRICT ON UPDATE CASCADE
-);
-
--- =============================
--- TABLE EXAMEN
--- =============================
-
 CREATE TABLE examen (
     id SERIAL PRIMARY KEY,
-    id_inscription INT REFERENCES inscription(id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    id_inscription INT NOT NULL REFERENCES inscription(id) ON DELETE CASCADE,
     etat_inscription BOOLEAN,
     auto_inscription BOOLEAN,
     verification BOOLEAN
 );
-
--- Ajouter la colonne email (obligatoire pour l'authentification)
-ALTER TABLE employe 
-ADD COLUMN email VARCHAR(100) UNIQUE;
-
--- 1. Augmenter la taille du mot de passe
-ALTER TABLE employe
-ALTER COLUMN mot_passe TYPE VARCHAR(255);
-
--- 2. Ajouter un champ pour activer/désactiver un compte
-ALTER TABLE employe
-ADD COLUMN is_active BOOLEAN DEFAULT TRUE,
-ADD COLUMN deactivated_at TIMESTAMP NULL,
-ADD COLUMN deactivated_by INT NULL;

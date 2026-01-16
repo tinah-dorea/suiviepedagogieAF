@@ -21,6 +21,10 @@ const SERVICE_CONFIG = {
     route: '/dashboard-accueil',
     aliases: ['accueil'],
   },
+  professeurs: {
+    route: '/dashboard-professeur',
+    aliases: ['professeurs', 'professeur'],
+  },
 };
 
 const aliasMap = Object.entries(SERVICE_CONFIG).reduce((acc, [key, config]) => {

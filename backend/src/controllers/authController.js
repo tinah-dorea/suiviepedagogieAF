@@ -57,6 +57,7 @@ export const login = async (req, res) => {
         nom: employe.nom,
         prenom: employe.prenom,
         email: employe.email,
+        tel: employe.tel, // Adding the telephone number to the response
         role: roleId,
         service: employe.service
       }

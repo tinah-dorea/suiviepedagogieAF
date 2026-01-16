@@ -372,11 +372,20 @@ export default function Dashboard() {
           <h2 className="text-3xl font-light" style={{ color: '#1F2937' }}>
             Service <span className="font-semibold" style={{ color: mainColor }}>{user.service || 'Administration'}</span>
           </h2>
-          <div 
-            className="w-10 h-10 rounded-full text-white flex items-center justify-center font-bold"
-            style={{ backgroundColor: mainColor }}
-          >
-            {user.prenom?.charAt(0)}{user.nom?.charAt(0)}
+          <div className="flex flex-col items-end">
+            <div className="flex items-center space-x-3">
+              <div 
+                className="w-10 h-10 rounded-full text-white flex items-center justify-center font-bold"
+                style={{ backgroundColor: mainColor }}
+              >
+                {user.prenom?.charAt(0)}{user.nom?.charAt(0)}
+              </div>
+              <div className="text-right">
+                <p className="font-semibold" style={{ color: '#1F2937' }}>{user.prenom} {user.nom}</p>
+                <p className="text-sm" style={{ color: '#6B7280' }}>{user.email}</p>
+                {user.tel && <p className="text-sm" style={{ color: '#6B7280' }}>Tél: {user.tel}</p>}
+              </div>
+            </div>
           </div>
         </header>
 

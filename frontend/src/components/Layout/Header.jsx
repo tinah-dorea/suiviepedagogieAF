@@ -1,8 +1,15 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
-const Header = () => {
+const Header = ({ userRole }) => {
   const location = useLocation();
+
+  const getTitle = () => {
+    if (userRole === 'professeur') {
+      return 'Professeur Alliance Française';
+    }
+    return 'AF Cours - Suivi Pédagogique';
+  };
 
   return (
     <header>
@@ -14,7 +21,7 @@ const Header = () => {
         margin: '0 auto'
       }}>
         <h1 style={{ color: 'var(--color-red)', fontSize: '1.8rem', fontWeight: '700' }}>
-          AF Cours - Suivi Pédagogique
+          {getTitle()}
         </h1>
         <nav className="navbar">
           <Link 
