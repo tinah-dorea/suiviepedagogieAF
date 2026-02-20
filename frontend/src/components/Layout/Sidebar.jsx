@@ -9,7 +9,8 @@ import {
   RiMenuLine,
   RiCloseLine,
   RiCalendarLine,
-  RiClipboardLine
+  RiClipboardLine,
+  RiProfileLine
 } from 'react-icons/ri';
 
 const Sidebar = ({ onLogout, userType = 'admin' }) => {
@@ -22,16 +23,18 @@ const Sidebar = ({ onLogout, userType = 'admin' }) => {
   };
 
   const professorMenuItems = [
-    { icon: <RiDashboardLine className="text-xl" />, label: 'Dashboard', path: '/dashboard' },
+    { icon: <RiDashboardLine className="text-xl" />, label: 'Dashboard', path: '/dashboard-professeur' },
     { icon: <RiCalendarLine className="text-xl" />, label: 'Planning', path: '/planning' },
     { icon: <RiBookOpenLine className="text-xl" />, label: 'Mes Cours', path: '/mes-cours' },
-    { icon: <RiClipboardLine className="text-xl" />, label: 'Fiche de Présence', path: '/fiche-presence' }
+    { icon: <RiClipboardLine className="text-xl" />, label: 'Fiche de Présence', path: '/fiche-presence' },
+    { icon: <RiProfileLine className="text-xl" />, label: 'Mon Profil', path: '/profile' }
   ];
 
   const adminMenuItems = [
     { icon: <RiDashboardLine className="text-xl" />, label: 'Dashboard', path: '/dashboard' },
     { icon: <RiUserLine className="text-xl" />, label: 'Employés', path: '/employes' },
     { icon: <RiBookOpenLine className="text-xl" />, label: 'Gestion de cours', path: '/gestion-cours' },
+    { icon: <RiProfileLine className="text-xl" />, label: 'Mon Profil', path: '/profile' },
     { icon: <RiSettings4Line className="text-xl" />, label: 'Paramètres', path: '/parametres' }
   ];
 

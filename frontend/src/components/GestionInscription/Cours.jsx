@@ -6,6 +6,7 @@ import typeCoursService from '../../services/typeCoursService';
 import sessionService from '../../services/sessionService';
 import niveauService from '../../services/niveauService';
 import horaireService from '../../services/horaireService';
+import creneauService from '../../services/creneauService';
 import salleService from '../../services/salleService';
 import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 
@@ -57,7 +58,11 @@ const buildInitialForm = (userId = null) => ({
   id_motivation: '',
   etablissement: '',
   niveau_scolaire: '',
-  id_salle: '',
+  lieu_n: '',
+  nationalite: '',
+  id_salle: '', // Can be empty/optional
+  id_creneau: '', // New field
+  email: '',
   id_employe: userId || ''
 });
 
@@ -67,7 +72,8 @@ const Cours = () => {
   const [sessions, setSessions] = useState([]);
   const [niveaux, setNiveaux] = useState([]);
   const [horaires, setHoraires] = useState([]);
-  const [salles, setSalles] = useState([]);
+  const [creneaux, setCreneaux] = useState([]); // Add creneaux state
+  const [salles, setSalles] = useState([]); // Add salles state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentInscription, setCurrentInscription] = useState(null);
   const currentUserId = useMemo(() => getCurrentUserId(), []);
@@ -94,23 +100,26 @@ const Cours = () => {
           sessionsData,
           niveauxData,
           horairesData,
-          sallesData,
-          inscriptionsData
+          inscriptionsData,
+          creneauxData, // Load creneaux data
+          sallesData   // Load salles data
         ] = await Promise.all([
           typeCoursService.getAll(),
           sessionService.getAll(),
           niveauService.getAll(),
           horaireService.getAll(),
-          salleService.getAll(),
-          inscriptionService.getAll()
+          inscriptionService.getAll(),
+          creneauService.getAll(), // Fetch creneaux
+          salleService.getAll()     // Fetch salles
         ]);
 
-        const coursTypeCours = filterTypeCours(typeCoursData, 'renforcements');
+        const coursTypeCours = filterTypeCours(typeCoursData, 'cours');
         setTypeCours(coursTypeCours);
         setSessions(sessionsData);
         setNiveaux(niveauxData);
         setHoraires(horairesData);
-        setSalles(sallesData);
+        setCreneaux(creneauxData); // Set creneaux
+        setSalles(sallesData);     // Set salles
         setInscriptions(filterInscriptionsByType(inscriptionsData, coursTypeCours));
       } catch (error) {
         toast.error('Erreur lors du chargement des données');
@@ -123,13 +132,15 @@ const Cours = () => {
   }, []);
 
   // Gestionnaires de formulaire
-  const handleInputChange = (e) => {
+  const handleInputChange = (e) => { // Fonction utilisée dans le modal
     const { name, value, type, checked } = e.target;
     let processedValue = value;
-    if (['id_type_cours', 'id_session', 'id_horaire', 'id_niveau', 'id_motivation', 'id_salle'].includes(name)) {
-      processedValue = parseInt(value, 10);
+    if (['id_type_cours', 'id_session', 'id_horaire', 'id_niveau', 'id_motivation', 'id_salle', 'id_creneau'].includes(name)) {
+      processedValue = value === '' ? '' : parseInt(value, 10);
     } else if (type === 'checkbox') {
       processedValue = checked;
+    } else if (type === 'email') {
+      processedValue = value; // Handle email field
     }
     setFormData(prev => ({
       ...prev,
@@ -137,7 +148,7 @@ const Cours = () => {
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e) => { // Fonction utilisée dans le modal
     e.preventDefault();
     if (!currentUserId) {
       toast.error("Impossible d'identifier l'utilisateur connecté.");
@@ -145,9 +156,12 @@ const Cours = () => {
     }
 
     try {
+      // Prepare payload, ensuring id_salle and id_creneau can be null if not selected
       const payload = {
         ...formData,
         id_employe: formData.id_employe || currentUserId,
+        id_salle: formData.id_salle === '' ? null : formData.id_salle,  // Make optional
+        id_creneau: formData.id_creneau === '' ? null : formData.id_creneau  // Make optional
       };
 
       if (currentInscription) {
@@ -185,7 +199,11 @@ const Cours = () => {
       id_motivation: inscription.id_motivation || '',
       etablissement: inscription.etablissement || '',
       niveau_scolaire: inscription.niveau_scolaire || '',
-      id_salle: inscription.id_salle || '',
+      lieu_n: inscription.lieu_n || '',
+      nationalite: inscription.nationalite || '',
+      id_salle: inscription.id_salle || '', // Can be empty
+      id_creneau: inscription.id_creneau || '', // New field
+      email: inscription.email || '',
       id_employe: inscription.id_employe || currentUserId || ''
     });
     setIsModalOpen(true);
@@ -461,6 +479,28 @@ const Cours = () => {
             </div>
 
             <div>
+              <label htmlFor="id_creneau" className="block text-sm font-medium text-gray-700">
+                Créneau
+              </label>
+              <select
+                id="id_creneau"
+                name="id_creneau"
+                value={formData.id_creneau}
+                onChange={handleInputChange}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              >
+                <option value="">Sélectionnez un créneau</option>
+                {creneaux.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.jour_semaine} - {c.heure_debut} à {c.heure_fin}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
               <label htmlFor="id_salle" className="block text-sm font-medium text-gray-700">
                 Salle
               </label>
@@ -470,15 +510,28 @@ const Cours = () => {
                 value={formData.id_salle}
                 onChange={handleInputChange}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                required
               >
-                <option value="">Sélectionnez une salle</option>
+                <option value="">Sélectionnez une salle (optionnel)</option>
                 {salles.map((s) => (
                   <option key={s.id} value={s.id}>
-                    {s.nom_salle}
+                    {s.nom_salle} (Capacité: {s.capacite})
                   </option>
                 ))}
               </select>
+            </div>
+
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                Email
+              </label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              />
             </div>
           </div>
 

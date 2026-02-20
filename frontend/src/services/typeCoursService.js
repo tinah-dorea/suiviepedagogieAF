@@ -1,6 +1,6 @@
 import api from './api';
 
-const baseURL = '/type-cours';
+const baseURL = '/typecours';
 
 const typeCoursService = {
     // Récupérer tous les types de cours

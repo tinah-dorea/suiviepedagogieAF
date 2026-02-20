@@ -1,24 +1,11 @@
 import React from 'react';
-import { Outlet } from 'react-router-dom';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import './App.css';
 
 function App() {
   return (
-    <>
-      <Outlet />
-      <ToastContainer
-        position="top-right"
-        autoClose={5000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-      />
-    </>
+    <div className="App">
+      {/* Ce composant n'est plus utilisé car le routing est géré dans index.js */}
+    </div>
   );
 }
 

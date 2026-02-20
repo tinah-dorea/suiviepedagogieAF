@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getEmployes, getRoles, toggleStatus, deleteEmploye, createEmploye, updateEmploye } from '../../services/employeService';
-import roleService from '../../services/roleService';
+import { getEmployes, toggleStatus, deleteEmploye, createEmploye, updateEmploye } from '../../services/employeService';
+
+const ROLES = ['Admin', 'Pédagogie', 'Professeurs', 'Accueil'];
 
 // Composant de Carte de Statistiques avec nouvelle palette
 const StatCard = ({ title, value, icon: Icon, color }) => (
@@ -28,7 +29,6 @@ export default function Dashboard() {
   const [modalMode, setModalMode] = useState('add');
   const [currentEmploye, setCurrentEmploye] = useState(null);
   const [formData, setFormData] = useState({
-    service: '',
     nom: '',
     prenom: '',
     age: '',
@@ -36,20 +36,13 @@ export default function Dashboard() {
     tel: '',
     email: '',
     mot_passe: '',
-    id_role: 1,
+    role: 'Admin',
   });
   const [error, setError] = useState('');
-  const [roles, setRoles] = useState([]);
-  const [roleModalOpen, setRoleModalOpen] = useState(false);
-  const [roleModalMode, setRoleModalMode] = useState('add');
-  const [currentRole, setCurrentRole] = useState(null);
-  const [roleFormData, setRoleFormData] = useState({
-    nom_role: ''
-  });
 
   // Récupérer les infos utilisateur
   const user = JSON.parse(localStorage.getItem('user') || '{}');
-  const isAdmin = user.role === 1;
+  const isAdmin = user.service === 'rh' || user.role === 'Admin';
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -58,26 +51,9 @@ export default function Dashboard() {
     }
   }, [isAdmin, navigate]);
 
-  // Nouvelle palette de couleurs Alliance Française
-  const mainColor = '#DC2626'; // Rouge principal
-  const accentColor = '#B91C1C'; // Rouge foncé
-
-  // ... existing code ... (tous les useEffect et fonctions restent identiques)
-  useEffect(() => {
-    const loadRoles = async () => {
-      setLoading(true);
-      try {
-        const rolesData = await getRoles();
-        setRoles(rolesData);
-      } catch (err) {
-        console.error("Erreur chargement rôles:", err);
-        setError("Erreur lors du chargement des rôles");
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadRoles();
-  }, []);
+  // Palette: #F5F1E6, #DFF6FF, #758695
+  const mainColor = '#758695';
+  const accentColor = '#5a6b7a';
 
   useEffect(() => {
     const loadEmployes = async () => {
@@ -110,7 +86,6 @@ export default function Dashboard() {
     if (mode === 'edit' && employe) {
       setCurrentEmploye(employe);
       setFormData({
-        service: employe.service || '',
         nom: employe.nom,
         prenom: employe.prenom,
         age: employe.age || '',
@@ -118,12 +93,11 @@ export default function Dashboard() {
         tel: employe.tel || '',
         email: employe.email,
         mot_passe: '',
-        id_role: employe.id_role || 1,
+        role: employe.role || 'Admin',
       });
     } else {
       setCurrentEmploye(null);
       setFormData({
-        service: '',
         nom: '',
         prenom: '',
         age: '',
@@ -131,7 +105,7 @@ export default function Dashboard() {
         tel: '',
         email: '',
         mot_passe: '',
-        id_role: 1,
+        role: 'Admin',
       });
     }
     setError('');
@@ -217,79 +191,8 @@ export default function Dashboard() {
     }
   };
 
-  const openRoleModal = (mode, role = null) => {
-    setRoleModalMode(mode);
-    if (mode === 'edit' && role) {
-      setCurrentRole(role);
-      setRoleFormData({
-        nom_role: role.nom_role
-      });
-    } else {
-      setCurrentRole(null);
-      setRoleFormData({
-        nom_role: ''
-      });
-    }
-    setError('');
-    setRoleModalOpen(true);
-  };
-
-  const closeRoleModal = () => {
-    setRoleModalOpen(false);
-    setError('');
-  };
-
-  const handleRoleInputChange = (e) => {
-    const { name, value } = e.target;
-    setRoleFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleRoleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-
-    try {
-      if (roleModalMode === 'add') {
-        await roleService.createRole(roleFormData);
-      } else {
-        await roleService.updateRole(currentRole.id, roleFormData);
-      }
-
-      // Reload roles
-      const rolesData = await getRoles();
-      setRoles(rolesData);
-      closeRoleModal();
-    } catch (err) {
-      console.error('Erreur lors de la soumission du rôle:', err);
-      setError(
-        err.message ||
-        "Une erreur est survenue lors de l'opération. Veuillez réessayer."
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDeleteRole = async (id) => {
-    if (window.confirm("Êtes-vous sûr de vouloir supprimer ce rôle ?")) {
-      try {
-        setLoading(true);
-        await roleService.deleteRole(id);
-        const rolesData = await getRoles();
-        setRoles(rolesData);
-      } catch (err) {
-        console.error('Erreur lors de la suppression:', err);
-        const errorMessage = err.message || "Erreur lors de la suppression. Veuillez réessayer.";
-        alert(errorMessage);
-      } finally {
-        setLoading(false);
-      }
-    }
-  };
-
   return (
-    <div className="flex min-h-screen" style={{ backgroundColor: '#F9FAFB' }}>
+    <div className="flex min-h-screen" style={{ backgroundColor: '#F5F1E6' }}>
       {/* Sidebar avec logo Alliance Française */}
       <aside className="w-64 bg-white shadow-xl flex flex-col justify-between p-6">
         <div>
@@ -314,30 +217,30 @@ export default function Dashboard() {
 
           <nav>
             <ul>
-              {['Dashboard', 'Utilisateurs', 'Rôles & Activités', 'Statistiques'].map((item, index) => (
+              {['Dashboard', 'Utilisateurs', 'Rôles', 'Statistiques'].map((item, index) => (
                 <li key={index} className="mb-2">
                   <button
                     onClick={() => {
                       if (item === 'Dashboard') setActiveView('dashboard');
                       else if (item === 'Utilisateurs') setActiveView('utilisateurs');
-                      else if (item === 'Rôles & Activités') setActiveView('roles');
+                      else if (item === 'Rôles') setActiveView('roles');
                       else setActiveView('dashboard');
                     }}
                     className={`w-full text-left flex items-center p-3 rounded-xl transition-all duration-200 ${
                       (item === 'Dashboard' && activeView === 'dashboard') ||
                       (item === 'Utilisateurs' && activeView === 'utilisateurs') ||
-                      (item === 'Rôles & Activités' && activeView === 'roles')
+                      (item === 'Rôles' && activeView === 'roles')
                         ? 'font-bold text-white'
                         : 'hover:bg-gray-50'
                     }`}
                     style={{
                       backgroundColor: (item === 'Dashboard' && activeView === 'dashboard') ||
                                      (item === 'Utilisateurs' && activeView === 'utilisateurs') ||
-                                     (item === 'Rôles & Activités' && activeView === 'roles')
+                                     (item === 'Rôles' && activeView === 'roles')
                         ? mainColor : 'transparent',
                       color: (item === 'Dashboard' && activeView === 'dashboard') ||
                              (item === 'Utilisateurs' && activeView === 'utilisateurs') ||
-                             (item === 'Rôles & Activités' && activeView === 'roles')
+                             (item === 'Rôles' && activeView === 'roles')
                         ? 'white' : '#6B7280'
                     }}
                   >
@@ -382,7 +285,7 @@ export default function Dashboard() {
               </div>
               <div className="text-right">
                 <p className="font-semibold" style={{ color: '#1F2937' }}>{user.prenom} {user.nom}</p>
-                <p className="text-sm" style={{ color: '#6B7280' }}>{user.email}</p>
+                <p className="text-sm" style={{ color: '#758695' }}>{user.email}</p>
                 {user.tel && <p className="text-sm" style={{ color: '#6B7280' }}>Tél: {user.tel}</p>}
               </div>
             </div>
@@ -408,19 +311,19 @@ export default function Dashboard() {
                 <ul className="text-sm">
                   <li className="flex items-center mb-1">
                     <span className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: '#10B981' }}></span> 
-                    <span style={{ color: '#6B7280' }}>Progress Tracking</span>
+                    <span style={{ color: '#758695' }}>Progress Tracking</span>
                   </li>
                   <li className="flex items-center mb-1">
                     <span className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: '#F59E0B' }}></span> 
-                    <span style={{ color: '#6B7280' }}>User Activity</span>
+                    <span style={{ color: '#758695' }}>User Activity</span>
                   </li>
                   <li className="flex items-center mb-1">
                     <span className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: mainColor }}></span> 
-                    <span style={{ color: '#6B7280' }}>Sales Performance</span>
+                    <span style={{ color: '#758695' }}>Sales Performance</span>
                   </li>
                   <li className="flex items-center">
                     <span className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: '#8B5CF6' }}></span> 
-                    <span style={{ color: '#6B7280' }}>Task Completion</span>
+                    <span style={{ color: '#758695' }}>Task Completion</span>
                   </li>
                 </ul>
               </div>
@@ -477,14 +380,13 @@ export default function Dashboard() {
             </div>
 
             {loading ? (
-              <p className="text-center py-4" style={{ color: '#6B7280' }}>Chargement...</p>
+              <p className="text-center py-4" style={{ color: '#758695' }}>Chargement...</p>
             ) : (
               <div className="bg-white rounded-xl shadow-md overflow-hidden">
                 <table className="w-full">
                   <thead style={{ backgroundColor: '#F9FAFB' }}>
                     <tr>
                       <th className="text-left py-3 px-4" style={{ color: '#1F2937' }}>Utilisateur</th>
-                      <th className="text-left py-3 px-4" style={{ color: '#1F2937' }}>Service</th>
                       <th className="text-left py-3 px-4" style={{ color: '#1F2937' }}>Email</th>
                       <th className="text-left py-3 px-4" style={{ color: '#1F2937' }}>Rôle</th>
                       <th className="text-left py-3 px-4" style={{ color: '#1F2937' }}>Statut</th>
@@ -495,14 +397,13 @@ export default function Dashboard() {
                     {employes.map(emp => (
                       <tr key={emp.id} className="border-b hover:bg-gray-50">
                         <td className="py-3 px-4 font-medium" style={{ color: '#1F2937' }}>{emp.nom} {emp.prenom}</td>
-                        <td className="py-3 px-4" style={{ color: '#6B7280' }}>{emp.service || '-'}</td>
                         <td className="py-3 px-4" style={{ color: '#6B7280' }}>{emp.email}</td>
                         <td className="py-3 px-4">
                           <span className="px-2 py-0.5 rounded text-xs" style={{
                             backgroundColor: '#DBEAFE',
                             color: '#1E40AF'
                           }}>
-                            {emp.id_role === 1 ? 'Admin' : 'Employé'}
+                            {emp.role || 'N/A'}
                           </span>
                         </td>
                         <td className="py-3 px-4">
@@ -545,65 +446,26 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Vue Rôles */}
+        {/* Vue Rôles (liste fixe) */}
         {activeView === 'roles' && (
           <div>
-            <div className="flex justify-between items-center mb-6">
-              <h1 className="text-2xl font-bold" style={{ color: '#1F2937' }}>Gestion des Rôles</h1>
-              <button
-                onClick={() => openRoleModal('add')}
-                className="text-white px-4 py-2 rounded-lg transition-colors duration-200"
-                style={{ backgroundColor: mainColor }}
-                onMouseEnter={(e) => e.target.style.backgroundColor = accentColor}
-                onMouseLeave={(e) => e.target.style.backgroundColor = mainColor}
-              >
-                + Ajouter Rôle
-              </button>
-            </div>
-
-            {loading ? (
-              <p className="text-center py-4" style={{ color: '#6B7280' }}>Chargement...</p>
-            ) : (
-              <div className="bg-white rounded-xl shadow-md overflow-hidden">
-                <table className="w-full">
-                  <thead style={{ backgroundColor: '#F9FAFB' }}>
-                    <tr>
-                      <th className="text-left py-3 px-4" style={{ color: '#1F2937' }}>Nom du Rôle</th>
-                      <th className="text-left py-3 px-4" style={{ color: '#1F2937' }}>Actions</th>
+            <h1 className="text-2xl font-bold mb-6" style={{ color: '#1F2937' }}>Rôles disponibles</h1>
+            <div className="bg-white rounded-xl shadow-md overflow-hidden">
+              <table className="w-full">
+                <thead style={{ backgroundColor: '#F9FAFB' }}>
+                  <tr>
+                    <th className="text-left py-3 px-4" style={{ color: '#1F2937' }}>Nom du Rôle</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {ROLES.map((r, i) => (
+                    <tr key={i} className="border-b hover:bg-gray-50">
+                      <td className="py-3 px-4 font-medium" style={{ color: '#1F2937' }}>{r}</td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {roles.length === 0 ? (
-                      <tr>
-                        <td colSpan="2" className="text-center py-4" style={{ color: '#6B7280' }}>Aucun rôle trouvé. Cliquez sur "Ajouter Rôle" pour en créer un.</td>
-                      </tr>
-                    ) : (
-                      roles.map(role => (
-                        <tr key={role.id} className="border-b hover:bg-gray-50">
-                          <td className="py-3 px-4 font-medium" style={{ color: '#1F2937' }}>{role.nom_role}</td>
-                          <td className="py-3 px-4 space-x-2">
-                            <button
-                              onClick={() => openRoleModal('edit', role)}
-                              className="text-sm hover:underline"
-                              style={{ color: '#3B82F6' }}
-                            >
-                              Éditer
-                            </button>
-                            <button
-                              onClick={() => handleDeleteRole(role.id)}
-                              className="text-sm hover:underline"
-                              style={{ color: mainColor }}
-                            >
-                              Supprimer
-                            </button>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            )}
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </main>
@@ -619,7 +481,7 @@ export default function Dashboard() {
               <button
                 onClick={closeModal}
                 className="hover:bg-gray-100 rounded p-1"
-                style={{ color: '#6B7280' }}
+                style={{ color: '#758695' }}
               >
                 ✕
               </button>
@@ -666,14 +528,6 @@ export default function Dashboard() {
               />
 
               <input
-                name="service"
-                placeholder="Service"
-                value={formData.service}
-                onChange={handleInputChange}
-                className="w-full p-2 border rounded focus:outline-none focus:ring-2"
-              />
-
-              <input
                 name="tel"
                 placeholder="Téléphone"
                 value={formData.tel}
@@ -694,17 +548,15 @@ export default function Dashboard() {
               )}
 
               <select
-                name="id_role"
-                value={formData.id_role}
+                name="role"
+                value={formData.role}
                 onChange={handleInputChange}
                 className="w-full p-2 border rounded focus:outline-none focus:ring-2"
                 required
               >
                 <option value="">Sélectionnez un rôle *</option>
-                {roles.map(role => (
-                  <option key={role.id} value={role.id}>
-                    {role.nom_role}
-                  </option>
+                {ROLES.map(r => (
+                  <option key={r} value={r}>{r}</option>
                 ))}
               </select>
 
@@ -713,7 +565,7 @@ export default function Dashboard() {
                   type="button"
                   onClick={closeModal}
                   className="px-3 py-1.5 rounded text-sm transition-colors"
-                  style={{ color: '#6B7280' }}
+                  style={{ color: '#758695' }}
                   onMouseEnter={(e) => e.target.style.backgroundColor = '#F3F4F6'}
                   onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
                 >
@@ -727,69 +579,6 @@ export default function Dashboard() {
                   onMouseLeave={(e) => e.target.style.backgroundColor = mainColor}
                 >
                   {modalMode === 'add' ? 'Ajouter' : 'Modifier'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Modale Rôles */}
-      {roleModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
-            <div className="flex justify-between items-center p-4 border-b">
-              <h2 className="text-lg font-bold" style={{ color: '#1F2937' }}>
-                {roleModalMode === 'add' ? 'Ajouter un Rôle' : 'Modifier un Rôle'}
-              </h2>
-              <button
-                onClick={closeRoleModal}
-                className="hover:bg-gray-100 rounded p-1"
-                style={{ color: '#6B7280' }}
-              >
-                ✕
-              </button>
-            </div>
-
-            <form onSubmit={handleRoleSubmit} className="p-4 space-y-3">
-              {error && (
-                <div className="p-2 text-sm rounded text-center" style={{
-                  backgroundColor: '#FEF2F2',
-                  color: mainColor
-                }}>
-                  {error}
-                </div>
-              )}
-
-              <input
-                name="nom_role"
-                placeholder="Nom du rôle *"
-                value={roleFormData.nom_role}
-                onChange={handleRoleInputChange}
-                required
-                className="w-full p-2 border rounded focus:outline-none focus:ring-2"
-                style={{ focusRingColor: mainColor }}
-              />
-
-              <div className="flex justify-end space-x-2 pt-2">
-                <button
-                  type="button"
-                  onClick={closeRoleModal}
-                  className="px-3 py-1.5 rounded text-sm transition-colors"
-                  style={{ color: '#6B7280' }}
-                  onMouseEnter={(e) => e.target.style.backgroundColor = '#F3F4F6'}
-                  onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
-                >
-                  Annuler
-                </button>
-                <button
-                  type="submit"
-                  className="px-3 py-1.5 text-white rounded text-sm transition-colors"
-                  style={{ backgroundColor: mainColor }}
-                  onMouseEnter={(e) => e.target.style.backgroundColor = accentColor}
-                  onMouseLeave={(e) => e.target.style.backgroundColor = mainColor}
-                >
-                  {roleModalMode === 'add' ? 'Ajouter' : 'Modifier'}
                 </button>
               </div>
             </form>

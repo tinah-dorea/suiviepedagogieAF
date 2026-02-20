@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { getEmployes, getRoles, toggleStatus, deleteEmploye, createEmploye, updateEmploye } from '../../services/employeService';
 import Modal from '../ui/Modal';
 
+const ROLES = ['Admin', 'Pédagogie', 'Professeurs', 'Accueil'];
+
 const Employe = () => {
     const [employes, setEmployes] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -9,7 +11,6 @@ const Employe = () => {
     const [modalMode, setModalMode] = useState('add');
     const [currentEmploye, setCurrentEmploye] = useState(null);
     const [formData, setFormData] = useState({
-        service: '',
         nom: '',
         prenom: '',
         age: '',
@@ -17,10 +18,9 @@ const Employe = () => {
         tel: '',
         email: '',
         mot_passe: '',
-        id_role: 1,
+        role: 'Admin',
     });
     const [error, setError] = useState('');
-    const [roles, setRoles] = useState([]);
 
     useEffect(() => {
         loadInitialData();
@@ -29,9 +29,8 @@ const Employe = () => {
     const loadInitialData = async () => {
         setLoading(true);
         try {
-            const [employesData, rolesData] = await Promise.all([getEmployes(), getRoles()]);
-            setEmployes(employesData);
-            setRoles(rolesData);
+            const data = await getEmployes();
+            setEmployes(data);
         } catch (err) {
             console.error("Erreur chargement données:", err);
             setError("Erreur lors du chargement des données initiales.");
@@ -45,7 +44,6 @@ const Employe = () => {
         if (mode === 'edit' && employe) {
             setCurrentEmploye(employe);
             setFormData({
-                service: employe.service || '',
                 nom: employe.nom,
                 prenom: employe.prenom,
                 age: employe.age || '',
@@ -53,12 +51,11 @@ const Employe = () => {
                 tel: employe.tel || '',
                 email: employe.email,
                 mot_passe: '',
-                id_role: employe.id_role || 1,
+                role: employe.role || 'Admin',
             });
         } else {
             setCurrentEmploye(null);
             setFormData({
-                service: '',
                 nom: '',
                 prenom: '',
                 age: '',
@@ -66,7 +63,7 @@ const Employe = () => {
                 tel: '',
                 email: '',
                 mot_passe: '',
-                id_role: 1,
+                role: 'Admin',
             });
         }
         setError('');
@@ -107,6 +104,7 @@ const Employe = () => {
             console.error('Erreur lors de la soumission:', err);
             setError(
                 err.response?.data?.message || 
+                err.message ||
                 "Une erreur est survenue lors de l'opération. Veuillez réessayer."
             );
         } finally {
@@ -141,7 +139,7 @@ const Employe = () => {
                     setEmployes(data);
                 } catch (err) {
                     console.error('Erreur lors de la désactivation:', err);
-                    const errorMessage = err.response?.data?.message || "Erreur lors de la désactivation. Veuillez réessayer.";
+                    const errorMessage = err.response?.data?.message || err.message || "Erreur lors de la désactivation. Veuillez réessayer.";
                     alert(errorMessage);
                 } finally {
                     setLoading(false);
@@ -166,7 +164,7 @@ const Employe = () => {
 
             {loading ? (
                 <p className="text-center py-4">Chargement...</p>
-            ) : error ? (
+            ) : error && !modalOpen ? (
                 <p className="text-red-500 bg-red-100 p-3 rounded mb-4">{error}</p>
             ) : (
                 <div className="bg-white rounded-xl shadow-md overflow-hidden">
@@ -174,9 +172,8 @@ const Employe = () => {
                         <thead className="bg-gray-50">
                             <tr>
                                 <th className="text-left py-3 px-4">Utilisateur</th>
-                                <th className="text-left py-3 px-4">Service</th>
-                                <th className="text-left py-3 px-4">Email</th>
                                 <th className="text-left py-3 px-4">Rôle</th>
+                                <th className="text-left py-3 px-4">Email</th>
                                 <th className="text-left py-3 px-4">Statut</th>
                                 <th className="text-left py-3 px-4">Actions</th>
                             </tr>
@@ -185,13 +182,12 @@ const Employe = () => {
                             {employes.map(emp => (
                                 <tr key={emp.id} className="border-b hover:bg-gray-50">
                                     <td className="py-3 px-4 font-medium">{emp.nom} {emp.prenom}</td>
-                                    <td className="py-3 px-4">{emp.service || '-'}</td>
-                                    <td className="py-3 px-4">{emp.email}</td>
                                     <td className="py-3 px-4">
                                         <span className="px-2 py-0.5 rounded text-xs bg-blue-100 text-blue-800">
-                                            {roles.find(r => r.id === emp.id_role)?.nom_role || 'N/A'}
+                                            {emp.role || 'N/A'}
                                         </span>
                                     </td>
+                                    <td className="py-3 px-4">{emp.email}</td>
                                     <td className="py-3 px-4">
                                         <span className={`px-2 py-0.5 rounded text-xs ${
                                             emp.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-700'
@@ -224,17 +220,17 @@ const Employe = () => {
                         </div>
                         
                         <input name="email" type="email" placeholder="Email *" value={formData.email} onChange={handleInputChange} required className="w-full p-2 border rounded" />
-                        <input name="service" placeholder="Service" value={formData.service} onChange={handleInputChange} className="w-full p-2 border rounded" />
                         <input name="tel" placeholder="Téléphone" value={formData.tel} onChange={handleInputChange} className="w-full p-2 border rounded" />
+                        <input name="adresse" placeholder="Adresse" value={formData.adresse} onChange={handleInputChange} className="w-full p-2 border rounded" />
 
                         {modalMode === 'add' && (
                             <input name="mot_passe" type="password" placeholder="Mot de passe *" value={formData.mot_passe} onChange={handleInputChange} required className="w-full p-2 border rounded" />
                         )}
 
-                        <select name="id_role" value={formData.id_role} onChange={handleInputChange} required className="w-full p-2 border rounded">
+                        <select name="role" value={formData.role} onChange={handleInputChange} required className="w-full p-2 border rounded">
                             <option value="">Sélectionnez un rôle *</option>
-                            {roles.map(role => (
-                                <option key={role.id} value={role.id}>{role.nom_role}</option>
+                            {ROLES.map(r => (
+                                <option key={r} value={r}>{r}</option>
                             ))}
                         </select>
 

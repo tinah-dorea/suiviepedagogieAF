@@ -3,7 +3,7 @@ import { pool } from '../config/db.js';
 // Récupérer tous les niveaux
 const getAllNiveaux = async (req, res) => {
     try {
-        const result = await pool.query('SELECT * FROM niveau ORDER BY nom_niveau ASC, sous_niveau ASC');
+        const result = await pool.query('SELECT *, code FROM niveau ORDER BY nom_niveau ASC, sous_niveau ASC');
         res.json(result.rows);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -14,7 +14,7 @@ const getAllNiveaux = async (req, res) => {
 const getNiveauById = async (req, res) => {
     const { id } = req.params;
     try {
-        const result = await pool.query('SELECT * FROM niveau WHERE id = $1', [id]);
+        const result = await pool.query('SELECT *, code FROM niveau WHERE id = $1', [id]);
         if (result.rows.length === 0) {
             return res.status(404).json({ message: 'Niveau non trouvé' });
         }
@@ -29,7 +29,7 @@ const createNiveau = async (req, res) => {
     const { nom_niveau, sous_niveau } = req.body;
     try {
         const result = await pool.query(
-            'INSERT INTO niveau (nom_niveau, sous_niveau) VALUES ($1, $2) RETURNING *',
+            'INSERT INTO niveau (nom_niveau, sous_niveau) VALUES ($1, $2) RETURNING *, code',
             [nom_niveau, sous_niveau]
         );
         res.status(201).json(result.rows[0]);
@@ -44,7 +44,7 @@ const updateNiveau = async (req, res) => {
     const { nom_niveau, sous_niveau } = req.body;
     try {
         const result = await pool.query(
-            'UPDATE niveau SET nom_niveau = $1, sous_niveau = $2 WHERE id = $3 RETURNING *',
+            'UPDATE niveau SET nom_niveau = $1, sous_niveau = $2 WHERE id = $3 RETURNING *, code',
             [nom_niveau, sous_niveau, id]
         );
         if (result.rows.length === 0) {

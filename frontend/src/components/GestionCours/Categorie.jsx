@@ -3,6 +3,7 @@ import { toast } from 'react-toastify';
 import Modal from '../ui/Modal';
 import categorieService from '../../services/categorieService';
 import typeCoursService from '../../services/typeCoursService';
+import { EllipsisHorizontalIcon } from '@heroicons/react/24/outline';
 
 const Categorie = () => {
   const [categories, setCategories] = useState([]);
@@ -16,7 +17,7 @@ const Categorie = () => {
     max_age: ''
   });
   const [loading, setLoading] = useState(true);
-
+  const [openMenuId, setOpenMenuId] = useState(null);
 
   // Charger les données
   const loadCategories = async () => {
@@ -131,7 +132,7 @@ const Categorie = () => {
           <thead className="bg-gray-50">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                ID
+                N°
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Nom
@@ -151,10 +152,10 @@ const Categorie = () => {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {categories.map((categorie) => (
+            {categories.map((categorie, index) => (
               <tr key={categorie.id}>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {categorie.id}
+                  {index + 1}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {categorie.nom_categorie}
@@ -169,18 +170,37 @@ const Categorie = () => {
                   {categorie.max_age || '-'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button
-                    onClick={() => handleEdit(categorie)}
-                    className="text-blue-600 hover:text-blue-900 mr-4"
-                  >
-                    ✏️
-                  </button>
-                  <button
-                    onClick={() => handleDelete(categorie.id)}
-                    className="text-red-600 hover:text-red-900"
-                  >
-                    🗑️
-                  </button>
+                  <div className="relative">
+                    <button
+                      onClick={() => setOpenMenuId(openMenuId === categorie.id ? null : categorie.id)}
+                      className="text-gray-500 hover:text-gray-700"
+                    >
+                      <EllipsisHorizontalIcon className="h-5 w-5" />
+                    </button>
+                    
+                    {openMenuId === categorie.id && (
+                      <div className="absolute right-0 mt-1 w-40 bg-white border rounded-md shadow-lg z-10">
+                        <button
+                          onClick={() => {
+                            handleEdit(categorie);
+                            setOpenMenuId(null);
+                          }}
+                          className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 text-left"
+                        >
+                          Éditer
+                        </button>
+                        <button
+                          onClick={() => {
+                            handleDelete(categorie.id);
+                            setOpenMenuId(null);
+                          }}
+                          className="w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100 text-left"
+                        >
+                          Supprimer
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}

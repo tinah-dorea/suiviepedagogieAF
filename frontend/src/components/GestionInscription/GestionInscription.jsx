@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Tab } from '@headlessui/react';
 import { RiBookLine, RiGraduationCapLine, RiFileTextLine } from 'react-icons/ri';
 import Prepa from './Prepa';
@@ -9,67 +9,56 @@ function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
 }
 
-const GestionInscription = () => {
+export default function GestionInscription() {
   const tabs = [
-    { name: 'Prépa', icon: RiGraduationCapLine },
     { name: 'Cours', icon: RiBookLine },
-    { name: 'Examen', icon: RiFileTextLine },
+    { name: 'Préparation', icon: RiGraduationCapLine },
+    { name: 'Examens', icon: RiFileTextLine },
   ];
 
   return (
-    <div className="px-8 py-6">
-      <h1 className="text-2xl font-bold mb-6">Gestion des Inscriptions</h1>
-
-      <Tab.Group>
-        <Tab.List className="flex space-x-1 rounded-xl bg-blue-900/20 p-1">
-          {tabs.map((tab) => (
-            <Tab
-              key={tab.name}
-              className={({ selected }) =>
-                classNames(
-                  'flex items-center space-x-2 w-full rounded-lg py-2.5 text-sm font-medium leading-5',
-                  'ring-white ring-opacity-60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2',
-                  selected
-                    ? 'bg-white shadow text-blue-700'
-                    : 'text-blue-100 hover:bg-white/[0.12] hover:text-white'
-                )
-              }
-            >
-              <tab.icon className="ml-3" />
-              <span>{tab.name}</span>
-            </Tab>
-          ))}
-        </Tab.List>
-
-        <Tab.Panels className="mt-2">
-          <Tab.Panel
-            className={classNames(
-              'rounded-xl bg-white p-3',
-              'ring-white ring-opacity-60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2'
-            )}
-          >
-            <Prepa />
-          </Tab.Panel>
-          <Tab.Panel
-            className={classNames(
-              'rounded-xl bg-white p-3',
-              'ring-white ring-opacity-60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2'
-            )}
-          >
-            <Cours />
-          </Tab.Panel>
-          <Tab.Panel
-            className={classNames(
-              'rounded-xl bg-white p-3',
-              'ring-white ring-opacity-60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2'
-            )}
-          >
-            <Examen />
-          </Tab.Panel>
-        </Tab.Panels>
-      </Tab.Group>
+    <div className="space-y-6">
+      <div className="bg-white shadow rounded-lg p-6">
+        <h2 className="text-xl font-semibold text-gray-800 mb-6">Gestion des Inscriptions</h2>
+        
+        <Tab.Group>
+          <Tab.List className="flex space-x-1 rounded-xl bg-blue-100 p-1 mb-6">
+            {tabs.map((tab) => {
+              const IconComponent = tab.icon;
+              return (
+                <Tab
+                  key={tab.name}
+                  className={({ selected }) =>
+                    classNames(
+                      'w-full py-3 text-sm font-medium leading-5 rounded-lg',
+                      'focus:outline-none',
+                      selected
+                        ? 'bg-white shadow text-blue-700'
+                        : 'text-blue-500 hover:bg-white/[0.12] hover:text-blue-700'
+                    )
+                  }
+                >
+                  <div className="flex items-center justify-center space-x-2">
+                    <IconComponent className="w-5 h-5" />
+                    <span>{tab.name}</span>
+                  </div>
+                </Tab>
+              );
+            })}
+          </Tab.List>
+          <Tab.Panels>
+            <Tab.Panel>
+              <Cours />
+            </Tab.Panel>
+            <Tab.Panel>
+              <Prepa />
+            </Tab.Panel>
+            <Tab.Panel>
+              <Examen />
+            </Tab.Panel>
+          </Tab.Panels>
+        </Tab.Group>
+      </div>
     </div>
   );
-};
-
-export default GestionInscription;
+}

@@ -11,7 +11,7 @@ const normalizeText = (value = '') => {
 const SERVICE_CONFIG = {
   rh: {
     route: '/dashboard',
-    aliases: ['ressources humaines', 'ressources humaine', 'rh'],
+    aliases: ['admin', 'ressources humaines', 'ressources humaine', 'rh'],
   },
   pedagogie: {
     route: '/dashboard-pedagogique',
@@ -25,6 +25,10 @@ const SERVICE_CONFIG = {
     route: '/dashboard-professeur',
     aliases: ['professeurs', 'professeur'],
   },
+  apprenants: {
+    route: '/dashboard-apprenant',
+    aliases: ['apprenants', 'apprenant', 'etudiant', 'étudiant', 'eleve', 'élève'],
+  },
 };
 
 const aliasMap = Object.entries(SERVICE_CONFIG).reduce((acc, [key, config]) => {
@@ -36,7 +40,8 @@ const aliasMap = Object.entries(SERVICE_CONFIG).reduce((acc, [key, config]) => {
 
 export const matchServiceKey = (value) => {
   const normalized = normalizeText(value);
-  return aliasMap[normalized] || null;
+  const result = aliasMap[normalized] || null;
+  return result;
 };
 
 export const getServiceRoute = (value) => {
@@ -69,4 +74,3 @@ export const getPostAuthRedirectPath = () => {
 };
 
 export { SERVICE_CONFIG };
-

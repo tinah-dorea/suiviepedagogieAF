@@ -54,6 +54,17 @@ const inscriptionService = {
       console.error('Erreur lors de la suppression de l\'inscription:', error);
       throw error;
     }
+  },
+  
+  // Récupérer les inscriptions par email (pour les apprenants)
+  getByEmail: async (email) => {
+    try {
+      const response = await api.get(`/inscriptions/email/${email}`);
+      return response.data;
+    } catch (error) {
+      console.error('Erreur lors de la récupération des inscriptions par email:', error);
+      throw error;
+    }
   }
 };
 

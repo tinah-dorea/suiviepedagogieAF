@@ -1,31 +1,28 @@
 import { pool } from '../config/db.js';
 
 // Récupérer tous les examens avec leurs relations
-const getAllExamens = async (req, res) => {
-    try {
-        const result = await pool.query(`
-            SELECT e.*,
-                i.nom,
-                i.prenom,
-                i.sexe,
-                i.date_n,
-                i.etat_inscription,
-                tc.nom_type_cours,
-                s.mois,
-                s.annee,
-                n.nom_niveau,
-                n.sous_niveau
-            FROM examen e
-            LEFT JOIN inscription i ON e.id_inscription = i.id
-            LEFT JOIN type_cours tc ON i.id_type_cours = tc.id
-            LEFT JOIN session s ON i.id_session = s.id
-            LEFT JOIN niveau n ON i.id_niveau = n.id
-            ORDER BY e.id ASC
-        `);
-        res.json(result.rows);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
+const getAllExamens = (req, res) => {
+  pool.query(`
+    SELECT e.*,
+        i.nom,
+        i.prenom,
+        i.sexe,
+        i.date_n,
+        i.etat_inscription,
+        s.mois,
+        s.annee
+    FROM examen e
+    LEFT JOIN inscription i ON e.id_inscription = i.id
+    LEFT JOIN session s ON i.id_session = s.id
+    ORDER BY e.id ASC
+  `)
+    .then((results) => {
+      res.status(200).json(results.rows);
+    })
+    .catch((error) => {
+      console.error('Erreur lors de la récupération des examens:', error);
+      res.status(500).json({ error: 'Erreur lors de la récupération des examens' });
+    });
 };
 
 // Récupérer un examen par ID

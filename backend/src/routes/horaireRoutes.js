@@ -1,23 +1,20 @@
 import express from 'express';
-import {
-    getAllHoraires,
-    getHoraireById,
-    createHoraire,
-    updateHoraire,
-    deleteHoraire,
-    getHorairesByTypeCours
+import { 
+    getAllHorairesCours, 
+    getHoraireCoursById, 
+    createHoraireCours, 
+    updateHoraireCours, 
+    deleteHoraireCours,
+    getHorairesCoursBySession
 } from '../controllers/horaireController.js';
-import { authenticateToken } from '../middlewares/authMiddleware.js';
-import { createCreneauValidation, updateCreneauValidation } from '../validations/creneauValidation.js';
 
 const router = express.Router();
-router.use(authenticateToken);
 
-router.get('/', getAllHoraires);
-router.get('/:id', getHoraireById);
-router.get('/by-type-cours/:typeCoursId', getHorairesByTypeCours);
-router.post('/', createCreneauValidation, createHoraire);
-router.put('/:id', updateCreneauValidation, updateHoraire);
-router.delete('/:id', deleteHoraire);
+router.get('/', getAllHorairesCours);
+router.get('/session/:id_session', getHorairesCoursBySession); // Nouvelle route
+router.get('/:id', getHoraireCoursById);
+router.post('/', createHoraireCours);
+router.put('/:id', updateHoraireCours);
+router.delete('/:id', deleteHoraireCours);
 
 export default router;

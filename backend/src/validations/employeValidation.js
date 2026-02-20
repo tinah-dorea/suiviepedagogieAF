@@ -1,10 +1,6 @@
 import { body } from 'express-validator';
 
 export const createEmployeValidation = [
-  body('service')
-    .optional()
-    .isString()
-    .withMessage('Le service doit être une chaîne de caractères'),
   
   body('nom')
     .notEmpty()
@@ -48,16 +44,14 @@ export const createEmployeValidation = [
     .isLength({ min: 6 })
     .withMessage('Le mot de passe doit contenir au moins 6 caractères'),
   
-  body('id_role')
-    .isInt({ min: 1 })
-    .withMessage('L\'ID du rôle doit être un entier positif')
+  body('role')
+    .notEmpty()
+    .withMessage('Le rôle est requis')
+    .isString()
+    .withMessage('Le rôle doit être une chaîne de caractères')
 ];
 
 export const updateEmployeValidation = [
-  body('service')
-    .optional()
-    .isString()
-    .withMessage('Le service doit être une chaîne de caractères'),
   
   body('nom')
     .optional()
@@ -96,8 +90,8 @@ export const updateEmployeValidation = [
     .isLength({ max: 100 })
     .withMessage('L\'email ne doit pas dépasser 100 caractères'),
   
-  body('id_role')
+  body('role')
     .optional()
-    .isInt({ min: 1 })
-    .withMessage('L\'ID du rôle doit être un entier positif')
+    .isString()
+    .withMessage('Le rôle doit être une chaîne de caractères')
 ];

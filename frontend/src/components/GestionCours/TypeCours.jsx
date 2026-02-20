@@ -3,7 +3,7 @@ import { toast } from 'react-toastify';
 import Modal from '../ui/Modal';
 import typeCoursService from '../../services/typeCoursService';
 import typeServiceService from '../../services/typeServiceService';
-import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { PencilIcon, TrashIcon, EllipsisHorizontalIcon } from '@heroicons/react/24/outline';
 
 const TypeCours = () => {
   const [typeCours, setTypeCours] = useState([]);
@@ -15,6 +15,7 @@ const TypeCours = () => {
     id_type_service: ''
   });
   const [loading, setLoading] = useState(true);
+  const [openMenuId, setOpenMenuId] = useState(null);
 
   // Charger les données
   const loadData = async () => {
@@ -126,12 +127,12 @@ const TypeCours = () => {
           <thead className="bg-gray-50">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                ID
+                N°
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Nom du Type de Cours
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                 Service
               </th>
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -140,30 +141,54 @@ const TypeCours = () => {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {typeCours.map((type) => (
-              <tr key={type.id}>
+            {typeCours.map((type, index) => (
+              <tr key={type.id} className="sm:table-row flex flex-col mb-4 border border-gray-300 rounded-lg p-3 sm:p-0 sm:border-0 sm:rounded-none">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 sm:hidden">
+                  N°: {index + 1}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden sm:table-cell">
+                  {index + 1}
+                </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {type.id}
+                  <span className="font-medium">{type.nom_type_cours}</span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {type.nom_type_cours}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden md:table-cell">
                   {getServiceName(type.id_type_service)}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button
-                    onClick={() => handleEdit(type)}
-                    className="text-blue-600 hover:text-blue-900 mr-4"
-                  >
-                    <PencilIcon className="h-5 w-5" />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(type.id)}
-                    className="text-red-600 hover:text-red-900"
-                  >
-                    <TrashIcon className="h-5 w-5" />
-                  </button>
+                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium sm:absolute sm:right-2">
+                  <div className="relative">
+                    <button
+                      onClick={() => setOpenMenuId(openMenuId === type.id ? null : type.id)}
+                      className="text-gray-500 hover:text-gray-700"
+                    >
+                      <EllipsisHorizontalIcon className="h-5 w-5" />
+                    </button>
+                    
+                    {openMenuId === type.id && (
+                      <div className="absolute right-0 mt-1 w-40 bg-white border rounded-md shadow-lg z-10">
+                        <button
+                          onClick={() => {
+                            handleEdit(type);
+                            setOpenMenuId(null);
+                          }}
+                          className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          <PencilIcon className="h-4 w-4 mr-2" />
+                          Éditer
+                        </button>
+                        <button
+                          onClick={() => {
+                            handleDelete(type.id);
+                            setOpenMenuId(null);
+                          }}
+                          className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                        >
+                          <TrashIcon className="h-4 w-4 mr-2" />
+                          Supprimer
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}

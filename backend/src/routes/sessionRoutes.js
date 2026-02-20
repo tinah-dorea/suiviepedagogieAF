@@ -6,7 +6,8 @@ import {
     updateSession,
     deleteSession,
     getSessionsByTypeCours,
-    getSessionsActives
+    getSessionsActives,
+    getSessionsByProfesseur
 } from '../controllers/sessionController.js';
 import { authenticateToken } from '../middlewares/authMiddleware.js';
 import { sessionValidation } from '../validations/sessionValidation.js';
@@ -27,6 +28,9 @@ router.get('/:id', getSessionById);
 
 // GET /api/sessions/type-cours/:typeCoursId - Récupérer les sessions par type de cours
 router.get('/type-cours/:typeCoursId', getSessionsByTypeCours);
+
+// GET /api/sessions/professeur - Récupérer les sessions d'un professeur
+router.get('/professeur', getSessionsByProfesseur);
 
 // POST /api/sessions - Créer une nouvelle session
 router.post('/', sessionValidation.create, createSession);

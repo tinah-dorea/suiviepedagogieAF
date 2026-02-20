@@ -1,12 +1,19 @@
 import { pool } from '../config/db.js';
 
-// Récupérer toutes les sessions
+// Récupérer toutes les sessions avec statistiques
 const getAllSessions = async (req, res) => {
     try {
         const result = await pool.query(`
-            SELECT s.*, tc.nom_type_cours
+            SELECT s.*, tc.nom_type_cours, s.duree_cours,
+                   COUNT(DISTINCT i.id) as nb_inscrits,
+                   COUNT(DISTINCT g.id) as nb_groupes
             FROM session s
             LEFT JOIN type_cours tc ON s.id_type_cours = tc.id
+            LEFT JOIN session_cours sc ON s.id = sc.id_session
+            LEFT JOIN creneau cr ON sc.id = cr.id_session_cours
+            LEFT JOIN inscription i ON cr.id = i.id_creneau
+            LEFT JOIN groupe g ON cr.id = g.id_creneau
+            GROUP BY s.id, tc.nom_type_cours, s.duree_cours
             ORDER BY s.annee DESC, s.mois DESC
         `);
         res.json(result.rows);
@@ -15,15 +22,22 @@ const getAllSessions = async (req, res) => {
     }
 };
 
-// Récupérer une session par ID
+// Récupérer une session par ID avec statistiques
 const getSessionById = async (req, res) => {
     const { id } = req.params;
     try {
         const result = await pool.query(`
-            SELECT s.*, tc.nom_type_cours
+            SELECT s.*, tc.nom_type_cours, s.duree_cours,
+                   COUNT(DISTINCT i.id) as nb_inscrits,
+                   COUNT(DISTINCT g.id) as nb_groupes
             FROM session s
             LEFT JOIN type_cours tc ON s.id_type_cours = tc.id
+            LEFT JOIN session_cours sc ON s.id = sc.id_session
+            LEFT JOIN creneau cr ON sc.id = cr.id_session_cours
+            LEFT JOIN inscription i ON cr.id = i.id_creneau
+            LEFT JOIN groupe g ON cr.id = g.id_creneau
             WHERE s.id = $1
+            GROUP BY s.id, tc.nom_type_cours, s.duree_cours
         `, [id]);
 
         if (result.rows.length === 0) {
@@ -44,7 +58,9 @@ const createSession = async (req, res) => {
         date_fin_inscription,
         date_debut,
         date_fin,
-        date_exam
+        date_exam,
+        nom_session,
+        duree_cours  // Ajouter duree_cours
     } = req.body;
 
     try {
@@ -57,6 +73,13 @@ const createSession = async (req, res) => {
         if (sessionExistante.rows.length > 0) {
             return res.status(400).json({
                 message: 'Une session existe déjà pour ce mois/année/type de cours'
+            });
+        }
+
+        // Valider que duree_cours est un nombre positif
+        if (duree_cours !== undefined && (isNaN(duree_cours) || duree_cours <= 0)) {
+            return res.status(400).json({
+                message: 'La durée du cours doit être un nombre positif'
             });
         }
 
@@ -85,9 +108,11 @@ const createSession = async (req, res) => {
                 date_fin_inscription,
                 date_debut,
                 date_fin,
-                date_exam
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-            [mois, annee, id_type_cours, date_fin_inscription, date_debut, date_fin, date_exam]
+                date_exam,
+                nom_session,
+                duree_cours
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
+            [mois, annee, id_type_cours, date_fin_inscription, date_debut, date_fin, date_exam, nom_session, duree_cours]
         );
 
         res.status(201).json(result.rows[0]);
@@ -110,7 +135,9 @@ const updateSession = async (req, res) => {
         date_fin_inscription,
         date_debut,
         date_fin,
-        date_exam
+        date_exam,
+        nom_session,
+        duree_cours  // Ajouter duree_cours
     } = req.body;
 
     try {
@@ -123,6 +150,13 @@ const updateSession = async (req, res) => {
         if (sessionExistante.rows.length > 0) {
             return res.status(400).json({
                 message: 'Une autre session existe déjà pour ce mois/année/type de cours'
+            });
+        }
+
+        // Valider que duree_cours est un nombre positif
+        if (duree_cours !== undefined && (isNaN(duree_cours) || duree_cours <= 0)) {
+            return res.status(400).json({
+                message: 'La durée du cours doit être un nombre positif'
             });
         }
 
@@ -151,9 +185,11 @@ const updateSession = async (req, res) => {
                 date_fin_inscription = $4,
                 date_debut = $5,
                 date_fin = $6,
-                date_exam = $7
-            WHERE id = $8 RETURNING *`,
-            [mois, annee, id_type_cours, date_fin_inscription, date_debut, date_fin, date_exam, id]
+                date_exam = $7,
+                nom_session = $8,
+                duree_cours = $9
+            WHERE id = $10 RETURNING *`,
+            [mois, annee, id_type_cours, date_fin_inscription, date_debut, date_fin, date_exam, nom_session, duree_cours, id]
         );
 
         if (result.rows.length === 0) {
@@ -193,28 +229,69 @@ const deleteSession = async (req, res) => {
 const getSessionsByTypeCours = async (req, res) => {
     const { typeCoursId } = req.params;
     try {
-        const result = await pool.query(
-            `SELECT * FROM session
-            WHERE id_type_cours = $1
-            ORDER BY annee DESC, mois DESC`,
-            [typeCoursId]
-        );
+        const result = await pool.query(`
+            SELECT s.*, tc.nom_type_cours,
+                   COUNT(DISTINCT i.id) as nb_inscrits,
+                   COUNT(DISTINCT g.id) as nb_groupes
+            FROM session s
+            LEFT JOIN type_cours tc ON s.id_type_cours = tc.id
+            LEFT JOIN session_cours sc ON s.id = sc.id_session
+            LEFT JOIN creneau cr ON sc.id = cr.id_session_cours
+            LEFT JOIN inscription i ON cr.id = i.id_creneau
+            LEFT JOIN groupe g ON cr.id = g.id_creneau
+            WHERE s.id_type_cours = $1
+            GROUP BY s.id, tc.nom_type_cours
+            ORDER BY s.annee DESC, s.mois DESC
+        `, [typeCoursId]);
         res.json(result.rows);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
 
-// Récupérer les sessions actives (en cours ou à venir)
+// Récupérer les sessions actives (en cours ou à venir) avec statistiques
 const getSessionsActives = async (req, res) => {
     try {
         const result = await pool.query(`
-            SELECT s.*, tc.nom_type_cours
+            SELECT s.*, tc.nom_type_cours, s.duree_cours,
+                   COUNT(DISTINCT i.id) as nb_inscrits,
+                   COUNT(DISTINCT g.id) as nb_groupes
             FROM session s
             LEFT JOIN type_cours tc ON s.id_type_cours = tc.id
+            LEFT JOIN session_cours sc ON s.id = sc.id_session
+            LEFT JOIN creneau cr ON sc.id = cr.id_session_cours
+            LEFT JOIN inscription i ON cr.id = i.id_creneau
+            LEFT JOIN groupe g ON cr.id = g.id_creneau
             WHERE date_fin >= CURRENT_DATE
+            GROUP BY s.id, tc.nom_type_cours, s.duree_cours
             ORDER BY date_debut ASC
         `);
+        res.json(result.rows);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// Récupérer les sessions pour un professeur spécifique
+const getSessionsByProfesseur = async (req, res) => {
+    try {
+        const profId = req.user.id; // L'ID du professeur connecté
+        
+        const result = await pool.query(`
+            SELECT DISTINCT s.*, tc.nom_type_cours, s.duree_cours,
+                   COUNT(DISTINCT i.id) as nb_inscrits,
+                   COUNT(DISTINCT g.id) as nb_groupes
+            FROM session s
+            JOIN session_cours sc ON s.id = sc.id_session
+            JOIN creneau cr ON sc.id = cr.id_session_cours
+            JOIN groupe g ON cr.id = g.id_creneau
+            JOIN type_cours tc ON s.id_type_cours = tc.id
+            LEFT JOIN inscription i ON cr.id = i.id_creneau
+            WHERE g.id_employe_prof = $1
+            GROUP BY s.id, tc.nom_type_cours, s.duree_cours
+            ORDER BY s.annee DESC, s.mois DESC
+        `, [profId]);
+        
         res.json(result.rows);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -228,5 +305,6 @@ export {
     updateSession,
     deleteSession,
     getSessionsByTypeCours,
-    getSessionsActives
+    getSessionsActives,
+    getSessionsByProfesseur
 };

@@ -1,25 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
-import Modal from '../ui/Modal';
 import sessionService from '../../services/sessionService';
-import typeCoursService from '../../services/typeCoursService';
-import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { PencilIcon, TrashIcon, EllipsisHorizontalIcon } from '@heroicons/react/24/outline';
 
 const Session = () => {
   const [sessions, setSessions] = useState([]);
-  const [typeCours, setTypeCours] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentSession, setCurrentSession] = useState(null);
+  const [openMenuId, setOpenMenuId] = useState(null);
   const [formData, setFormData] = useState({
-    mois: '',
-    annee: '',
-    id_type_cours: '',
-    date_fin_inscription: '',
+    nom_session: '',
     date_debut: '',
-    date_fin: '',
-    date_exam: ''
+    date_fin: ''
   });
   const [loading, setLoading] = useState(true);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [sessionToDelete, setSessionToDelete] = useState(null);
+  const [error, setError] = useState('');
 
   // Charger les données
   const loadSessions = async () => {
@@ -32,40 +29,18 @@ const Session = () => {
     }
   };
 
-  const loadTypeCours = async () => {
-    try {
-      const data = await typeCoursService.getAll();
-      setTypeCours(data);
-    } catch (error) {
-      toast.error('Erreur lors du chargement des types de cours');
-      console.error(error);
-    }
-  };
-
   useEffect(() => {
-    const loadData = async () => {
-      await Promise.all([loadSessions(), loadTypeCours()]);
-      setLoading(false);
-    };
-    loadData();
+    loadSessions();
+    setLoading(false);
   }, []);
 
   // Gestionnaires de formulaire
   const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    let processedValue = value;
-    if (name === 'id_type_cours') {
-      processedValue = parseInt(value, 10);
-    }
+    const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : processedValue
+      [name]: value
     }));
-  };
-
-  const formatDateForInput = (dateString) => {
-    if (!dateString) return '';
-    return new Date(dateString).toISOString().split('T')[0];
   };
 
   const handleSubmit = async (e) => {
@@ -79,6 +54,9 @@ const Session = () => {
         toast.success('Session créée avec succès');
       }
       setIsModalOpen(false);
+      setCurrentSession(null);
+      setFormData({ nom_session: '', date_debut: '', date_fin: '' });
+      setError('');
       loadSessions();
     } catch (error) {
       if (error.response && error.response.data && error.response.data.errors) {
@@ -86,7 +64,7 @@ const Session = () => {
           toast.error(`${err.field}: ${err.message}`);
         });
       } else {
-        toast.error(error.response?.data?.message || 'Une erreur est survenue');
+        setError(error.response?.data?.message || 'Une erreur est survenue');
       }
     }
   };
@@ -95,13 +73,9 @@ const Session = () => {
   const handleEdit = (session) => {
     setCurrentSession(session);
     setFormData({
-      mois: session.mois,
-      annee: session.annee,
-      id_type_cours: session.id_type_cours,
-      date_fin_inscription: formatDateForInput(session.date_fin_inscription),
-      date_debut: formatDateForInput(session.date_debut),
-      date_fin: formatDateForInput(session.date_fin),
-      date_exam: formatDateForInput(session.date_exam)
+      nom_session: session.nom_session,
+      date_debut: session.date_debut.split('T')[0], // Format date for input
+      date_fin: session.date_fin.split('T')[0]
     });
     setIsModalOpen(true);
   };
@@ -110,27 +84,32 @@ const Session = () => {
   const handleAdd = () => {
     setCurrentSession(null);
     setFormData({
-      mois: '',
-      annee: '',
-      id_type_cours: '',
-      date_fin_inscription: '',
+      nom_session: '',
       date_debut: '',
-      date_fin: '',
-      date_exam: ''
+      date_fin: ''
     });
+    setError('');
     setIsModalOpen(true);
   };
 
-  // Supprimer une session
-  const handleDelete = async (id) => {
-    if (window.confirm('Êtes-vous sûr de vouloir supprimer cette session ?')) {
-      try {
-        await sessionService.delete(id);
-        toast.success('Session supprimée avec succès');
-        loadSessions();
-      } catch (error) {
-        toast.error(error.response?.data?.message || 'Une erreur est survenue');
-      }
+  // Supprimer une session - préparer la confirmation
+  const prepareDelete = (session) => {
+    setSessionToDelete(session);
+    setShowConfirmation(true);
+    setOpenMenuId(null);
+  };
+
+  // Confirmer la suppression
+  const confirmDelete = async () => {
+    try {
+      await sessionService.remove(sessionToDelete.id);
+      toast.success('Session supprimée avec succès');
+      loadSessions();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Une erreur est survenue');
+    } finally {
+      setShowConfirmation(false);
+      setSessionToDelete(null);
     }
   };
 
@@ -142,7 +121,7 @@ const Session = () => {
 
   return (
     <div className="p-4">
-      {/* En-tête */}
+      {/* Header */}
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold">Sessions</h2>
         <button
@@ -159,19 +138,10 @@ const Session = () => {
           <thead className="bg-gray-50">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                ID
+                N°
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Mois
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Année
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Type de Cours
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Fin Inscription
+                Nom de la session
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Date de début
@@ -179,54 +149,60 @@ const Session = () => {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Date de fin
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Date d'examen
-              </th>
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Actions
               </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {sessions.map((session) => (
+            {sessions.map((session, index) => (
               <tr key={session.id}>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {session.id}
+                  {index + 1}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {session.mois}
+                  {session.nom_session}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {session.annee}
+                  {new Date(session.date_debut).toLocaleDateString()}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {typeCours.find(tc => tc.id === session.id_type_cours)?.nom_type_cours || session.id_type_cours}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {session.date_fin_inscription ? new Date(session.date_fin_inscription).toLocaleDateString() : '-'}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {session.date_debut ? new Date(session.date_debut).toLocaleDateString() : '-'}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {session.date_fin ? new Date(session.date_fin).toLocaleDateString() : '-'}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {session.date_exam ? new Date(session.date_exam).toLocaleDateString() : '-'}
+                  {new Date(session.date_fin).toLocaleDateString()}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button
-                    onClick={() => handleEdit(session)}
-                    className="text-blue-600 hover:text-blue-900 mr-4"
-                  >
-                    <PencilIcon className="h-5 w-5" />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(session.id)}
-                    className="text-red-600 hover:text-red-900"
-                  >
-                    <TrashIcon className="h-5 w-5" />
-                  </button>
+                  <div className="relative">
+                    <button
+                      onClick={() => setOpenMenuId(openMenuId === session.id ? null : session.id)}
+                      className="text-gray-500 hover:text-gray-700"
+                    >
+                      <EllipsisHorizontalIcon className="h-5 w-5" />
+                    </button>
+                    
+                    {openMenuId === session.id && (
+                      <div className="absolute right-0 mt-1 w-40 bg-white border rounded-md shadow-lg z-10">
+                        <button
+                          onClick={() => {
+                            handleEdit(session);
+                            setOpenMenuId(null);
+                          }}
+                          className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          <PencilIcon className="h-4 w-4 mr-2" />
+                          Éditer
+                        </button>
+                        <button
+                          onClick={() => {
+                            prepareDelete(session);
+                            setOpenMenuId(null);
+                          }}
+                          className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                        >
+                          <TrashIcon className="h-4 w-4 mr-2" />
+                          Supprimer
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}
@@ -234,154 +210,106 @@ const Session = () => {
         </table>
       </div>
 
-      {/* Modal */}
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title={currentSession ? "Modifier la session" : "Ajouter une session"}
-      >
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="mois" className="block text-sm font-medium text-gray-700">
-              Mois
-            </label>
-            <select
-              id="mois"
-              name="mois"
-              value={formData.mois}
-              onChange={handleInputChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              required
-            >
-              <option value="">Sélectionnez un mois</option>
-              <option value="Janvier">Janvier</option>
-              <option value="Février">Février</option>
-              <option value="Mars">Mars</option>
-              <option value="Avril">Avril</option>
-              <option value="Mai">Mai</option>
-              <option value="Juin">Juin</option>
-              <option value="Juillet">Juillet</option>
-              <option value="Août">Août</option>
-              <option value="Septembre">Septembre</option>
-              <option value="Octobre">Octobre</option>
-              <option value="Novembre">Novembre</option>
-              <option value="Décembre">Décembre</option>
-            </select>
+      {/* Confirmation Modal */}
+      {showConfirmation && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold mb-2">Confirmer la suppression</h3>
+            <p className="mb-4">Êtes-vous sûr de vouloir supprimer la session "{sessionToDelete?.nom_session}" ?</p>
+            
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setShowConfirmation(false)}
+                className="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700"
+              >
+                Confirmer
+              </button>
+            </div>
           </div>
+        </div>
+      )}
 
-          <div>
-            <label htmlFor="annee" className="block text-sm font-medium text-gray-700">
-              Année
-            </label>
-            <input
-              type="number"
-              id="annee"
-              name="annee"
-              value={formData.annee}
-              onChange={handleInputChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              required
-            />
+      {/* Add/Edit Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold mb-4">
+              {currentSession ? "Modifier la session" : "Ajouter une session"}
+            </h3>
+            
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Nom de la session</label>
+                <input
+                  type="text"
+                  name="nom_session"
+                  value={formData.nom_session}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full p-2 border rounded"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Date de début</label>
+                <input
+                  type="date"
+                  name="date_debut"
+                  value={formData.date_debut}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full p-2 border rounded"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Date de fin</label>
+                <input
+                  type="date"
+                  name="date_fin"
+                  value={formData.date_fin}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full p-2 border rounded"
+                />
+              </div>
+              
+              {error && (
+                <div className="text-red-500 bg-red-100 p-2 rounded">
+                  {error}
+                </div>
+              )}
+              
+              <div className="flex justify-end space-x-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsModalOpen(false);
+                    setCurrentSession(null);
+                    setFormData({ nom_session: '', date_debut: '', date_fin: '' });
+                    setError('');
+                  }}
+                  className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded bg-blue-500 text-white hover:bg-blue-600"
+                >
+                  {currentSession ? 'Modifier' : 'Ajouter'}
+                </button>
+              </div>
+            </form>
           </div>
-
-          <div>
-            <label htmlFor="id_type_cours" className="block text-sm font-medium text-gray-700">
-              Type de Cours
-            </label>
-            <select
-              id="id_type_cours"
-              name="id_type_cours"
-              value={formData.id_type_cours}
-              onChange={handleInputChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              required
-            >
-              <option value="">Sélectionner un type de cours</option>
-              {typeCours.map((tc) => (
-                <option key={tc.id} value={tc.id}>
-                  {tc.nom_type_cours}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label htmlFor="date_fin_inscription" className="block text-sm font-medium text-gray-700">
-              Date de fin d'inscription
-            </label>
-            <input
-              type="date"
-              id="date_fin_inscription"
-              name="date_fin_inscription"
-              value={formData.date_fin_inscription}
-              onChange={handleInputChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              required
-            />
-          </div>
-
-          <div>
-            <label htmlFor="date_debut" className="block text-sm font-medium text-gray-700">
-              Date de début
-            </label>
-            <input
-              type="date"
-              id="date_debut"
-              name="date_debut"
-              value={formData.date_debut}
-              onChange={handleInputChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              required
-            />
-          </div>
-
-          <div>
-            <label htmlFor="date_fin" className="block text-sm font-medium text-gray-700">
-              Date de fin
-            </label>
-            <input
-              type="date"
-              id="date_fin"
-              name="date_fin"
-              value={formData.date_fin}
-              onChange={handleInputChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              required
-            />
-          </div>
-
-          <div>
-            <label htmlFor="date_exam" className="block text-sm font-medium text-gray-700">
-              Date d'examen
-            </label>
-            <input
-              type="date"
-              id="date_exam"
-              name="date_exam"
-              value={formData.date_exam}
-              onChange={handleInputChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              required
-            />
-          </div>
-
-          <div className="flex justify-end space-x-3 mt-4">
-            <button
-              type="button"
-              onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
-            >
-              Annuler
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
-            >
-              {currentSession ? "Modifier" : "Ajouter"}
-            </button>
-          </div>
-        </form>
-      </Modal>
+        </div>
+      )}
     </div>
   );
 };

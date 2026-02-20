@@ -11,11 +11,11 @@ import { typeServiceValidation } from '../validations/typeServiceValidation.js';
 
 const router = express.Router();
 
+// GET /api/type-services - Récupérer tous les types de service (PUBLIC - sans authentification)
+router.get('/', getAllTypeServices);
+
 // Routes protégées par authentification
 router.use(authenticateToken);
-
-// GET /api/type-services - Récupérer tous les types de service
-router.get('/', getAllTypeServices);
 
 // GET /api/type-services/:id - Récupérer un type de service par ID
 router.get('/:id', getTypeServiceById);

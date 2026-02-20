@@ -1,77 +1,62 @@
-import api from './api';
+import axios from 'axios';
 
-const baseURL = '/sessions';
+const api = axios.create({
+  baseURL: 'http://localhost:5000/api',
+  headers: {
+    'Content-Type': 'application/json'
+  }
+});
 
+// Ajouter token JWT à chaque requête
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+}, (error) => {
+  return Promise.reject(error);
+});
+
+// Intercepteur de réponse pour gérer les erreurs
+api.interceptors.response.use(
+  (response) => response.data,
+  (error) => {
+    const message = error.response?.data?.message || "Une erreur est survenue";
+    return Promise.reject(new Error(message));
+  }
+);
+
+export const getSessions = () => api.get('/sessions');
+export const getSessionById = (id) => api.get(`/sessions/${id}`);
+export const createSession = (data) => api.post('/sessions', data);
+export const updateSession = (id, data) => api.put(`/sessions/${id}`, data);
+export const deleteSession = (id) => api.delete(`/sessions/${id}`);
+export const getActiveSessions = () => api.get('/sessions/actives');
+export const getSessionsByProfesseur = () => api.get('/sessions/professeur'); // Add teacher-specific function
+
+// Methods with the expected names
+export const getAll = () => getSessions();
+export const get = (id) => getSessionById(id);
+export const create = (data) => createSession(data);
+export const update = (id, data) => updateSession(id, data);
+export const remove = (id) => deleteSession(id);
+
+// Export as default object
 const sessionService = {
-    // Récupérer toutes les sessions
-    getAll: async () => {
-        try {
-            const response = await api.get(baseURL);
-            return response.data;
-        } catch (error) {
-            throw error;
-        }
-    },
-
-    // Récupérer une session par ID
-    getById: async (id) => {
-        try {
-            const response = await api.get(`${baseURL}/${id}`);
-            return response.data;
-        } catch (error) {
-            throw error;
-        }
-    },
-
-    // Récupérer les sessions par type de cours
-    getByTypeCours: async (typeCoursId) => {
-        try {
-            const response = await api.get(`${baseURL}/type-cours/${typeCoursId}`);
-            return response.data;
-        } catch (error) {
-            throw error;
-        }
-    },
-
-    // Récupérer les sessions actives
-    getSessionsActives: async () => {
-        try {
-            const response = await api.get(`${baseURL}/actives`);
-            return response.data;
-        } catch (error) {
-            throw error;
-        }
-    },
-
-    // Créer une nouvelle session
-    create: async (data) => {
-        try {
-            const response = await api.post(baseURL, data);
-            return response.data;
-        } catch (error) {
-            throw error;
-        }
-    },
-
-    // Mettre à jour une session
-    update: async (id, data) => {
-        try {
-            const response = await api.put(`${baseURL}/${id}`, data);
-            return response.data;
-        } catch (error) {
-            throw error;
-        }
-    },
-
-    // Supprimer une session
-    delete: async (id) => {
-        try {
-            const response = await api.delete(`${baseURL}/${id}`);
-            return response.data;
-        } catch (error) {
-            throw error;
-        }
-    }
+  getSessions,
+  getSessionById,
+  createSession,
+  updateSession,
+  deleteSession,
+  getActiveSessions,
+  getSessionsByProfesseur, // Add to the exported object
+  // Original methods
+  getAll,
+  get,
+  create,
+  update,
+  remove
 };
 
 export default sessionService;

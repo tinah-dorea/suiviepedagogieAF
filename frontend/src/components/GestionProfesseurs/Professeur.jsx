@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import professeurService from '../../services/professeurService';
 import Modal from '../ui/Modal';
+import { PencilIcon, TrashIcon, EllipsisHorizontalIcon } from '@heroicons/react/24/outline';
 
 const PROFESSOR_SERVICE = 'Professeurs';
 
-const buildEmptyForm = (roleId = 3) => ({
-  service: PROFESSOR_SERVICE,
+const buildEmptyForm = () => ({
   nom: '',
   prenom: '',
   age: '',
@@ -13,7 +13,7 @@ const buildEmptyForm = (roleId = 3) => ({
   tel: '',
   email: '',
   mot_passe: '',
-  id_role: roleId,
+  role: 'Professeurs',
 });
 
 const normalizeText = (value) => {
@@ -29,7 +29,6 @@ const toNullableInt = (value) => {
 };
 
 const sanitizePayload = (data) => ({
-  service: PROFESSOR_SERVICE,
   nom: normalizeText(data.nom) || '',
   prenom: normalizeText(data.prenom) || '',
   age: toNullableInt(data.age),
@@ -37,7 +36,7 @@ const sanitizePayload = (data) => ({
   tel: normalizeText(data.tel),
   email: normalizeText(data.email) || '',
   mot_passe: normalizeText(data.mot_passe),
-  id_role: toNullableInt(data.id_role),
+  role: 'Professeurs',
 });
 
 const Professeur = () => {
@@ -48,31 +47,64 @@ const Professeur = () => {
   const [currentProfesseur, setCurrentProfesseur] = useState(null);
   const [formData, setFormData] = useState(buildEmptyForm());
   const [error, setError] = useState('');
-  const [roles] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasLoaded, setHasLoaded] = useState(false); // État pour suivre si les données ont été chargées
+  const [openMenuId, setOpenMenuId] = useState(null);
 
   useEffect(() => {
-    loadInitialData();
-  }, []);
+    let cancelled = false;
+    
+    const loadInitialData = async () => {
+      if (hasLoaded) return; // Empêche le chargement multiple
+      
+      setLoading(true);
+      try {
+        await Promise.all([refreshProfesseurs()]);
+        if (!cancelled) {
+          setHasLoaded(true);
+        }
+      } catch (err) {
+        console.error('Erreur chargement données:', err);
+        if (!cancelled) {
+          setError("Erreur lors du chargement des données.");
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
 
-  const loadInitialData = async () => {
-    setLoading(true);
+    loadInitialData();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [hasLoaded]); // Ajout de hasLoaded comme dépendance
+
+  const refreshProfesseurs = async () => {
+    const response = await professeurService.getProfesseurs();
+    if (response && response.data) {
+      setProfesseurs(response.data);
+    }
+  };
+
+  const handleEdit = (professeur) => {
+    openModal('edit', professeur);
+  };
+
+  const handleDelete = async (id) => {
     try {
-      await Promise.all([refreshProfesseurs()]);
+      setLoading(true);
+      await professeurService.deleteEmploye(id);
+      await refreshProfesseurs();
     } catch (err) {
-      console.error('Erreur chargement données:', err);
-      setError("Erreur lors du chargement des données.");
+      console.error('Erreur suppression:', err);
+      setError("Erreur lors de la suppression.");
     } finally {
       setLoading(false);
     }
   };
-
-  const refreshProfesseurs = async () => {
-    const response = await professeurService.getProfesseurs();
-    setProfesseurs(response.data);
-  };
-
-
 
   const openModal = (mode, professeur = null) => {
     setModalMode(mode);
@@ -81,7 +113,6 @@ const Professeur = () => {
     if (mode === 'edit' && professeur) {
       setCurrentProfesseur(professeur);
       setFormData({
-        service: PROFESSOR_SERVICE,
         nom: professeur.nom,
         prenom: professeur.prenom,
         age: professeur.age || '',
@@ -89,7 +120,7 @@ const Professeur = () => {
         tel: professeur.tel || '',
         email: professeur.email,
         mot_passe: '',
-        id_role: 3,
+        role: 'Professeurs',
       });
     } else {
       setCurrentProfesseur(null);
@@ -142,81 +173,93 @@ const Professeur = () => {
     }
   };
   
-  const handleToggleStatus = async (id, is_active) => {
-    try {
-      setLoading(true);
-      await professeurService.toggleStatus(id, !is_active);
-      await refreshProfesseurs();
-    } catch (err) {
-      console.error('Erreur modification statut:', err);
-      setError("Erreur lors du changement de statut.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const filteredProfesseurs = professeurs;
 
   return (
     <div className="container mx-auto p-4">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Gestion des Professeurs</h1>
+      <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+        <h1 className="text-2xl font-bold text-center sm:text-left">Gestion des Professeurs</h1>
         <button
           onClick={() => openModal('add')}
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 w-full sm:w-auto"
         >
           + Ajouter Professeur
         </button>
       </div>
 
-      {loading && <p>Chargement...</p>}
+      {loading && <p className="text-center">Chargement...</p>}
       {error && !modalOpen && (
-        <p className="text-red-500 bg-red-100 p-3 rounded mb-4">{error}</p>
+        <p className="text-red-500 bg-red-100 p-3 rounded mb-4 text-center">{error}</p>
       )}
 
-      <div className="bg-white rounded-xl shadow-md overflow-hidden">
+      <div className="bg-white rounded-xl shadow-md overflow-x-auto">
         <table className="w-full">
           <thead className="bg-gray-50">
             <tr>
-              <th className="p-3 text-left">Nom</th>
-              <th className="p-3 text-left">Email</th>
-              <th className="p-3 text-left">Téléphone</th>
-              <th className="p-3 text-left">Statut</th>
-              <th className="p-3 text-left">Actions</th>
+              <th className="p-3 text-left text-sm font-medium text-gray-500">N°</th>
+              <th className="p-3 text-left text-sm font-medium text-gray-500 hidden md:table-cell">Nom</th>
+              <th className="p-3 text-left text-sm font-medium text-gray-500 sm:hidden">Nom</th>
+              <th className="p-3 text-left text-sm font-medium text-gray-500 hidden md:table-cell">Email</th>
+              <th className="p-3 text-left text-sm font-medium text-gray-500 sm:hidden">Email</th>
+              <th className="p-3 text-left text-sm font-medium text-gray-500 hidden md:table-cell">Téléphone</th>
+              <th className="p-3 text-left text-sm font-medium text-gray-500 sm:hidden">Tél</th>
+              <th className="p-3 text-left text-sm font-medium text-gray-500 hidden md:table-cell">Statut</th>
+              <th className="p-3 text-left text-sm font-medium text-gray-500 sm:hidden">Statut</th>
+              <th className="p-3 text-left text-sm font-medium text-gray-500">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {filteredProfesseurs.map((prof) => (
-              <tr key={prof.id} className="border-b hover:bg-gray-50">
-                <td className="p-3">
-                  {prof.prenom} {prof.nom}
+            {filteredProfesseurs.map((prof, index) => (
+              <tr key={prof.id}>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+                  {index + 1}
                 </td>
-                <td className="p-3">{prof.email}</td>
-                <td className="p-3">{prof.tel || '-'}</td>
-                <td className="p-3">
-                  <span
-                    className={`px-2 py-1 text-xs rounded-full ${
-                      prof.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-700'
-                    }`}
-                  >
-                    {prof.is_active ? 'Actif' : 'Inactif'}
-                  </span>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {prof.nom}
                 </td>
-                <td className="p-3 space-x-2">
-                  <button
-                    onClick={() => openModal('edit', prof)}
-                    className="text-blue-600 hover:underline"
-                  >
-                    Éditer
-                  </button>
-                  <button
-                    onClick={() => handleToggleStatus(prof.id, prof.is_active)}
-                    className={
-                      prof.is_active ? 'text-yellow-600 hover:underline' : 'text-green-600 hover:underline'
-                    }
-                  >
-                    {prof.is_active ? 'Désactiver' : 'Activer'}
-                  </button>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {prof.prenom}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {prof.email}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {prof.tel}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <div className="relative">
+                    <button
+                      onClick={() => setOpenMenuId(openMenuId === prof.id ? null : prof.id)}
+                      className="text-gray-500 hover:text-gray-700"
+                    >
+                      <EllipsisHorizontalIcon className="h-5 w-5" />
+                    </button>
+                    
+                    {openMenuId === prof.id && (
+                      <div className="absolute right-0 mt-1 w-40 bg-white border rounded-md shadow-lg z-10">
+                        <button
+                          onClick={() => {
+                            handleEdit(prof);
+                            setOpenMenuId(null);
+                          }}
+                          className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          <PencilIcon className="h-4 w-4 mr-2" />
+                          Éditer
+                        </button>
+                        <button
+                          onClick={() => {
+                            handleDelete(prof.id);
+                            setOpenMenuId(null);
+                          }}
+                          className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                        >
+                          <TrashIcon className="h-4 w-4 mr-2" />
+                          Supprimer
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}
@@ -311,7 +354,6 @@ const Professeur = () => {
             />
           )}
 
-          <input type="hidden" name="id_role" value={formData.id_role || ''} />
 
           <div className="flex justify-end space-x-2 pt-4">
             <button

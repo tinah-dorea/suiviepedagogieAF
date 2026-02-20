@@ -22,4 +22,37 @@ api.interceptors.request.use((config) => {
   return Promise.reject(error);
 });
 
-export default api;
+// Méthode pour connecter un employé
+const login = (credentials) => {
+  return api.post('/auth/login', credentials);
+};
+
+// Méthode pour connecter un apprenant
+const loginStudent = (credentials) => {
+  return api.post('/auth/login-student', credentials);
+};
+
+// Intercepteur pour gérer les réponses
+api.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  (error) => {
+    if (error.response?.status === 401) {
+      // Token expiré ou invalide
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
+
+// Create a named constant for the exported object to fix the warning
+const apiExports = {
+  ...api,
+  login,
+  loginStudent,
+};
+
+export default apiExports;

@@ -5,68 +5,106 @@ import { pool } from '../config/db.js';
 
 dotenv.config();
 
+// Convertir le rôle employe en service pour la redirection
+const roleToService = (role) => {
+  if (!role) return null;
+  const r = String(role).toLowerCase().trim();
+  if (['admin', 'rh', 'ressources humaines'].some(k => r.includes(k))) return 'rh';
+  if (['pedagogie', 'pédagogie', 'coordination', 'coordinateur'].some(k => r.includes(k))) return 'pedagogie';
+  if (['professeur', 'professeurs'].some(k => r.includes(k))) return 'professeurs';
+  if (r.includes('accueil')) return 'accueil';
+  return null;
+};
+
+// Connexion unifiée : employe d'abord, puis apprenant si non trouvé
 export const login = async (req, res) => {
   try {
-    console.log(req.body)
-    const { email, mot_passe } = req.body;
+    const { email, telephone, tel, mot_passe } = req.body;
+    const identifiant = email?.trim() || telephone?.trim() || tel?.trim();
 
-    if (!email || !mot_passe) {
-      return res.status(400).json({ message: "Email et mot de passe requis" });
+    if (!identifiant || !mot_passe) {
+      return res.status(400).json({ message: "Email ou téléphone et mot de passe requis" });
     }
 
-    console.log('Email reçu:', email);
-    const result = await pool.query('SELECT * FROM employe WHERE email = $1', [email]);
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ message: "Utilisateur non trouvé" });
-    }
-
-    const employe = result.rows[0];
-    console.log('Données employé trouvées:', employe);
-
-    // Comparaison du mot de passe
-    const isValid = await bcrypt.compare(mot_passe, employe.mot_passe);
-    if (!isValid) {
-      return res.status(401).json({ message: "Mot de passe incorrect" });
-    }
-
-    // Conversion des IDs en nombres
-    const userId = parseInt(employe.id);
-    const roleId = parseInt(employe.id_role);
-
-    if (isNaN(userId) || isNaN(roleId)) {
-      return res.status(500).json({ message: "Erreur lors de la récupération des données utilisateur" });
-    }
-
-    // Génération du token avec les IDs numériques
-    const token = jwt.sign(
-      { 
-        id: userId, 
-        email: employe.email, 
-        role: roleId 
-      },
-      process.env.JWT_SECRET,
-      { expiresIn: '2h' }
+    // 1. Chercher dans employe (email ou tel)
+    const employeResult = await pool.query(
+      `SELECT * FROM employe 
+       WHERE (email = $1 OR tel = $1) AND is_active = true`,
+      [identifiant]
     );
 
-    const responseData = {
-      message: "Connexion réussie",
-      token,
-      employe: {
-        id: userId,
-        nom: employe.nom,
-        prenom: employe.prenom,
-        email: employe.email,
-        tel: employe.tel, // Adding the telephone number to the response
-        role: roleId,
-        service: employe.service
+    if (employeResult.rows.length > 0) {
+      const employe = employeResult.rows[0];
+      const isValid = await bcrypt.compare(mot_passe, employe.mot_passe);
+      if (!isValid) {
+        return res.status(401).json({ message: "Mot de passe incorrect" });
       }
-    };
-    
-    console.log('Données envoyées au client:', responseData);
-    res.status(200).json(responseData);
+
+      const service = roleToService(employe.role) || 'rh';
+      const token = jwt.sign(
+        { id: employe.id, email: employe.email, service },
+        process.env.JWT_SECRET,
+        { expiresIn: '2h' }
+      );
+
+      return res.status(200).json({
+        message: "Connexion réussie",
+        token,
+        employe: {
+          id: employe.id,
+          nom: employe.nom,
+          prenom: employe.prenom,
+          email: employe.email,
+          tel: employe.tel,
+          role: employe.role,
+          service
+        }
+      });
+    }
+
+    // 2. Chercher dans apprenant (email ou tel)
+    const apprenantResult = await pool.query(
+      `SELECT * FROM apprenant 
+       WHERE (email = $1 OR tel = $1) AND statut = 'actif'`,
+      [identifiant]
+    );
+
+    if (apprenantResult.rows.length > 0) {
+      const apprenant = apprenantResult.rows[0];
+      // Pour les apprenants : mot de passe = numéro de téléphone
+      const telApprenant = (apprenant.tel || '').trim();
+      if (mot_passe !== telApprenant) {
+        return res.status(401).json({ message: "Mot de passe incorrect. Pour les apprenants, utilisez votre numéro de téléphone." });
+      }
+
+      const token = jwt.sign(
+        { id: apprenant.id, email: apprenant.email, service: 'apprenants' },
+        process.env.JWT_SECRET,
+        { expiresIn: '2h' }
+      );
+
+      return res.status(200).json({
+        message: "Connexion réussie",
+        token,
+        student: {
+          id: apprenant.id,
+          nom: apprenant.nom,
+          prenom: apprenant.prenom,
+          email: apprenant.email,
+          tel: apprenant.tel,
+          service: "apprenants",
+          niveau_scolaire: apprenant.niveau_scolaire,
+          etablissement: apprenant.etablissement
+        }
+      });
+    }
+
+    return res.status(404).json({ message: "Utilisateur non trouvé" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Erreur interne du serveur" });
   }
 };
+
+// Garder loginStudent pour compatibilité (redirige vers login)
+export const loginStudent = login;

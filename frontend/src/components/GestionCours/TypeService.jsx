@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Modal from '../ui/Modal';
 import typeServiceService from '../../services/typeServiceService';
+import { EllipsisHorizontalIcon } from '@heroicons/react/24/outline';
 
 const TypeService = () => {
   const [typeServices, setTypeServices] = useState([]);
@@ -11,6 +12,7 @@ const TypeService = () => {
   });
   const [loading, setLoading] = useState(true);
   const [notification, setNotification] = useState(null);
+  const [openMenuId, setOpenMenuId] = useState(null);
 
   // Charger les données
   const loadTypeServices = async () => {
@@ -122,7 +124,7 @@ const TypeService = () => {
           <thead className="bg-gray-50">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                ID
+                N°
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Nom du Service
@@ -133,27 +135,46 @@ const TypeService = () => {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {typeServices.map((typeService) => (
+            {typeServices.map((typeService, index) => (
               <tr key={typeService.id}>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {typeService.id}
+                  {index + 1}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {typeService.nom_service}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button
-                    onClick={() => handleEdit(typeService)}
-                    className="text-blue-600 hover:text-blue-900 mr-4"
-                  >
-                    ✏️
-                  </button>
-                  <button
-                    onClick={() => handleDelete(typeService.id)}
-                    className="text-red-600 hover:text-red-900"
-                  >
-                    🗑️
-                  </button>
+                  <div className="relative">
+                    <button
+                      onClick={() => setOpenMenuId(openMenuId === typeService.id ? null : typeService.id)}
+                      className="text-gray-500 hover:text-gray-700"
+                    >
+                      <EllipsisHorizontalIcon className="h-5 w-5" />
+                    </button>
+                    
+                    {openMenuId === typeService.id && (
+                      <div className="absolute right-0 mt-1 w-40 bg-white border rounded-md shadow-lg z-10">
+                        <button
+                          onClick={() => {
+                            handleEdit(typeService);
+                            setOpenMenuId(null);
+                          }}
+                          className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 text-left"
+                        >
+                          Éditer
+                        </button>
+                        <button
+                          onClick={() => {
+                            handleDelete(typeService.id);
+                            setOpenMenuId(null);
+                          }}
+                          className="w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100 text-left"
+                        >
+                          Supprimer
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}

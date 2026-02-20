@@ -37,21 +37,25 @@ export default function Login() {
       }
       loginData.mot_passe = motPasse;
 
+      // Connexion unifiée : employe ou apprenant (une seule requête)
       const res = await api.post('/auth/login', loginData);
       
       // Stockage dans localStorage
       localStorage.setItem('token', res.data.token);
-      localStorage.setItem('user', JSON.stringify(res.data.employe));
+      
+      // Store user data (employee or student)
+      const userData = res.data.employe || res.data.student;
+      localStorage.setItem('user', JSON.stringify(userData));
       
       setMessage('✅ Connexion réussie ! Redirection...');
       
       // Redirection basée sur le service
-      const userService = res.data.employe.service;
+      const userService = userData.service;
       console.log("Service de l'utilisateur:", userService);
-      console.log("Informations utilisateur:", res.data.employe); // Added to see all user data including telephone
+      console.log("Informations utilisateur:", userData);
       
       if (!userService) {
-        console.log("Service manquant dans la réponse:", res.data.employe);
+        console.log("Service manquant dans la réponse:", userData);
         setMessage("Veuillez contacter l'administrateur pour définir votre service");
         return;
       }
@@ -94,15 +98,15 @@ export default function Login() {
             <div className="mb-4">
               <div 
                 className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-3"
-                style={{ backgroundColor: '#FEF2F2' }}
+                style={{ backgroundColor: '#DFF6FF' }}
               >
-                <span className="text-2xl font-bold" style={{ color: '#DC2626' }}>af</span>
+                <span className="text-2xl font-bold" style={{ color: '#758695' }}>af</span>
               </div>
-              <h1 className="text-2xl font-bold mb-1" style={{ color: '#1F2937' }}>
-                Alliance<span style={{ color: '#6B7280' }}> Française</span>
+              <h1 className="text-2xl font-bold mb-1" style={{ color: '#758695', fontFamily: "'Source Sans 3', sans-serif" }}>
+                Alliance<span style={{ color: '#758695' }}> Française</span>
               </h1>
             </div>
-            <h2 className="text-xl font-semibold mb-2" style={{ color: '#DC2626' }}>
+            <h2 className="text-xl font-semibold mb-2" style={{ color: '#758695', fontFamily: "'Source Sans 3', sans-serif" }}>
               Authentification
             </h2>
             <p className="text-sm" style={{ color: '#6B7280' }}>
@@ -132,6 +136,7 @@ export default function Login() {
         {/* Formulaire de Connexion */}
         {isLoginMode ? (
           <form onSubmit={handleSubmit} className="space-y-6">
+
             <div>
               <label 
                 className="block text-sm font-semibold mb-2" 
@@ -227,7 +232,7 @@ export default function Login() {
                 >
                   {showPassword ? (
                     <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878l12 12" />
                     </svg>
                   ) : (
                     <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -237,6 +242,9 @@ export default function Login() {
                   )}
                 </button>
               </div>
+              <p className="mt-1 text-xs text-gray-500">
+                Utilisez votre numéro de téléphone comme mot de passe
+              </p>
             </div>
 
             <div className="flex items-center justify-between text-sm">
@@ -255,20 +263,20 @@ export default function Login() {
             <button
               type="submit"
               className="w-full text-white py-4 rounded-xl font-bold text-lg transition-all duration-200 transform hover:scale-[1.02] focus:outline-none focus:ring-4"
-              style={{ 
-                backgroundColor: '#DC2626',
-                boxShadow: '0 4px 14px 0 rgba(220, 38, 38, 0.3)'
-              }}
+            style={{ 
+              backgroundColor: '#758695',
+              boxShadow: '0 4px 14px 0 rgba(117, 134, 149, 0.3)'
+            }}
               onMouseEnter={(e) => {
-                e.target.style.backgroundColor = '#B91C1C';
+                e.target.style.backgroundColor = '#5a6b7a';
                 e.target.style.boxShadow = '0 6px 20px 0 rgba(185, 28, 28, 0.4)';
               }}
               onMouseLeave={(e) => {
-                e.target.style.backgroundColor = '#DC2626';
-                e.target.style.boxShadow = '0 4px 14px 0 rgba(220, 38, 38, 0.3)';
+                e.target.style.backgroundColor = '#758695';
+                e.target.style.boxShadow = '0 4px 14px 0 rgba(117, 134, 149, 0.3)';
               }}
               onFocus={(e) => {
-                e.target.style.boxShadow = '0 0 0 4px rgba(220, 38, 38, 0.2)';
+                e.target.style.boxShadow = '0 0 0 4px rgba(117, 134, 149, 0.2)';
               }}
               onBlur={(e) => {
                 e.target.style.boxShadow = '0 4px 14px 0 rgba(220, 38, 38, 0.3)';

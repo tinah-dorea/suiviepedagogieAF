@@ -1,60 +1,19 @@
-import { body } from 'express-validator';
-import { validateRequest } from '../middlewares/validateRequest.js';
+import { celebrate, Joi, Segments } from 'celebrate';
 
-const categorieValidation = {
-    create: [
-        body('nom_categorie')
-            .trim()
-            .notEmpty().withMessage('Le nom de la catégorie est requis')
-            .isLength({ min: 2, max: 10 }).withMessage('Le nom de la catégorie doit contenir entre 2 et 10 caractères'),
+// Validation pour la création d'une catégorie
+export const createCategorieValidation = celebrate({
+  [Segments.BODY]: Joi.object().keys({
+    nom_categorie: Joi.string().max(50).required(),
+    min_age: Joi.number().integer().min(0).required(),
+    max_age: Joi.number().integer().min(0).required()
+  })
+});
 
-        body('id_type_cours')
-            .notEmpty().withMessage('Le type de cours est requis')
-            .isInt().withMessage('Le type de cours doit être un nombre entier'),
-
-        body('min_age')
-            .optional()
-            .isInt({ min: 3, max: 99 }).withMessage('L\'âge minimum doit être entre 3 et 99 ans'),
-
-        body('max_age')
-            .optional()
-            .isInt({ min: 3, max: 99 }).withMessage('L\'âge maximum doit être entre 3 et 99 ans')
-            .custom((value, { req }) => {
-                if (req.body.min_age && value <= req.body.min_age) {
-                    throw new Error('L\'âge maximum doit être supérieur à l\'âge minimum');
-                }
-                return true;
-            }),
-
-        validateRequest
-    ],
-
-    update: [
-        body('nom_categorie')
-            .trim()
-            .notEmpty().withMessage('Le nom de la catégorie est requis')
-            .isLength({ min: 2, max: 10 }).withMessage('Le nom de la catégorie doit contenir entre 2 et 10 caractères'),
-
-        body('id_type_cours')
-            .notEmpty().withMessage('Le type de cours est requis')
-            .isInt().withMessage('Le type de cours doit être un nombre entier'),
-
-        body('min_age')
-            .optional()
-            .isInt({ min: 3, max: 99 }).withMessage('L\'âge minimum doit être entre 3 et 99 ans'),
-
-        body('max_age')
-            .optional()
-            .isInt({ min: 3, max: 99 }).withMessage('L\'âge maximum doit être entre 3 et 99 ans')
-            .custom((value, { req }) => {
-                if (req.body.min_age && value <= req.body.min_age) {
-                    throw new Error('L\'âge maximum doit être supérieur à l\'âge minimum');
-                }
-                return true;
-            }),
-
-        validateRequest
-    ]
-};
-
-export { categorieValidation };
+// Validation pour la mise à jour d'une catégorie
+export const updateCategorieValidation = celebrate({
+  [Segments.BODY]: Joi.object().keys({
+    nom_categorie: Joi.string().max(50).optional(),
+    min_age: Joi.number().integer().min(0).optional(),
+    max_age: Joi.number().integer().min(0).optional()
+  })
+});

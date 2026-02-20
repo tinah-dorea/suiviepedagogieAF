@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { getStatistiquesPedagogiques } from '../../services/statistiqueService.js';
 
 // Composant de Carte de Statistiques
 const StatCard = ({ title, value, icon: Icon, color }) => (
@@ -38,43 +39,36 @@ const GradeIcon = (props) => (
 );
 
 const DashboardPedagogiqueAccueil = () => {
-  const mainColor = '#4CAF50';
-  const accentColor = '#2196F3';
-
   return (
-    <>
-      {/* Statistiques */}
-      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <StatCard title="Total Étudiants" value="324" icon={StudentIcon} color={mainColor} />
-        <StatCard title="Classes" value="12" icon={ClassIcon} color={accentColor} />
-        <StatCard title="Cours" value="48" icon={CourseIcon} color="#9C27B0" />
-        <StatCard title="Moyenne Générale" value="14.5" icon={GradeIcon} color="#FF9800" />
-      </section>
-
-      {/* Tableaux de bord pédagogiques */}
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <div className="bg-white p-6 rounded-xl shadow-sm">
-          <h3 className="text-lg font-semibold mb-4">Prochains Cours</h3>
-          {/* Liste des prochains cours */}
-        </div>
-        <div className="bg-white p-6 rounded-xl shadow-sm">
-          <h3 className="text-lg font-semibold mb-4">Notes Récentes</h3>
-          {/* Liste des dernières notes entrées */}
-        </div>
-      </section>
-
-      {/* Autres sections spécifiques au service pédagogique */}
-      <section className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div className="lg:col-span-8 bg-white p-6 rounded-xl shadow-sm">
-          <h3 className="text-lg font-semibold mb-4">Planning de la Semaine</h3>
-          {/* Calendrier ou planning hebdomadaire */}
-        </div>
-        <div className="lg:col-span-4 bg-white p-6 rounded-xl shadow-sm">
-          <h3 className="text-lg font-semibold mb-4">Annonces</h3>
-          {/* Liste des annonces importantes */}
-        </div>
-      </section>
-    </>
+    <div className="p-6 bg-gray-100 min-h-screen">
+      <h1 className="text-3xl font-bold mb-6">Tableau de Bord Pédagogique</h1>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <StatCard
+          title="Nombre d'Étudiants"
+          value="1,250"
+          icon={StudentIcon}
+          color="#4F46E5"
+        />
+        <StatCard
+          title="Nombre de Classes"
+          value="85"
+          icon={ClassIcon}
+          color="#10B981"
+        />
+        <StatCard
+          title="Nombre de Cours"
+          value="120"
+          icon={CourseIcon}
+          color="#F59E0B"
+        />
+        <StatCard
+          title="Moyenne des Notes"
+          value="12.5"
+          icon={GradeIcon}
+          color="#EF4444"
+        />
+      </div>
+    </div>
   );
 };
 

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import Modal from '../ui/Modal';
 import salleService from '../../services/salleService';
-import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { PencilIcon, TrashIcon, EllipsisHorizontalIcon } from '@heroicons/react/24/outline';
 
 const Salle = () => {
   const [salles, setSalles] = useState([]);
@@ -13,6 +13,7 @@ const Salle = () => {
     capacite: ''
   });
   const [loading, setLoading] = useState(true);
+  const [openMenuId, setOpenMenuId] = useState(null);
 
   // Charger les données
   const loadSalles = async () => {
@@ -118,7 +119,7 @@ const Salle = () => {
           <thead className="bg-gray-50">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                ID
+                N°
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Nom de la salle
@@ -132,10 +133,10 @@ const Salle = () => {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {salles.map((salle) => (
+            {salles.map((salle, index) => (
               <tr key={salle.id}>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {salle.id}
+                  {index + 1}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {salle.nom_salle}
@@ -144,18 +145,39 @@ const Salle = () => {
                   {salle.capacite}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button
-                    onClick={() => handleEdit(salle)}
-                    className="text-blue-600 hover:text-blue-900 mr-4"
-                  >
-                    <PencilIcon className="h-5 w-5" />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(salle.id)}
-                    className="text-red-600 hover:text-red-900"
-                  >
-                    <TrashIcon className="h-5 w-5" />
-                  </button>
+                  <div className="relative">
+                    <button
+                      onClick={() => setOpenMenuId(openMenuId === salle.id ? null : salle.id)}
+                      className="text-gray-500 hover:text-gray-700"
+                    >
+                      <EllipsisHorizontalIcon className="h-5 w-5" />
+                    </button>
+                    
+                    {openMenuId === salle.id && (
+                      <div className="absolute right-0 mt-1 w-40 bg-white border rounded-md shadow-lg z-10">
+                        <button
+                          onClick={() => {
+                            handleEdit(salle);
+                            setOpenMenuId(null);
+                          }}
+                          className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          <PencilIcon className="h-4 w-4 mr-2" />
+                          Éditer
+                        </button>
+                        <button
+                          onClick={() => {
+                            handleDelete(salle.id);
+                            setOpenMenuId(null);
+                          }}
+                          className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                        >
+                          <TrashIcon className="h-4 w-4 mr-2" />
+                          Supprimer
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}

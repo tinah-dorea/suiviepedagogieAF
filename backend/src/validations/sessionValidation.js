@@ -18,14 +18,20 @@ const sessionValidation = {
             .isInt().withMessage('Le type de cours doit être un nombre entier'),
 
         body('date_fin_inscription')
-            .notEmpty().withMessage('La date de fin d\'inscription est requise')
-            .isISO8601().withMessage('La date de fin d\'inscription doit être une date valide'),
+            .optional({ nullable: true })
+            .isISO8601().withMessage('La date de fin d\'inscription doit être une date valide')
+            .custom((value, { req }) => {
+                if (value && req.body.date_debut && new Date(value) >= new Date(req.body.date_debut)) {
+                    throw new Error('La date de fin d\'inscription doit être antérieure à la date de début');
+                }
+                return true;
+            }),
 
         body('date_debut')
             .notEmpty().withMessage('La date de début est requise')
             .isISO8601().withMessage('La date de début doit être une date valide')
             .custom((value, { req }) => {
-                if (new Date(value) <= new Date(req.body.date_fin_inscription)) {
+                if (req.body.date_fin_inscription && new Date(value) <= new Date(req.body.date_fin_inscription)) {
                     throw new Error('La date de début doit être postérieure à la date de fin d\'inscription');
                 }
                 return true;
@@ -42,10 +48,10 @@ const sessionValidation = {
             }),
 
         body('date_exam')
-            .notEmpty().withMessage('La date d\'examen est requise')
+            .optional({ nullable: true })
             .isISO8601().withMessage('La date d\'examen doit être une date valide')
             .custom((value, { req }) => {
-                if (new Date(value) < new Date(req.body.date_fin)) {
+                if (value && req.body.date_fin && new Date(value) < new Date(req.body.date_fin)) {
                     throw new Error('La date d\'examen doit être égale ou postérieure à la date de fin');
                 }
                 return true;
@@ -70,14 +76,20 @@ const sessionValidation = {
             .isInt().withMessage('Le type de cours doit être un nombre entier'),
 
         body('date_fin_inscription')
-            .notEmpty().withMessage('La date de fin d\'inscription est requise')
-            .isISO8601().withMessage('La date de fin d\'inscription doit être une date valide'),
+            .optional({ nullable: true })
+            .isISO8601().withMessage('La date de fin d\'inscription doit être une date valide')
+            .custom((value, { req }) => {
+                if (value && req.body.date_debut && new Date(value) >= new Date(req.body.date_debut)) {
+                    throw new Error('La date de fin d\'inscription doit être antérieure à la date de début');
+                }
+                return true;
+            }),
 
         body('date_debut')
             .notEmpty().withMessage('La date de début est requise')
             .isISO8601().withMessage('La date de début doit être une date valide')
             .custom((value, { req }) => {
-                if (new Date(value) <= new Date(req.body.date_fin_inscription)) {
+                if (req.body.date_fin_inscription && new Date(value) <= new Date(req.body.date_fin_inscription)) {
                     throw new Error('La date de début doit être postérieure à la date de fin d\'inscription');
                 }
                 return true;
@@ -94,10 +106,10 @@ const sessionValidation = {
             }),
 
         body('date_exam')
-            .notEmpty().withMessage('La date d\'examen est requise')
+            .optional({ nullable: true })
             .isISO8601().withMessage('La date d\'examen doit être une date valide')
             .custom((value, { req }) => {
-                if (new Date(value) < new Date(req.body.date_fin)) {
+                if (value && req.body.date_fin && new Date(value) < new Date(req.body.date_fin)) {
                     throw new Error('La date d\'examen doit être égale ou postérieure à la date de fin');
                 }
                 return true;

@@ -1,12 +1,11 @@
 import { pool } from '../config/db.js';
 
-// Récupérer toutes les catégories
+// Obtenir toutes les catégories
 const getAllCategories = async (req, res) => {
     try {
         const result = await pool.query(`
-            SELECT c.*, tc.nom_type_cours
+            SELECT c.*
             FROM categorie c
-            LEFT JOIN type_cours tc ON c.id_type_cours = tc.id
             ORDER BY c.id ASC
         `);
         res.json(result.rows);
@@ -15,19 +14,17 @@ const getAllCategories = async (req, res) => {
     }
 };
 
-// Récupérer une catégorie par ID
+// Obtenir une catégorie par ID
 const getCategorieById = async (req, res) => {
     const { id } = req.params;
     try {
         const result = await pool.query(`
-            SELECT c.*, tc.nom_type_cours
+            SELECT c.*
             FROM categorie c
-            LEFT JOIN type_cours tc ON c.id_type_cours = tc.id
             WHERE c.id = $1
         `, [id]);
-        if (result.rows.length === 0) {
-            return res.status(404).json({ message: 'Catégorie non trouvée' });
-        }
+        
+        if (result.rows.length === 0) return res.status(404).json({ message: 'Catégorie non trouvée' });
         res.json(result.rows[0]);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -36,41 +33,56 @@ const getCategorieById = async (req, res) => {
 
 // Créer une nouvelle catégorie
 const createCategorie = async (req, res) => {
-    const { nom_categorie, id_type_cours, min_age, max_age } = req.body;
+    const { nom_categorie, min_age, max_age } = req.body;
+    
+    if (!nom_categorie || min_age === undefined || max_age === undefined) {
+        return res.status(400).json({ message: 'nom_categorie, min_age et max_age sont requis' });
+    }
+    
     try {
+        // Vérifier si une catégorie avec le même nom existe déjà
+        const existingCategorie = await pool.query(
+            'SELECT id FROM categorie WHERE nom_categorie = $1',
+            [nom_categorie]
+        );
+        if (existingCategorie.rows.length > 0) {
+            return res.status(409).json({ message: 'Une catégorie avec ce nom existe déjà' });
+        }
+        
         const result = await pool.query(
-            'INSERT INTO categorie (nom_categorie, id_type_cours, min_age, max_age) VALUES ($1, $2, $3, $4) RETURNING *',
-            [nom_categorie, id_type_cours, min_age, max_age]
+            `INSERT INTO categorie (nom_categorie, min_age, max_age) VALUES ($1, $2, $3) RETURNING *`,
+            [nom_categorie, min_age, max_age]
         );
         res.status(201).json(result.rows[0]);
     } catch (error) {
-        if (error.code === '23503') {
-            res.status(400).json({ message: 'Le type de cours spécifié n\'existe pas' });
-        } else {
-            res.status(500).json({ message: error.message });
-        }
+        res.status(500).json({ message: error.message });
     }
 };
 
 // Mettre à jour une catégorie
 const updateCategorie = async (req, res) => {
     const { id } = req.params;
-    const { nom_categorie, id_type_cours, min_age, max_age } = req.body;
+    const { nom_categorie, min_age, max_age } = req.body;
+    
     try {
-        const result = await pool.query(
-            'UPDATE categorie SET nom_categorie = $1, id_type_cours = $2, min_age = $3, max_age = $4 WHERE id = $5 RETURNING *',
-            [nom_categorie, id_type_cours, min_age, max_age, id]
+        // Vérifier si une autre catégorie avec le même nom existe déjà
+        const existingCategorie = await pool.query(
+            'SELECT id FROM categorie WHERE nom_categorie = $1 AND id != $2',
+            [nom_categorie, id]
         );
-        if (result.rows.length === 0) {
-            return res.status(404).json({ message: 'Catégorie non trouvée' });
+        if (existingCategorie.rows.length > 0) {
+            return res.status(409).json({ message: 'Une catégorie avec ce nom existe déjà' });
         }
+        
+        const result = await pool.query(
+            `UPDATE categorie SET nom_categorie = $1, min_age = $2, max_age = $3 WHERE id = $4 RETURNING *`,
+            [nom_categorie, min_age, max_age, id]
+        );
+        
+        if (result.rows.length === 0) return res.status(404).json({ message: 'Catégorie non trouvée' });
         res.json(result.rows[0]);
     } catch (error) {
-        if (error.code === '23503') {
-            res.status(400).json({ message: 'Le type de cours spécifié n\'existe pas' });
-        } else {
-            res.status(500).json({ message: error.message });
-        }
+        res.status(500).json({ message: error.message });
     }
 };
 
@@ -78,39 +90,41 @@ const updateCategorie = async (req, res) => {
 const deleteCategorie = async (req, res) => {
     const { id } = req.params;
     try {
+        // Vérifier s'il y a des dépendances avec cette catégorie
+        const dependanciesCheck = await pool.query(`
+            SELECT 
+                COUNT(*) as count
+            FROM (
+                SELECT id FROM horaire_cours WHERE id_categorie = $1
+                UNION ALL
+                SELECT id FROM inscription WHERE id_categorie = $1
+            ) AS combined
+        `, [id]);
+        
+        if (parseInt(dependanciesCheck.rows[0].count) > 0) {
+            return res.status(409).json({ message: 'Impossible de supprimer la catégorie car elle est utilisée dans d\'autres tables' });
+        }
+        
         const result = await pool.query('DELETE FROM categorie WHERE id = $1 RETURNING *', [id]);
-        if (result.rows.length === 0) {
-            return res.status(404).json({ message: 'Catégorie non trouvée' });
-        }
-        res.json({ message: 'Catégorie supprimée avec succès' });
-    } catch (error) {
-        if (error.code === '23503') {
-            res.status(400).json({ message: 'Cette catégorie ne peut pas être supprimée car elle est utilisée par d\'autres enregistrements' });
-        } else {
-            res.status(500).json({ message: error.message });
-        }
-    }
-};
-
-// Récupérer les catégories par type de cours
-const getCategoriesByTypeCours = async (req, res) => {
-    const { typeCoursId } = req.params;
-    try {
-        const result = await pool.query(
-            'SELECT * FROM categorie WHERE id_type_cours = $1 ORDER BY id ASC',
-            [typeCoursId]
-        );
-        res.json(result.rows);
+        if (result.rows.length === 0) return res.status(404).json({ message: 'Catégorie non trouvée' });
+        res.json({ message: 'Supprimé' });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
 
-export {
-    getAllCategories,
-    getCategorieById,
-    createCategorie,
-    updateCategorie,
+// Obtenir les catégories par type de cours (maintenant obsolète car id_type_cours n'existe plus dans la table categorie)
+// Cette fonction peut être supprimée ou adaptée si nécessaire
+const getCategoriesByTypeCours = async (req, res) => {
+    // Cette fonction n'est plus applicable car la table categorie ne contient plus id_type_cours
+    res.status(404).json({ message: 'Cette fonctionnalité n\'est plus disponible car la table categorie ne contient plus de référence à id_type_cours' });
+};
+
+export { 
+    getAllCategories, 
+    getCategorieById, 
+    createCategorie, 
+    updateCategorie, 
     deleteCategorie,
     getCategoriesByTypeCours
 };
