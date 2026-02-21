@@ -1,6 +1,6 @@
 import express from 'express';
 import { authenticateToken } from '../middlewares/authMiddleware.js';
-import { getStatistiquesPedagogiques, getStatistiquesProfesseur } from '../controllers/statistiqueController.js';
+import { getStatistiquesAdmin, getStatistiquesPedagogiques, getStatistiquesProfesseur } from '../controllers/statistiqueController.js';
 
 const router = express.Router();
 
@@ -12,5 +12,8 @@ router.get('/pedagogiques', getStatistiquesPedagogiques);
 
 // Route pour récupérer les statistiques professeur
 router.get('/professeur', getStatistiquesProfesseur);
+
+// Route pour récupérer les statistiques admin
+router.get('/admin', getStatistiquesAdmin);
 
 export default router;

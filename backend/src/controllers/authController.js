@@ -71,10 +71,9 @@ export const login = async (req, res) => {
 
     if (apprenantResult.rows.length > 0) {
       const apprenant = apprenantResult.rows[0];
-      // Pour les apprenants : mot de passe = numéro de téléphone
-      const telApprenant = (apprenant.tel || '').trim();
-      if (mot_passe !== telApprenant) {
-        return res.status(401).json({ message: "Mot de passe incorrect. Pour les apprenants, utilisez votre numéro de téléphone." });
+      // Pour les apprenants : mot de passe par défaut = 123456
+      if (mot_passe !== '123456') {
+        return res.status(401).json({ message: "Mot de passe incorrect. Mot de passe apprenant par défaut: 123456" });
       }
 
       const token = jwt.sign(

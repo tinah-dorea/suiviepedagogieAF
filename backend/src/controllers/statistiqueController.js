@@ -148,3 +148,63 @@ export const getStatistiquesProfesseur = async (req, res) => {
     });
   }
 };
+
+// GET: Statistiques admin (adaptées au schéma actuel)
+export const getStatistiquesAdmin = async (req, res) => {
+  try {
+    const totalInscriptionsResult = await pool.query('SELECT COUNT(*)::int AS count FROM inscription');
+    const sessionsAVenirResult = await pool.query(
+      `SELECT COUNT(*)::int AS count
+       FROM session
+       WHERE date_debut >= CURRENT_DATE`
+    );
+
+    const tauxReussiteResult = await pool.query(
+      `SELECT
+         CASE
+           WHEN COUNT(*) FILTER (WHERE validation_examen IS NOT NULL) = 0 THEN 0
+           ELSE ROUND(
+             (
+               COUNT(*) FILTER (
+                 WHERE validation_examen = true
+                    OR (validation_examen IS NULL AND note IS NOT NULL AND note >= 10)
+               )::numeric
+               /
+               COUNT(*) FILTER (
+                 WHERE validation_examen IS NOT NULL
+                    OR note IS NOT NULL
+               )::numeric
+             ) * 100, 2
+           )
+         END AS taux
+       FROM inscription`
+    );
+
+    const dayMap = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
+    const today = dayMap[new Date().getDay()];
+
+    const coursDuJourResult = await pool.query(
+      `SELECT COUNT(*)::int AS count
+       FROM creneau c
+       INNER JOIN horaire_cours hc ON hc.id = c.id_horaire_cours
+       INNER JOIN session s ON s.id = hc.id_session
+       WHERE c.jour_semaine @> ARRAY[$1]::varchar[]
+         AND s.date_debut <= CURRENT_DATE
+         AND s.date_fin >= CURRENT_DATE`,
+      [today]
+    );
+
+    res.status(200).json({
+      totalInscriptions: totalInscriptionsResult.rows[0]?.count || 0,
+      sessionsAVenir: sessionsAVenirResult.rows[0]?.count || 0,
+      tauxReussite: Number(tauxReussiteResult.rows[0]?.taux || 0),
+      coursDuJour: coursDuJourResult.rows[0]?.count || 0
+    });
+  } catch (error) {
+    console.error('Erreur lors de la récupération des statistiques admin:', error);
+    res.status(500).json({
+      message: 'Erreur lors de la récupération des statistiques admin',
+      error: error.message
+    });
+  }
+};

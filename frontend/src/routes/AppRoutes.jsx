@@ -27,20 +27,15 @@ import HomePage from '../pages/HomePage';
 const ProtectedRoute = ({ children, allowedServices = [] }) => {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const isAuthenticated = !!localStorage.getItem('token');
-  console.log('ProtectedRoute: isAuthenticated', isAuthenticated);
-  console.log('ProtectedRoute: user.service', user.service);
   
   if (!isAuthenticated) {
-    console.log('ProtectedRoute: Not authenticated, redirecting to /login');
     return <Navigate to="/login" replace />;
   }
 
   if (!isServiceAllowed(user.service, allowedServices)) {
     const fallback = getServiceRoute(user.service) || '/login';
-    console.log(`ProtectedRoute: No access, redirecting to ${fallback}`);
     return <Navigate to={fallback} replace />;
   }
-  console.log('ProtectedRoute: Access granted, rendering children');
   return children;
 };
 

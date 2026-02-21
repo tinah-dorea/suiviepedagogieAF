@@ -16,7 +16,7 @@ export const getRoles = async (req, res) => {
 export const getEmployes = async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT id, nom, prenom, age, adresse, tel, email, is_active, date_creation, role
+      SELECT id, nom, prenom, age, adresse, tel, email, is_active, date_creation, role, deactivated_at, deactivated_by
       FROM employe
       ORDER BY date_creation DESC
     `);
@@ -49,7 +49,7 @@ export const createEmploye = async (req, res) => {
     const result = await pool.query(`
       INSERT INTO employe (nom, prenom, age, adresse, tel, email, mot_passe, role, is_active, date_creation)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, true, CURRENT_TIMESTAMP)
-      RETURNING id, nom, prenom, age, adresse, tel, email, role, is_active, date_creation
+      RETURNING id, nom, prenom, age, adresse, tel, email, role, is_active, date_creation, deactivated_at, deactivated_by
     `, [nom, prenom, age || null, adresse || null, tel || null, email, hashedPassword, role]);
 
     res.status(201).json(result.rows[0]);
@@ -81,7 +81,7 @@ export const updateEmploye = async (req, res) => {
       values.push(hashedPassword);
     }
 
-    query += ` WHERE id = $${values.length + 1} RETURNING id, nom, prenom, age, adresse, tel, email, role, is_active`;
+    query += ` WHERE id = $${values.length + 1} RETURNING id, nom, prenom, age, adresse, tel, email, role, is_active, date_creation, deactivated_at, deactivated_by`;
     values.push(id);
 
     const result = await pool.query(query, values);
@@ -124,7 +124,7 @@ export const toggleEmployeStatus = async (req, res) => {
           deactivated_at = CASE WHEN $1 = true THEN NULL ELSE CURRENT_TIMESTAMP END,
           deactivated_by = CASE WHEN $1 = true THEN NULL ELSE $2::integer END
       WHERE id = $3
-      RETURNING id, nom, prenom, age, adresse, tel, email, role, is_active
+      RETURNING id, nom, prenom, age, adresse, tel, email, role, is_active, date_creation, deactivated_at, deactivated_by
     `, [Boolean(is_active), deactivatedBy, employeId]);
 
     if (result.rows.length === 0) {
@@ -181,7 +181,7 @@ export const deleteEmploye = async (req, res) => {
       UPDATE employe
       SET is_active = FALSE, deactivated_at = CURRENT_TIMESTAMP, deactivated_by = $1
       WHERE id = $2 AND is_active = TRUE
-      RETURNING id, nom, prenom, age, adresse, tel, email, role, is_active
+      RETURNING id, nom, prenom, age, adresse, tel, email, role, is_active, date_creation, deactivated_at, deactivated_by
     `, [deactivatedBy, employeId]);
 
     if (result.rows.length === 0) {
