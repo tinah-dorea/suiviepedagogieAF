@@ -99,7 +99,7 @@ const Creneau = () => {
     try {
       const submitData = {
         id_horaire_cours: formData.id_horaire_cours ? parseInt(formData.id_horaire_cours) : null,
-        jour_semaine: formData.jour_semaine,
+        jour_semaine: `{${formData.jour_semaine.join(',')}}`,
         heure_debut: formData.heure_debut,
         heure_fin: formData.heure_fin
       };
@@ -113,6 +113,7 @@ const Creneau = () => {
       setIsModalOpen(false);
       loadData();
     } catch (error) {
+      console.error('Error creating/updating creneau:', error);
       toast.error(error.response?.data?.message || 'Une erreur est survenue');
     }
   };
