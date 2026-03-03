@@ -111,7 +111,8 @@ export default function DashboardLayout({
         activePaths: ["/dashboard-pedagogique/groupes"],
         submenu: [
           { name: "Attribution des Groupes", path: "/dashboard-pedagogique/attribution-groupes", activePaths: ["/dashboard-pedagogique/attribution-groupes"] },
-          { name: "Liste de Groupes", path: "/dashboard-pedagogique/liste-groupes", activePaths: ["/dashboard-pedagogique/liste-groupes"] }
+          { name: "Liste de Groupes", path: "/dashboard-pedagogique/liste-groupes", activePaths: ["/dashboard-pedagogique/liste-groupes"] },
+          { name: "Attribution Salle", path: "/dashboard-pedagogique/attribution-salle", activePaths: ["/dashboard-pedagogique/attribution-salle"] }
         ]
       },
       {
@@ -119,18 +120,6 @@ export default function DashboardLayout({
         path: "/dashboard-pedagogique/professeurs",
         icon: AcademicCapIcon,
         activePaths: ["/dashboard-pedagogique/professeurs"]
-      },
-      {
-        name: "Gestion du Planning",
-        path: "/dashboard-pedagogique/planning",
-        icon: CalendarIcon,
-        activePaths: ["/dashboard-pedagogique/planning"]
-      },
-      {
-        name: "Attribution Salle",
-        path: "/dashboard-pedagogique/attribution",
-        icon: ClipboardDocumentCheckIcon,
-        activePaths: ["/dashboard-pedagogique/attribution"]
       }
     ],
     rh: [

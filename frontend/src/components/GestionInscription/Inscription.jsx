@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import inscriptionService from '../../services/inscriptionService';
 import apprenantService from '../../services/apprenantService';
@@ -8,7 +7,9 @@ import categorieService from '../../services/categorieService';
 import groupeService from '../../services/groupeService';
 import creneauService from '../../services/creneauService';
 import sessionService from '../../services/sessionService';
-import { PencilIcon, TrashIcon, UserGroupIcon, XMarkIcon, AcademicCapIcon, CalendarIcon } from '@heroicons/react/24/outline';
+import motivationService from '../../services/motivationService';
+import { PencilIcon, TrashIcon, UserGroupIcon, XMarkIcon, AcademicCapIcon, CalendarIcon, HeartIcon } from '@heroicons/react/24/outline';
+import { useNotification } from '../../context/NotificationContext';
 
 // Modern Pastel Palette
 const COLORS = {
@@ -33,6 +34,7 @@ const COLORS = {
 };
 
 const Inscription = () => {
+  const notification = useNotification();
   const [inscriptions, setInscriptions] = useState([]);
   const [apprenants, setApprenants] = useState([]);
   const [niveaux, setNiveaux] = useState([]);
@@ -40,6 +42,7 @@ const Inscription = () => {
   const [groupes, setGroupes] = useState([]);
   const [creneaux, setCreneaux] = useState([]);
   const [sessions, setSessions] = useState([]);
+  const [motivations, setMotivations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentInscription, setCurrentInscription] = useState(null);
@@ -49,8 +52,10 @@ const Inscription = () => {
   const [apprenantSuggestions, setApprenantSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [filtreSession, setFiltreSession] = useState('');
+  const [sessionSearch, setSessionSearch] = useState('');
   const [sessionSuggestions, setSessionSuggestions] = useState([]);
   const [showSessionSuggestions, setShowSessionSuggestions] = useState(false);
+  const [filtreGroupe, setFiltreGroupe] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [formError, setFormError] = useState('');
   const [formSuccess, setFormSuccess] = useState('');
@@ -78,14 +83,15 @@ const Inscription = () => {
   const loadAllData = async () => {
     try {
       setLoadError('');
-      const [inscData, appData, nivData, catData, grpData, crData, sesData] = await Promise.all([
+      const [inscData, appData, nivData, catData, grpData, crData, sesData, motivData] = await Promise.all([
         inscriptionService.getAll(),
         apprenantService.getAll(),
         niveauService.getAll(),
         categorieService.getAll(),
         groupeService.getAll(),
         creneauService.getAll(),
-        sessionService.getAll()
+        sessionService.getAll(),
+        motivationService.getAll()
       ]);
       setInscriptions(inscData);
       setApprenants(appData);
@@ -94,11 +100,12 @@ const Inscription = () => {
       setGroupes(grpData);
       setCreneaux(crData);
       setSessions(sesData);
+      setMotivations(motivData);
       setLoading(false);
     } catch (error) {
       const errorMsg = error.response?.data?.message || error.message || 'Erreur lors du chargement des données. Veuillez vérifier votre connexion.';
       setLoadError('✗ ' + errorMsg);
-      toast.error(errorMsg);
+      notification.error(errorMsg);
       console.error(error);
       setLoading(false);
     }
@@ -108,9 +115,9 @@ const Inscription = () => {
   const handleFiltreNomChange = (e) => {
     const value = e.target.value;
     setFiltreNom(value);
-    
+
     if (value.trim()) {
-      const filtered = apprenants.filter(app => 
+      const filtered = apprenants.filter(app =>
         `${app.nom} ${app.prenom}`.toLowerCase().includes(value.toLowerCase()) ||
         app.email?.toLowerCase().includes(value.toLowerCase())
       );
@@ -129,6 +136,48 @@ const Inscription = () => {
     }));
     setFiltreNom(`${apprenant.nom} ${apprenant.prenom}`);
     setShowSuggestions(false);
+  };
+
+  // Session search for filter
+  const handleSessionSearchChange = (e) => {
+    const value = e.target.value;
+    setSessionSearch(value);
+
+    if (value.trim()) {
+      const filtered = sessions.filter(session =>
+        session.nom_session?.toLowerCase().includes(value.toLowerCase()) ||
+        session.mois?.toLowerCase().includes(value.toLowerCase()) ||
+        session.annee?.toString().includes(value)
+      );
+      setSessionSuggestions(filtered);
+      setShowSessionSuggestions(true);
+    } else {
+      setSessionSuggestions([]);
+      setShowSessionSuggestions(false);
+    }
+  };
+
+  const selectFiltreSession = (session) => {
+    setFiltreSession(session.id.toString());
+    setSessionSearch('');
+    setShowSessionSuggestions(false);
+    setFiltreGroupe(''); // Reset group filter when session changes
+  };
+
+  // Filter groups based on selected session
+  // Groups are linked to session through: session → horaire_cours → creneau → groupe
+  const getFilteredGroupsForSession = () => {
+    if (!filtreSession) return groupes;
+    
+    const session = sessions.find(s => s.id === parseInt(filtreSession));
+    if (!session || !session.id_type_cours) return [];
+    
+    // Get creneaux for this session's type_cours
+    const sessionCreneaux = creneaux.filter(c => c.id_type_cours === session.id_type_cours);
+    const creneauIds = sessionCreneaux.map(c => c.id);
+    
+    // Filter groups that have creneaux matching the session
+    return groupes.filter(g => creneauIds.includes(g.id_creneau));
   };
 
   // Autocomplete pour session
@@ -228,14 +277,14 @@ const Inscription = () => {
     if (!formData.id_apprenant) {
       const msg = 'Veuillez sélectionner un apprenant';
       setFormError('✗ ' + msg);
-      toast.error(msg);
+      notification.error(msg);
       return;
     }
 
     if (!formData.id_session) {
       const msg = 'Veuillez sélectionner une session';
       setFormError('✗ ' + msg);
-      toast.error(msg);
+      notification.error(msg);
       return;
     }
 
@@ -256,11 +305,11 @@ const Inscription = () => {
       if (currentInscription) {
         await inscriptionService.update(currentInscription.id, dataToSend);
         setFormSuccess('✓ Inscription modifiée avec succès');
-        toast.success('Inscription modifiée avec succès');
+        notification.success('Inscription modifiée avec succès');
       } else {
         await inscriptionService.create(dataToSend);
         setFormSuccess('✓ Inscription créée avec succès');
-        toast.success('Inscription créée avec succès');
+        notification.success('Inscription créée avec succès');
       }
       setIsModalOpen(false);
       setCurrentInscription(null);
@@ -268,7 +317,7 @@ const Inscription = () => {
     } catch (error) {
       const errorMsg = error.response?.data?.message || error.message || "Une erreur est survenue lors de l'enregistrement";
       setFormError('✗ ' + errorMsg);
-      toast.error(errorMsg);
+      notification.error(errorMsg);
       console.error(error);
     }
   };
@@ -283,12 +332,12 @@ const Inscription = () => {
       setFormError('');
       await inscriptionService.remove(inscriptionToDelete.id);
       setFormSuccess('✓ Inscription supprimée avec succès');
-      toast.success('Inscription supprimée avec succès');
+      notification.success('Inscription supprimée avec succès');
       loadAllData();
     } catch (error) {
       const errorMsg = error.response?.data?.message || error.message || "Une erreur est survenue lors de la suppression";
       setFormError('✗ ' + errorMsg);
-      toast.error(errorMsg);
+      notification.error(errorMsg);
       console.error(error);
     } finally {
       setShowConfirmation(false);
@@ -299,7 +348,22 @@ const Inscription = () => {
   const filteredInscriptions = inscriptions.filter(insc => {
     const apprenant = apprenants.find(a => a.id === insc.id_apprenant);
     const fullName = `${apprenant?.nom || ''} ${apprenant?.prenom || ''}`.toLowerCase();
-    return fullName.includes(searchTerm.toLowerCase());
+    
+    // Filter by search term (apprenant name)
+    const matchesSearch = fullName.includes(searchTerm.toLowerCase());
+    
+    // Filter by session
+    const matchesSession = !filtreSession || insc.id_session === parseInt(filtreSession);
+    
+    // Filter by group (including option for no group)
+    let matchesGroupe = true;
+    if (filtreGroupe === 'null') {
+      matchesGroupe = !insc.id_groupe;
+    } else if (filtreGroupe) {
+      matchesGroupe = insc.id_groupe === parseInt(filtreGroupe);
+    }
+    
+    return matchesSearch && matchesSession && matchesGroupe;
   });
 
   if (loading) {
@@ -364,6 +428,106 @@ const Inscription = () => {
           Ajouter une inscription
         </button>
       </div>
+
+      {/* Filters */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+        {/* Session Filter with Search */}
+        <div>
+          <label className="block text-sm font-semibold mb-2" style={{ color: COLORS.text }}>
+            Filtrer par session
+          </label>
+          <div className="relative">
+            <input
+              type="text"
+              value={sessionSearch}
+              onChange={handleSessionSearchChange}
+              placeholder="Rechercher une session..."
+              className="w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all"
+              style={{ borderColor: COLORS.border, backgroundColor: COLORS.card, color: COLORS.text }}
+            />
+            
+            {/* Session suggestions dropdown */}
+            {showSessionSuggestions && sessionSuggestions.length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-2 bg-white border-2 rounded-xl shadow-lg max-h-48 overflow-y-auto z-30" style={{ borderColor: COLORS.border }}>
+                {sessionSuggestions.map(session => {
+                  const sessionName = session.nom_session || `${session.mois} ${session.annee}`;
+                  return (
+                    <button
+                      key={session.id}
+                      type="button"
+                      onClick={() => selectFiltreSession(session)}
+                      className={`w-full px-4 py-3 text-left hover:bg-gray-50 border-b transition-colors last:border-0 ${
+                        filtreSession === session.id.toString() ? 'bg-green-50' : ''
+                      }`}
+                      style={{ borderColor: COLORS.border }}
+                    >
+                      <div className="font-semibold" style={{ color: COLORS.text }}>{sessionName}</div>
+                      <div className="text-sm" style={{ color: COLORS.textLight }}>
+                        {session.nom_type_cours || 'Type non spécifié'} • {session.nb_inscrits || 0} inscrits
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+            
+            {filtreSession && !sessionSearch && (
+              <div className="mt-2 flex items-center gap-2 text-sm px-3 py-2 rounded-lg" style={{ backgroundColor: COLORS.highlight, color: COLORS.statGreenText }}>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <span className="font-medium">
+                  {sessions.find(s => s.id === parseInt(filtreSession))?.nom_session || 'Session sélectionnée'}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Group Filter - Filtered by Session */}
+        <div>
+          <label className="block text-sm font-semibold mb-2" style={{ color: COLORS.text }}>
+            Filtrer par groupe
+          </label>
+          <select
+            value={filtreGroupe}
+            onChange={(e) => setFiltreGroupe(e.target.value)}
+            disabled={!filtreSession}
+            className="w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all disabled:bg-gray-100"
+            style={{ borderColor: COLORS.border, backgroundColor: COLORS.card, color: COLORS.text }}
+          >
+            <option value="">Tous les groupes</option>
+            <option value="null">Pas de groupe</option>
+            {getFilteredGroupsForSession().map(groupe => (
+              <option key={groupe.id} value={groupe.id}>
+                {groupe.nom_groupe}
+              </option>
+            ))}
+          </select>
+          {!filtreSession && (
+            <p className="mt-1 text-xs" style={{ color: COLORS.textLight }}>Sélectionnez d'abord une session</p>
+          )}
+        </div>
+      </div>
+
+      {/* Clear Filters Button */}
+      {(filtreSession || filtreGroupe) && (
+        <div className="mb-6">
+          <button
+            onClick={() => {
+              setFiltreSession('');
+              setFiltreGroupe('');
+              setSessionSearch('');
+              setSessionSuggestions([]);
+              setShowSessionSuggestions(false);
+            }}
+            className="px-4 py-2 rounded-xl text-sm font-medium transition-colors hover:shadow-md"
+            style={{ backgroundColor: COLORS.border, color: COLORS.textLight }}
+          >
+            Effacer les filtres
+          </button>
+        </div>
+      )}
 
       {/* Tableau des inscriptions avec scroll horizontal */}
       <div className="rounded-3xl shadow-sm border overflow-hidden" style={{ backgroundColor: COLORS.card, borderColor: COLORS.border }}>
@@ -585,6 +749,26 @@ const Inscription = () => {
                   )}
                 </div>
                 <div>
+                  <label className="block text-sm font-semibold mb-2" style={{ color: COLORS.text }}>Motivation</label>
+                  <select
+                    name="id_motivation"
+                    value={formData.id_motivation || ''}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all"
+                    style={{ borderColor: COLORS.border, backgroundColor: COLORS.bg }}
+                  >
+                    <option value="">Sélectionnez une motivation</option>
+                    {motivations.map(motiv => (
+                      <option key={motiv.id} value={motiv.id}>
+                        {motiv.nom_motivation}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
                   <label className="block text-sm font-semibold mb-2" style={{ color: COLORS.text }}>État *</label>
                   <select
                     name="etat_inscription"
@@ -600,9 +784,6 @@ const Inscription = () => {
                     <option value="report">Report</option>
                   </select>
                 </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
                   <label className="block text-sm font-semibold mb-2" style={{ color: COLORS.text }}>Niveau</label>
                   <select
@@ -699,14 +880,39 @@ const Inscription = () => {
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all"
                     style={{ borderColor: COLORS.border, backgroundColor: COLORS.bg }}
+                    disabled={!formData.id_creneau}
                   >
-                    <option value="">Sélectionnez un groupe</option>
-                    {groupes.map(grp => (
-                      <option key={grp.id} value={grp.id}>
-                        {grp.nom_groupe}
-                      </option>
-                    ))}
+                    <option value="">Aucun groupe</option>
+                    {groupes
+                      .filter(groupe => {
+                        // Filter groups by creneau
+                        if (!formData.id_creneau) return false;
+                        
+                        // Get the creneau to check its type_cours
+                        const selectedCreneau = creneaux.find(c => c.id === parseInt(formData.id_creneau));
+                        if (!selectedCreneau) return false;
+                        
+                        // Get the session to check its type_cours
+                        const selectedSession = sessions.find(s => s.id === parseInt(formData.id_session));
+                        if (!selectedSession) return false;
+                        
+                        // Group's creneau must match session's type_cours
+                        return groupe.id_creneau === parseInt(formData.id_creneau) &&
+                               selectedCreneau.id_type_cours === selectedSession.id_type_cours;
+                      })
+                      .map(groupe => (
+                        <option key={groupe.id} value={groupe.id}>
+                          {groupe.nom_groupe}
+                        </option>
+                      ))
+                    }
                   </select>
+                  {!formData.id_creneau && (
+                    <p className="text-xs mt-1" style={{ color: COLORS.textLight }}>Sélectionnez d'abord un créneau</p>
+                  )}
+                  {formData.id_creneau && groupes.filter(g => g.id_creneau === parseInt(formData.id_creneau)).length === 0 && (
+                    <p className="text-xs mt-1" style={{ color: '#F59E0B' }}>Aucun groupe disponible pour ce créneau</p>
+                  )}
                 </div>
               </div>
 

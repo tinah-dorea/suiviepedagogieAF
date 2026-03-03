@@ -5,7 +5,7 @@
 -- Dumped from database version 17.5
 -- Dumped by pg_dump version 17.5
 
--- Started on 2026-03-02 06:11:46
+-- Started on 2026-03-03 21:03:13
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -1025,7 +1025,7 @@ ALTER TABLE ONLY public.type_service ALTER COLUMN id SET DEFAULT nextval('public
 --
 
 COPY public.a_propos (id, nom_etablissement, tel, email, adresse, heure_ouverture, heure_fermeture, jours_ouverture, description, logo_url, date_mise_a_jour) FROM stdin;
-1	Alliance Française Mahajanga	032 05 119 84	afmsec3@gmail.com	Rue Edouard VII - BP 236 - 401 Majunga	08:00:00	18:00:00	Lundi au Samedi	L'Alliance Française Mahajanga est un établissement culturel et linguistique dédié à la promotion de la langue française et des cultures francophones. Fondée en 1950, notre institution propose des cours de français pour tous niveaux, des préparations aux examens DELF/DALF, ainsi que des activités culturelles régulières. Notre équipe de professeurs qualifiés et passionnés s'engage à offrir un enseignement de qualité dans un environnement chaleureux et multiculturel.	\N	2026-03-02 03:51:46.902862
+1	Alliance Française Mahajanga	032 05 119 84	afmsec3@gmail.com	Rue Edouard VII - BP 236 - 401 Majunga	08:00:00	18:00:00	Lundi au Samedi	L'Alliance Française Mahajanga est un établissement culturel et linguistique dédié à la promotion de la langue française et des cultures francophones. Fondée en 1950, notre institution propose des cours de français pour tous niveaux, des préparations aux examens DELF/DALF, ainsi que des activités culturelles régulières. Notre équipe de professeurs qualifiés et passionnés s'engage à offrir un enseignement de qualité dans un environnement chaleureux et multiculturel.	\N	2026-03-03 08:16:35.818953
 \.
 
 
@@ -1036,9 +1036,59 @@ COPY public.a_propos (id, nom_etablissement, tel, email, adresse, heure_ouvertur
 --
 
 COPY public.apprenant (id, nom, prenom, date_n, sexe, adresse, tel, email, nationalite, lieu_n, etablissement, niveau_scolaire, date_premiere_inscription, statut, mot_passe) FROM stdin;
+2	MIARILAZA	Juditch	2003-04-30	Femme	Antanimasatsa	0324442269	juditch@gmail.com	Malagasy	Mahajanga	Saint Gabriel	L3	2026-02-17	actif	$2b$10$LtSGA842bjqnSQ9MyIexc.n24M19kZ5lq3905WiVxJ91JtGE4aJEC
 1	tinah	dorea	2004-10-05	F	Sotema	0325896471	dorea@gmail.com	Malagasy	Mahajanga	Saint Gabriel	L3	2026-02-17	actif	$2b$10$LtSGA842bjqnSQ9MyIexc.n24M19kZ5lq3905WiVxJ91JtGE4aJEC
-2	MIARILAZA	Juditch	2003-05-02	F	Antanimasatsa	0324442269	\N	Malagasy	Mahajanga	Saint Gabriel	L3	2026-02-17	actif	$2b$10$LtSGA842bjqnSQ9MyIexc.n24M19kZ5lq3905WiVxJ91JtGE4aJEC
-3	tinah	dorea	2004-05-02	F	Sotema	0325896471	\N	\N	\N	Saint Gabriel	L3	2026-02-17	actif	$2b$10$LtSGA842bjqnSQ9MyIexc.n24M19kZ5lq3905WiVxJ91JtGE4aJEC
+3	tinah	dorea	2004-05-01	F	Sotema	0325896472				Saint Gabriel	L3	2026-02-17	actif	$2b$10$LtSGA842bjqnSQ9MyIexc.n24M19kZ5lq3905WiVxJ91JtGE4aJEC
+5	Mendy	Aminata	2005-03-15	Femme	Rue 12, Parcelles Assainies	771234567	aminata.mendy@example.com	malagasy	Dakar	Lycée Blaise Diagne	Terminale	2026-03-03	actif	$2b$10$XYZhash123
+6	Diop	Moussa	2004-07-22	Homme	Avenue 10, Grand Dakar	772345678	moussa.diop@example.com	malagasy	Thiès	CEM Liberté	3ème	2026-03-03	actif	$2b$10$XYZhash123
+7	Fall	Fatou	2006-01-10	Femme	Rue 5, Médina	773456789	fatou.fall@example.com	malagasy	Rufisque	Lycée Seydina Limamou Laye	2nde	2026-03-03	actif	$2b$10$XYZhash123
+8	Ndiaye	Cheikh	2005-11-05	Homme	Cité 1000 logements	774567890	cheikh.ndiaye@example.com	malagasy	Saint-Louis	Lycée Ameth Fall	1ère	2026-03-03	actif	$2b$10$XYZhash123
+9	Ba	Aïssatou	2004-09-18	Femme	Quartier Escale	775678901	aissatou.ba@example.com	malagasy	Kaolack	CEM Ndoffane	4ème	2026-03-03	actif	$2b$10$XYZhash123
+10	Sow	Ibrahima	2006-05-30	Homme	Rue 15, HLM	776789012	ibrahima.sow@example.com	malagasy	Ziguinchor	Lycée Djignabo	2nde	2026-03-03	actif	$2b$10$XYZhash123
+11	Diallo	Mariama 	2005-08-12	Femme	Avenue 3, Point E	777890123	mariama.diallo@example.com	malagasy	Tambacounda	CEM Gueule Tapée	3ème	2026-03-03	actif	$2b$10$XYZhash123
+12	Gueye	Ousmane	2004-12-25	Homme	Rue 8, Fass	778901234	ousmane.gueye@example.com	malagasy	Mbour	Lycée Malick Sy	Terminale	2026-03-03	actif	$2b$10$XYZhash123
+13	Ndao	Khady	2006-02-14	Femme	Cité Keur Gorgui	779012345	khady.ndao@example.com	malagasy	Fatick	CEM Fatick Centre	4ème	2026-03-03	actif	$2b$10$XYZhash123
+14	Sarr	Mamadou	2005-06-08	Homme	Quartier Sicap	780123456	mamadou.sarr@example.com	malagasy	Kolda	Lycée Technique	1ère	2026-03-03	actif	$2b$10$XYZhash123
+15	Diatta	Bineta	2004-04-20	Femme	Rue 20, Ouakam	781234567	bineta.diatta@example.com	malagasy	Sédhiou	CEM Sédhiou	3ème	2026-03-03	actif	$2b$10$XYZhash123
+16	Sy	Abdoulaye	2006-10-03	Homme	Avenue 7, Mermoz	782345678	abdoulaye.sy@example.com	malagasy	Matam	Lycée Technique Matam	2nde	2026-03-03	actif	$2b$10$XYZhash123
+17	Camara	Ramatoulaye	2005-01-28	Femme	Rue 11, Grand Yoff	783456789	ramatoulaye.camara@example.com	malagasy	Kédougou	CEM Kédougou	3ème	2026-03-03	actif	$2b$10$XYZhash123
+18	Thiam	Boubacar	2004-08-16	Homme	Cité SIPRES	784567890	boubacar.thiam@example.com	malagasy	Louga	Lycée Ibrahima Thiaw	Terminale	2026-03-03	actif	$2b$10$XYZhash123
+19	Kane	Ndèye	2006-03-09	Femme	Quartier Ngor	785678901	ndeye.kane@example.com	malagasy	Linguère	CEM Linguère	4ème	2026-03-03	actif	$2b$10$XYZhash123
+20	Cissé	Alioune	2005-12-01	Homme	Rue 6, Fann	786789012	alioune.cisse@example.com	malagasy	Bambey	Lycée Agricole	1ère	2026-03-03	actif	$2b$10$XYZhash123
+21	Traoré	Awa	2004-07-14	Femme	Avenue 12, Sacré-Cœur	787890123	awa.traore@example.com	malagasy	Tivaouane	CEM Tivaouane	3ème	2026-03-03	actif	$2b$10$XYZhash123
+22	Dieng	Serigne	2006-09-22	Homme	Cité OCP	788901234	serigne.dieng@example.com	malagasy	Mbacké	Lycée Serigne Babacar Sy	2nde	2026-03-03	actif	$2b$10$XYZhash123
+23	Lo	Mame	2005-05-17	Femme	Rue 9, Dieuppeul	789012345	mame.lo@example.com	malagasy	Guédiawaye	CEM Guédiawaye	3ème	2026-03-03	actif	$2b$10$XYZhash123
+24	Thiaw	Papa	2004-11-30	Homme	Quartier Cambérène	790123456	papa.thiaw@example.com	malagasy	Rufisque	Lycée Technique Rufisque	Terminale	2026-03-03	actif	$2b$10$XYZhash123
+25	Seck	Aminata	2006-04-25	Femme	Avenue 5, Liberté 6	791234567	aminata.seck@example.com	malagasy	Pikine	CEM Pikine	4ème	2026-03-03	actif	$2b$10$XYZhash123
+26	Sall	Demba 	2005-02-19	Homme	Rue 14, Hann	792345678	demba.sall@example.com	malagasy	Thiès	Lycée Technique Thiès	1ère	2026-03-03	actif	$2b$10$XYZhash123
+27	Bâ 	Coumba 	2004-06-11	Femme	Cité Asecna	793456789	coumba.ba@example.com	malagasy	Kaolack 	CEM Kaolack Nord 	3ème 	2026-03-03	actif	$2b$10$XYZhash123
+28	Ndoye	Lamine	2006-08-07	Homme	Quartier Yembeul	794567890	lamine.ndoye@example.com	malagasy	Ziguinchor	Lycée Technique Ziguinchor	2nde	2026-03-03	actif	$2b$10$XYZhash123
+29	Sène	Ouleymatou	2005-10-23	Femme	Rue 7, Sam Notaire	795678901	ouleymatou.sene@example.com	malagasy	Mbour	CEM Mbour	3ème	2026-03-03	actif	$2b$10$XYZhash123
+30	Faye	Malick	2004-03-16	Homme	Avenue 9, Virage	796789012	malick.faye@example.com	malagasy	Fatick	Lycée Technique Fatick	Terminale	2026-03-03	actif	$2b$10$XYZhash123
+31	Diouf	Sophie	2006-07-29	Femme	Cité Keur Massar	797890123	sophie.diouf@example.com	malagasy	Kolda	CEM Kolda	4ème	2026-03-03	actif	$2b$10$XYZhash123
+32	Gning	Abdou	2005-04-12	Homme	Rue 13, Thiaroye	798901234	abdou.gning@example.com	malagasy	Sédhiou	Lycée Technique Sédhiou	1ère	2026-03-03	actif	$2b$10$XYZhash123
+33	Diagne	Rokhaya	2004-09-05	Femme	Quartier Wakhinane	799012345	rokhaya.diagne@example.com	malagasy	Matam	CEM Matam	3ème	2026-03-03	actif	$2b$10$XYZhash123
+34	Deme	Ibou	2006-01-18	Homme	Avenue 11, Ndiareme	800123456	ibou.deme@example.com	malagasy	Kédougou	CEM Kédougou Centre	2nde	2026-03-03	actif	$2b$10$XYZhash123
+35	Niasse	Raby	2005-11-21	Femme	Rue 4, Colobane	801234567	raby.niasse@example.com	malagasy	Louga	CEM Louga	3ème	2026-03-03	actif	$2b$10$XYZhash123
+36	Diakhaté	Cheikh Tidiane	2004-05-08	Homme	Cité Dahra	802345678	cheikh.diakhate@example.com	malagasy	Linguère	Lycée Technique Linguère	Terminale	2026-03-03	actif	$2b$10$XYZhash123
+37	Sagna 	Aby 	2006-12-13	Femme	Quartier Golf Sud	803456789	aby.sagna@example.com	malagasy	Bambey 	CEM Bambey 	4ème 	2026-03-03	actif	$2b$10$XYZhash123
+38	Sarr	Papa Malick	2005-07-26	Homme	Rue 16, Darou	804567890	papamalick.sarr@example.com	malagasy	Tivaouane	Lycée Technique Tivaouane	1ère	2026-03-03	actif	$2b$10$XYZhash123
+39	Diop	Marième	2004-02-03	Femme	Avenue 8, Keur Massar	805678901	marieme.diop@example.com	malagasy	Mbacké	CEM Mbacké	3ème	2026-03-03	actif	$2b$10$XYZhash123
+40	Fall	Babacar	2006-06-19	Homme	Cité Millionnaire	806789012	babacar.fall@example.com	malagasy	Guédiawaye	Lycée Technique Guédiawaye	2nde	2026-03-03	actif	$2b$10$XYZhash123
+41	Ndiaye	Aminata	2005-09-11	Femme	Rue 10, Yeumbeul	807890123	aminata.ndiaye2@example.com	malagasy	Pikine	CEM Pikine Banlieue	3ème	2026-03-03	actif	$2b$10$XYZhash123
+42	Ba	Mouhamed	2004-10-27	Homme	Quartier Walo	808901234	mouhamed.ba@example.com	malagasy	Thiès	CEM Thiès Ouest	3ème	2026-03-03	actif	$2b$10$XYZhash123
+43	Sow	Fatoumata	2006-03-24	Femme	Avenue 6, Mamelles	809012345	fatoumata.sow@example.com	malagasy	Kaolack	Lycée Technique Kaolack	2nde	2026-03-03	actif	$2b$10$XYZhash123
+44	Diallo	Alpha	2005-08-31	Homme	Rue 17, Patte d'Oie	810123456	alpha.diallo@example.com	malagasy	Ziguinchor	CEM Ziguinchor	3ème	2026-03-03	actif	$2b$10$XYZhash123
+45	Gueye	Aminata	2004-12-06	Femme	Cité Aicha	811234567	aminata.gueye@example.com	malagasy	Mbour	Lycée Technique Mbour	Terminale	2026-03-03	actif	$2b$10$XYZhash123
+46	Ndao	Bassirou	2006-05-15	Homme	Quartier Ndiarème	812345678	bassirou.ndao@example.com	malagasy	Fatick	CEM Fatick Sud	4ème	2026-03-03	actif	$2b$10$XYZhash123
+47	Sarr	Ndèye Fatou	2005-01-09	Femme	Rue 18, Keur Gui	813456789	ndeyefatou.sarr@example.com	malagasy	Kolda	CEM Kolda Centre	3ème	2026-03-03	actif	$2b$10$XYZhash123
+48	Diatta	Saliou	2004-04-02	Homme	Avenue 13, Fann Hock	814567890	saliou.diatta@example.com	malagasy	Sédhiou	CEM Sédhiou Nord	3ème	2026-03-03	actif	$2b$10$XYZhash123
+49	Sy	Aissata	2006-11-17	Femme	Cité Keur Bana	815678901	aissata.sy@example.com	malagasy	Matam	CEM Matam Centre	4ème	2026-03-03	actif	$2b$10$XYZhash123
+50	Camara	Mouctar	2005-06-24	Homme	Rue 19, Thiaroye Gare	816789012	mouctar.camara@example.com	malagasy	Kédougou	CEM Kédougou Sud	3ème	2026-03-03	actif	$2b$10$XYZhash123
+51	Thiam	Oumou	2004-08-21	Femme	Quartier Ndiareme Limamoulaye	817890123	oumou.thiam@example.com	malagasy	Louga	CEM Louga Nord	3ème	2026-03-03	actif	$2b$10$XYZhash123
+52	Kane	Boubou	2006-02-28	Homme	Avenue 14, Diamalaye	818901234	boubou.kane@example.com	malagasy	Linguère	CEM Linguère Centre	2nde	2026-03-03	actif	$2b$10$XYZhash123
+53	Cissé	Mariam	2005-10-14	Femme	Rue 21, Keur Massar Nord	819012345	mariam.cisse@example.com	malagasy	Bambey	CEM Bambey Centre	3ème	2026-03-03	actif	$2b$10$XYZhash123
+54	Traoré	Seydou	2004-07-07	Homme	Cité Sogefiha	820123456	seydou.traore@example.com	malagasy	Tivaouane	CEM Tivaouane Nord	3ème	2026-03-03	actif	$2b$10$XYZhash123
 \.
 
 
@@ -1061,8 +1111,8 @@ COPY public.attribution_salle (id, id_groupe, date_cours, id_salle) FROM stdin;
 COPY public.categorie (id, nom_categorie, min_age, max_age) FROM stdin;
 1	Précoce	3	6
 2	Enfant	8	11
-3	Ado	12	17
 4	Adulte	18	89
+3	Adolescent	12	17
 \.
 
 
@@ -1075,6 +1125,7 @@ COPY public.categorie (id, nom_categorie, min_age, max_age) FROM stdin;
 COPY public.creneau (id, id_horaire_cours, jour_semaine, heure_debut, heure_fin) FROM stdin;
 1	3	{lundi,mardi,mercredi,jeudi,vendredi}	08:00:00	11:00:00
 2	4	{lundi,mardi,mercredi,jeudi,vendredi}	15:00:00	18:00:00
+3	7	{lundi,mardi,jeudi}	17:00:00	18:00:00
 \.
 
 
@@ -1087,10 +1138,10 @@ COPY public.creneau (id, id_horaire_cours, jour_semaine, heure_debut, heure_fin)
 COPY public.employe (id, nom, prenom, age, adresse, tel, mot_passe, date_creation, email, is_active, deactivated_at, deactivated_by, role) FROM stdin;
 3	tina	dorea	30	Sotema	0341234567	$2b$10$04NbXg9BoiTBAs7HGhlqoui7onox9BMakWrjyJpTFQRVfpkiWzBAa	2025-11-04 17:32:55.930466	tinahdorea@gmail.com	t	\N	\N	Admin
 2	Tokys	jerrys	25	Sotema	0325896471	$2b$10$04NbXg9BoiTBAs7HGhlqoui7onox9BMakWrjyJpTFQRVfpkiWzBAa	2025-10-25 16:44:31.615915	toky@gmail.com	t	\N	\N	Admin
-5	Shania	Amara	21	Mahabibo	0325869855	$2b$10$6JTwrgNE0H4KK3zIBIFhVeNDlAYYSVqC2bapc035rWi4ofsQrqetC	2026-01-10 01:54:58.034594	shania@gmail.com	t	\N	\N	Professeurs
 6	IRATA	Andry Nandrandraiana	25	Sotema	0321654987	$2b$10$6JTwrgNE0H4KK3zIBIFhVeNDlAYYSVqC2bapc035rWi4ofsQrqetC	2026-02-28 10:34:46.792388	irata@gmail.com	t	\N	\N	Professeurs
-1	tinah	dorea	21	Sotema	0324442269	$2b$10$yvkY1oRfuxVNvrGz10tEP.YCaL5vHThrVhBfqsF3/ad9tA/dfIu6a	2025-10-24 17:36:44.301241	tdorea@gmail.com	t	\N	\N	Pédagogie
 4	toky	jerrys	23	sotema	0325689741	$2b$10$6JTwrgNE0H4KK3zIBIFhVeNDlAYYSVqC2bapc035rWi4ofsQrqetC	2025-12-12 16:41:52.876033	jerrys@gmail.com	t	\N	\N	Professeurs
+1	tinah	dorea	21	Sotema	0324442269	$2b$10$yvkY1oRfuxVNvrGz10tEP.YCaL5vHThrVhBfqsF3/ad9tA/dfIu6a	2025-10-24 17:36:44.301241	tdorea@gmail.com	t	\N	\N	Pédagogie
+5	Shania	Amara	21	Mahabibo	0325869855	$2b$10$6JTwrgNE0H4KK3zIBIFhVeNDlAYYSVqC2bapc035rWi4ofsQrqetC	2026-01-10 01:54:58.034594	shania@gmail.com	t	\N	\N	Professeurs
 \.
 
 
@@ -1113,6 +1164,10 @@ COPY public.examen (id, id_inscription, etat_inscription, auto_inscription, veri
 --
 
 COPY public.groupe (id, nom_groupe, id_professeur, date_creation, id_creneau) FROM stdin;
+3	G1 A1 CI	2	2026-03-03	2
+4	G2 A1 CI	1	2026-03-03	1
+2	G1 B1 CI 	2	2026-03-03	1
+5	G2 B2 CI 	1	2026-03-03	1
 \.
 
 
@@ -1124,7 +1179,11 @@ COPY public.groupe (id, nom_groupe, id_professeur, date_creation, id_creneau) FR
 
 COPY public.horaire_cours (id, id_niveau, id_categorie, duree_heures, duree_semaines, id_type_cours) FROM stdin;
 4	{6,7,8,9,10}	4	30	2	2
-3	{1}	4	30	2	2
+5	{2,3,4,12,5,11,13,1}	4	30	5	3
+7	{1,2,3,4,5,11,12,13}	2	30	5	8
+3	{1,2,3,4,5,11,12,13}	4	30	2	2
+8	{1,4,2,3,11,5,12,13}	4	24	4	4
+6	{10,9,8,7,6}	4	30	5	3
 \.
 
 
@@ -1135,6 +1194,20 @@ COPY public.horaire_cours (id, id_niveau, id_categorie, duree_heures, duree_sema
 --
 
 COPY public.inscription (id, id_apprenant, id_employe, id_session, id_motivation, num_carte, ticket, etat_inscription, date_inscription, id_niveau, id_categorie, id_creneau, id_groupe, validation_examen, note) FROM stdin;
+2	9	\N	20	\N	2358	\N	inscription	2026-03-03 05:54:07.964484	1	4	1	\N	\N	\N
+4	50	\N	20	\N	2056	\N	inscription	2026-03-03 09:43:24.505506	1	4	1	\N	\N	\N
+5	20	\N	20	\N	2356	\N	inscription	2026-03-03 09:48:21.188552	3	4	1	\N	\N	\N
+8	34	\N	1	\N	5689	\N	inscription	2026-03-03 10:03:01.572178	4	4	1	\N	\N	\N
+9	9	\N	1	\N	2356	\N	inscription	2026-03-03 10:05:36.43937	2	4	1	\N	\N	\N
+10	50	\N	1	\N	2036	\N	inscription	2026-03-03 10:08:42.027022	2	4	1	\N	\N	\N
+11	33	\N	1	\N	2356	\N	inscription	2026-03-03 10:13:19.458389	2	4	1	\N	\N	\N
+12	2	\N	1	\N	2356	\N	inscription	2026-03-03 10:14:32.825104	11	4	1	\N	\N	\N
+1	2	\N	20	\N	2036	\N	inscription	2026-03-02 23:32:09.478645	5	4	1	\N	\N	\N
+6	34	\N	20	\N	5689	\N	inscription	2026-03-03 10:01:21.799638	3	4	1	2	\N	\N
+3	33	\N	20	\N	2056	\N	inscription	2026-03-03 05:59:05.333021	1	4	1	\N	\N	\N
+13	2	\N	13	1	2036	\N	inscription	2026-03-03 10:24:31.968161	21	4	2	\N	\N	\N
+14	50	\N	13	2	2356	\N	inscription	2026-03-03 17:29:19.322417	13	4	1	\N	\N	\N
+15	9	\N	13	1	2356	\N	inscription	2026-03-03 17:30:43.615703	11	\N	1	\N	\N	\N
 \.
 
 
@@ -1149,12 +1222,11 @@ COPY public.motivation (id, nom_motivation) FROM stdin;
 2	Besoin professionnel
 3	Préparation à un voyage
 4	Études universitaires
-5	Loisir personnel
 6	Évolution de carrière
 7	Préparation à un examen officiel
 8	Exigence professionnelle
-9	Etude
 10	Travail
+12	Edute
 \.
 
 
@@ -1178,7 +1250,9 @@ COPY public.niveau (id, nom_niveau, sous_niveau) FROM stdin;
 11	A2	1
 12	A2	2
 13	A2	3
-15	C2	2
+20	C1	1
+21	B1	1
+22	B1	2
 \.
 
 
@@ -1212,7 +1286,13 @@ COPY public.professeur (id, id_employe, specialite_niveaux) FROM stdin;
 
 COPY public.salle (id, nom_salle, capacite_max) FROM stdin;
 2	Salle A	20
-3	Salle 1	20
+4	salle 5	15
+5	salle 4	20
+3	Salle 1	5
+6	salle 2	5
+7	salle 3	5
+8	salle 6	5
+9	salle 7	5
 \.
 
 
@@ -1223,18 +1303,26 @@ COPY public.salle (id, nom_salle, capacite_max) FROM stdin;
 --
 
 COPY public.session (id, mois, annee, id_type_cours, date_fin_inscription, date_debut, date_fin, date_exam, nom_session, duree_cours) FROM stdin;
-2	Janvier	2024	1	2024-01-15	2024-01-20	2024-05-20	2024-05-25	\N	0
-3	Janvier	2025	1	2025-10-27	2025-11-03	2025-11-21	2025-11-24	\N	0
-1	Octobre	2025	2	2025-10-11	2025-10-19	2025-11-09	2025-11-16	\N	0
-5	Novembre	2025	4	2025-10-18	2025-10-20	2025-11-03	2025-11-17	\N	0
-6	Janvier	2026	\N	2026-01-15	2026-01-20	2026-03-20	2026-03-25	\N	0
-8	Juillet	2026	\N	2026-07-01	2026-07-05	2026-08-20	2026-08-25	\N	0
-9	Octobre	2026	\N	2026-09-25	2026-10-01	2026-12-15	2026-12-20	\N	0
 7	Avril	2026	1	2026-04-04	2026-04-09	2026-06-14	2026-06-19	\N	0
-10	Janvier	2027	3	2027-01-09	2027-01-14	2027-03-24	2027-03-29	\N	0
-11	Avril	2027	2	2027-03-31	2027-04-04	2027-06-09	2027-06-14	\N	0
 12	février	2026	1	2026-01-31	2026-02-02	2026-02-27	2026-02-27	session fevrier	0
-13	Février	2026	2	2026-02-16	2026-02-23	2026-03-06	\N	session février cours intensif	0
+8	juillet	2026	\N	2026-06-30	2026-07-04	2026-08-19	2026-08-24	\N	30
+10	janvier	2027	3	2027-01-08	2027-01-13	2027-03-23	2027-03-28	\N	30
+11	avril	2027	2	2027-03-30	2027-04-03	2027-06-08	2027-06-13	\N	30
+1	octobre	2025	2	2025-10-27	2025-11-03	2025-11-14	\N	session Octobre Cours Intensifs	30
+3	mars	2025	2	2025-03-15	2025-03-25	2025-04-07	\N	session mars Cours Intensifs	30
+2	janvier	2025	2	2025-01-20	2025-01-27	2025-02-07	\N	session janvier Cours Intensifs	30
+5	novembre	2025	2	2025-11-24	2025-12-01	2025-12-12	\N	session novembre Cours Intensifs	30
+14	mai	2025	2	2025-05-16	2025-05-19	2025-06-02	\N	session mai Cours Intensifs	30
+15	avril	2025	2	2025-04-22	2025-04-28	2025-05-12	\N	session avril Cours Intensifs	30
+16	février	2025	2	2025-02-17	2025-02-24	2025-03-07	\N	session février Cours Intensifs	30
+17	juin	2025	2	2025-06-23	2025-06-30	2025-07-11	\N	session juin Cours Intensifs	30
+18	juillet	2025	2	2025-07-21	2025-07-28	2025-08-08	\N	session juillet Cours Intensifs	30
+19	août	2025	2	2025-08-18	2025-08-25	2025-09-15	\N	session août Cours Intensifs	30
+20	septembre	2025	2	2025-09-22	2025-09-29	2025-10-17	\N	session septembre Cours Intensifs	30
+9	octobre	2026	\N	2026-09-24	2026-09-30	2026-12-14	2026-12-19	\N	30
+6	janvier	2026	\N	2026-01-14	2026-01-19	2026-03-19	2026-03-24	\N	30
+21	novembre	2025	4	2025-10-10	2025-10-19	2025-11-12	2025-11-17	session novembre Prepa TP	24
+13	février	2026	2	2026-02-15	2026-02-22	2026-03-05	\N	session février cours intensif	30
 \.
 
 
@@ -1259,7 +1347,8 @@ COPY public.type_cours (id, id_type_service, nom_type_cours) FROM stdin;
 2	1	Cours Intensif
 3	1	Cours Extensifs
 4	2	Prepa TP
-5	2	Prepa Junior
+8	2	Prepa Prim'
+9	2	Prepa junior
 \.
 
 
@@ -1272,7 +1361,7 @@ COPY public.type_cours (id, id_type_service, nom_type_cours) FROM stdin;
 COPY public.type_service (id, nom_service, libelle) FROM stdin;
 2	Prepa	Préparation aux examens DELF/DALF
 1	Renforcements	Cours de renforcement linguistique pour tous niveaux
-9	test	\N
+11	Vacance	cours de vacance pour renforce votre français
 \.
 
 
@@ -1291,7 +1380,7 @@ SELECT pg_catalog.setval('public.a_propos_id_seq', 1, true);
 -- Name: apprenant_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.apprenant_id_seq', 3, true);
+SELECT pg_catalog.setval('public.apprenant_id_seq', 54, true);
 
 
 --
@@ -1309,7 +1398,7 @@ SELECT pg_catalog.setval('public.attribution_salle_id_seq', 1, false);
 -- Name: categorie_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.categorie_id_seq', 4, true);
+SELECT pg_catalog.setval('public.categorie_id_seq', 5, true);
 
 
 --
@@ -1318,7 +1407,7 @@ SELECT pg_catalog.setval('public.categorie_id_seq', 4, true);
 -- Name: creneau_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.creneau_id_seq', 2, true);
+SELECT pg_catalog.setval('public.creneau_id_seq', 3, true);
 
 
 --
@@ -1345,7 +1434,7 @@ SELECT pg_catalog.setval('public.examen_id_seq', 2, true);
 -- Name: groupe_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.groupe_id_seq', 1, false);
+SELECT pg_catalog.setval('public.groupe_id_seq', 5, true);
 
 
 --
@@ -1354,7 +1443,7 @@ SELECT pg_catalog.setval('public.groupe_id_seq', 1, false);
 -- Name: horaire_cours_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.horaire_cours_id_seq', 4, true);
+SELECT pg_catalog.setval('public.horaire_cours_id_seq', 8, true);
 
 
 --
@@ -1363,7 +1452,7 @@ SELECT pg_catalog.setval('public.horaire_cours_id_seq', 4, true);
 -- Name: inscription_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.inscription_id_seq', 1, false);
+SELECT pg_catalog.setval('public.inscription_id_seq', 15, true);
 
 
 --
@@ -1372,7 +1461,7 @@ SELECT pg_catalog.setval('public.inscription_id_seq', 1, false);
 -- Name: motivation_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.motivation_id_seq', 10, true);
+SELECT pg_catalog.setval('public.motivation_id_seq', 12, true);
 
 
 --
@@ -1381,7 +1470,7 @@ SELECT pg_catalog.setval('public.motivation_id_seq', 10, true);
 -- Name: niveau_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.niveau_id_seq', 17, true);
+SELECT pg_catalog.setval('public.niveau_id_seq', 22, true);
 
 
 --
@@ -1408,7 +1497,7 @@ SELECT pg_catalog.setval('public.professeur_id_seq', 2, true);
 -- Name: salle_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.salle_id_seq', 3, true);
+SELECT pg_catalog.setval('public.salle_id_seq', 9, true);
 
 
 --
@@ -1417,7 +1506,7 @@ SELECT pg_catalog.setval('public.salle_id_seq', 3, true);
 -- Name: session_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.session_id_seq', 13, true);
+SELECT pg_catalog.setval('public.session_id_seq', 21, true);
 
 
 --
@@ -1435,7 +1524,7 @@ SELECT pg_catalog.setval('public.test_niveau_id_seq', 1, false);
 -- Name: type_cours_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.type_cours_id_seq', 5, true);
+SELECT pg_catalog.setval('public.type_cours_id_seq', 9, true);
 
 
 --
@@ -1444,7 +1533,7 @@ SELECT pg_catalog.setval('public.type_cours_id_seq', 5, true);
 -- Name: type_service_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.type_service_id_seq', 9, true);
+SELECT pg_catalog.setval('public.type_service_id_seq', 15, true);
 
 
 --
@@ -1957,7 +2046,7 @@ ALTER TABLE ONLY public.type_cours
     ADD CONSTRAINT type_cours_id_type_service_fkey FOREIGN KEY (id_type_service) REFERENCES public.type_service(id) ON UPDATE CASCADE ON DELETE RESTRICT;
 
 
--- Completed on 2026-03-02 06:11:46
+-- Completed on 2026-03-03 21:03:14
 
 --
 -- PostgreSQL database dump complete

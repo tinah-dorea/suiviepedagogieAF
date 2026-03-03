@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { updateEmploye } from '../../services/employeService';
+import api from '../../services/api';
 
 export default function ProfileModal({ isOpen, onClose }) {
   const [userData, setUserData] = useState({
@@ -13,7 +14,13 @@ export default function ProfileModal({ isOpen, onClose }) {
     role: '',
     service: ''
   });
+  const [passwordData, setPasswordData] = useState({
+    current_password: '',
+    new_password: '',
+    confirm_password: ''
+  });
   const [editing, setEditing] = useState(false);
+  const [editingPassword, setEditingPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState(''); // 'success' ou 'error'
@@ -106,8 +113,64 @@ export default function ProfileModal({ isOpen, onClose }) {
       service: storedUser.service || ''
     });
     setEditing(false);
+    setEditingPassword(false);
+    setPasswordData({
+      current_password: '',
+      new_password: '',
+      confirm_password: ''
+    });
     setError('');
     setMessage('');
+  };
+
+  const handlePasswordSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    setMessage('');
+
+    try {
+      // Validations
+      if (!passwordData.current_password) {
+        throw { response: { data: { message: 'Le mot de passe actuel est requis' } } };
+      }
+      if (!passwordData.new_password) {
+        throw { response: { data: { message: 'Le nouveau mot de passe est requis' } } };
+      }
+      if (passwordData.new_password.length < 6) {
+        throw { response: { data: { message: 'Le mot de passe doit contenir au moins 6 caractères' } } };
+      }
+      if (passwordData.new_password !== passwordData.confirm_password) {
+        throw { response: { data: { message: 'Les nouveaux mots de passe ne correspondent pas' } } };
+      }
+
+      const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+      
+      // Call API to update password
+      await api.put(`/employes/${storedUser.id}/password`, {
+        current_password: passwordData.current_password,
+        new_password: passwordData.new_password
+      });
+
+      setMessage('✓ Mot de passe mis à jour avec succès!');
+      setMessageType('success');
+      setEditingPassword(false);
+      setPasswordData({
+        current_password: '',
+        new_password: '',
+        confirm_password: ''
+      });
+
+      // Auto-clear success message after 3 seconds
+      setTimeout(() => setMessage(''), 3000);
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || "Une erreur est survenue lors de la mise à jour du mot de passe";
+      setError('✗ ' + errorMsg);
+      setMessageType('error');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -333,6 +396,92 @@ export default function ProfileModal({ isOpen, onClose }) {
                     >
                       Annuler
                     </button>
+                  </div>
+
+                  {/* Password Change Section */}
+                  <div className="pt-6 border-t mt-6">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-lg font-semibold text-gray-800">Changer le mot de passe</h3>
+                      {!editingPassword && (
+                        <button
+                          onClick={() => setEditingPassword(true)}
+                          className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                        >
+                          Modifier
+                        </button>
+                      )}
+                    </div>
+
+                    {!editingPassword ? (
+                      <p className="text-sm text-gray-500">Cliquez sur "Modifier" pour changer votre mot de passe</p>
+                    ) : (
+                      <form onSubmit={handlePasswordSubmit} className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Mot de passe actuel *</label>
+                          <input
+                            type="password"
+                            name="current_password"
+                            value={passwordData.current_password}
+                            onChange={(e) => setPasswordData(prev => ({ ...prev, current_password: e.target.value }))}
+                            required
+                            className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Nouveau mot de passe *</label>
+                            <input
+                              type="password"
+                              name="new_password"
+                              value={passwordData.new_password}
+                              onChange={(e) => setPasswordData(prev => ({ ...prev, new_password: e.target.value }))}
+                              required
+                              minLength={6}
+                              className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                            />
+                            <p className="text-xs text-gray-500 mt-1">Minimum 6 caractères</p>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Confirmer le mot de passe *</label>
+                            <input
+                              type="password"
+                              name="confirm_password"
+                              value={passwordData.confirm_password}
+                              onChange={(e) => setPasswordData(prev => ({ ...prev, confirm_password: e.target.value }))}
+                              required
+                              minLength={6}
+                              className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="pt-2 flex space-x-3">
+                          <button
+                            type="submit"
+                            disabled={loading}
+                            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                          >
+                            {loading ? '⏳ Mise à jour...' : '✓ Mettre à jour'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingPassword(false);
+                              setPasswordData({
+                                current_password: '',
+                                new_password: '',
+                                confirm_password: ''
+                              });
+                              setError('');
+                            }}
+                            className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors font-medium"
+                          >
+                            Annuler
+                          </button>
+                        </div>
+                      </form>
+                    )}
                   </div>
                 </form>
               )}

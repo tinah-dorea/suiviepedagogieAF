@@ -6,6 +6,7 @@ import {
   getRoles,
   createEmploye,
   updateEmploye,
+  updatePassword,
   toggleEmployeStatus,
   deleteEmploye,
   getProfesseurs
@@ -23,6 +24,7 @@ router.get('/professeurs', getProfesseurs);
 router.get('/', getEmployes);
 router.post('/', createEmployeValidation, validateRequest, createEmploye);
 router.put('/:id', updateEmployeValidation, validateRequest, updateEmploye);
+router.put('/:id/password', updatePassword);
 router.patch('/:id/status', toggleEmployeStatus);
 router.delete('/:id', deleteEmploye);
 

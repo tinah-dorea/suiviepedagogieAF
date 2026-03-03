@@ -27,11 +27,11 @@ api.interceptors.response.use(
   }
 );
 
-export const getAffectations = () => api.get('/affectation-salle');
-export const getAffectationById = (id) => api.get(`/affectation-salle/${id}`);
-export const createAffectation = (data) => api.post('/affectation-salle', data);
-export const updateAffectation = (id, data) => api.put(`/affectation-salle/${id}`, data);
-export const deleteAffectation = (id) => api.delete(`/affectation-salle/${id}`);
+export const getAffectations = () => api.get('/affectation-salles');
+export const getAffectationById = (id) => api.get(`/affectation-salles/${id}`);
+export const createAffectation = (data) => api.post('/affectation-salles', data);
+export const updateAffectation = (id, data) => api.put(`/affectation-salles/${id}`, data);
+export const deleteAffectation = (id) => api.delete(`/affectation-salles/${id}`);
 
 // Méthodes avec les noms attendus
 export const getAll = () => getAffectations();

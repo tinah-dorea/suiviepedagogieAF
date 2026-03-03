@@ -3,11 +3,10 @@ import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import sessionService from '../../services/sessionService';
 import creneauService from '../../services/creneauService';
-import professeurService from '../../services/professeurService';
+import groupeService from '../../services/groupeService';
 import inscriptionService from '../../services/inscriptionService';
 import apprenantService from '../../services/apprenantService';
-import groupeService from '../../services/groupeService';
-import { AcademicCapIcon, UserGroupIcon, CalendarIcon, ClockIcon, CheckCircleIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { UserGroupIcon, CheckCircleIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 // Modern Pastel Palette
 const COLORS = {
@@ -29,15 +28,14 @@ const COLORS = {
 
 const AttributionGroupes = () => {
   const [formData, setFormData] = useState({
-    nom_groupe: '',
+    id_groupe: '',
     id_session: '',
     id_creneau: '',
-    id_professeur: '',
     nombre_apprenants: ''
   });
   const [sessions, setSessions] = useState([]);
   const [creneaux, setCreneaux] = useState([]);
-  const [professeurs, setProfesseurs] = useState([]);
+  const [groupes, setGroupes] = useState([]);
   const [apprenants, setApprenants] = useState([]);
   const [selectedApprenants, setSelectedApprenants] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -50,20 +48,8 @@ const AttributionGroupes = () => {
 
   const loadInitialData = async () => {
     try {
-      const [sessionsData, professeursData] = await Promise.all([
-        sessionService.getAll(),
-        professeurService.getAll()
-      ]);
+      const sessionsData = await sessionService.getAll();
       setSessions(sessionsData);
-      // Map professeur data to handle nom_employe/prenom_employe fields
-      const mappedProfesseurs = professeursData.map(prof => ({
-        ...prof,
-        nom: prof.nom_employe || prof.nom,
-        prenom: prof.prenom_employe || prof.prenom,
-        email: prof.email_employe || prof.email,
-        tel: prof.tel_employe || prof.tel
-      }));
-      setProfesseurs(mappedProfesseurs);
     } catch (error) {
       toast.error('Erreur lors du chargement des données');
       console.error(error);
@@ -73,8 +59,9 @@ const AttributionGroupes = () => {
   useEffect(() => {
     if (formData.id_session) {
       loadCreneauxBySession();
+      loadGroupes();
     }
-  }, [formData.id_session]);
+  }, [formData.id_session, sessions]);
 
   useEffect(() => {
     if (formData.id_creneau) {
@@ -94,6 +81,16 @@ const AttributionGroupes = () => {
       }
     } catch (error) {
       console.error('Erreur lors du chargement des créneaux:', error);
+    }
+  };
+
+  const loadGroupes = async () => {
+    try {
+      const groupesData = await groupeService.getAll();
+      setGroupes(groupesData);
+    } catch (error) {
+      console.error('Erreur lors du chargement des groupes:', error);
+      setGroupes([]);
     }
   };
 
@@ -189,8 +186,8 @@ const AttributionGroupes = () => {
   };
 
   const handleSubmit = async () => {
-    if (!formData.nom_groupe) {
-      toast.error('Veuillez saisir le nom du groupe');
+    if (!formData.id_groupe) {
+      toast.error('Veuillez sélectionner un groupe');
       return;
     }
     if (!formData.id_session) {
@@ -201,10 +198,6 @@ const AttributionGroupes = () => {
       toast.error('Veuillez sélectionner un créneau');
       return;
     }
-    if (!formData.id_professeur) {
-      toast.error('Veuillez sélectionner un professeur');
-      return;
-    }
     if (selectedApprenants.length === 0) {
       toast.error('Veuillez sélectionner au moins un apprenant');
       return;
@@ -212,27 +205,18 @@ const AttributionGroupes = () => {
 
     setLoading(true);
     try {
-      const groupeData = {
-        nom_groupe: formData.nom_groupe,
-        id_creneau: parseInt(formData.id_creneau),
-        id_professeur: parseInt(formData.id_professeur)
-      };
-
-      const nouveauGroupe = await groupeService.create(groupeData);
-
       const updatePromises = selectedApprenants.map(id =>
-        inscriptionService.update(id, { id_groupe: nouveauGroupe.id })
+        inscriptionService.update(id, { id_groupe: parseInt(formData.id_groupe) })
       );
 
       await Promise.all(updatePromises);
 
-      toast.success(`Groupe "${formData.nom_groupe}" créé avec succès ! ${selectedApprenants.length} apprenant(s) affecté(s).`);
+      toast.success(`${selectedApprenants.length} apprenant(s) affecté(s) au groupe avec succès !`);
 
       setFormData({
-        nom_groupe: '',
+        id_groupe: '',
         id_session: '',
         id_creneau: '',
-        id_professeur: '',
         nombre_apprenants: ''
       });
       setCreneaux([]);
@@ -242,7 +226,7 @@ const AttributionGroupes = () => {
       setSearchTerm('');
 
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Erreur lors de la création du groupe');
+      toast.error(error.response?.data?.message || 'Erreur lors de l\'affectation des apprenants');
       console.error(error);
     } finally {
       setLoading(false);
@@ -258,30 +242,14 @@ const AttributionGroupes = () => {
             <UserGroupIcon className="h-6 w-6 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold" style={{ color: COLORS.text }}>Attribution des Groupes</h1>
-            <p className="text-sm" style={{ color: COLORS.textLight }}>Assignez les apprenants aux groupes</p>
+            <h1 className="text-2xl font-bold" style={{ color: COLORS.text }}>Affectation aux Groupes</h1>
+            <p className="text-sm" style={{ color: COLORS.textLight }}>Affectez les apprenants à un groupe existant</p>
           </div>
         </div>
       </div>
 
       <div className="rounded-3xl shadow-sm border p-6 space-y-6" style={{ backgroundColor: COLORS.card, borderColor: COLORS.border }}>
-        {/* Nom du groupe */}
-        <div>
-          <label className="block text-sm font-semibold mb-2" style={{ color: COLORS.text }}>
-            Nom du groupe *
-          </label>
-          <input
-            type="text"
-            name="nom_groupe"
-            value={formData.nom_groupe}
-            onChange={handleInputChange}
-            placeholder="Ex: Groupe A1 - Lundi 10h"
-            className="w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all"
-            style={{ borderColor: COLORS.border, backgroundColor: COLORS.bg }}
-          />
-        </div>
-
-        {/* Recherche de session */}
+        {/* 1. Recherche de session */}
         <div>
           <label className="block text-sm font-semibold mb-2" style={{ color: COLORS.text }}>
             Rechercher une session *
@@ -290,49 +258,52 @@ const AttributionGroupes = () => {
             type="text"
             value={searchTerm}
             onChange={handleSearchChange}
-            placeholder="Rechercher par nom, mois ou année..."
+            placeholder="Tapez pour rechercher une session..."
             className="w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all"
             style={{ borderColor: COLORS.border, backgroundColor: COLORS.bg }}
           />
 
           {/* Liste des sessions filtrées */}
-          <div className="mt-2 max-h-48 overflow-y-auto border-2 rounded-xl" style={{ borderColor: COLORS.border }}>
-            {filteredSessions.length > 0 ? (
-              filteredSessions.map(session => (
-                <button
-                  key={session.id}
-                  onClick={() => {
-                    setFormData(prev => ({ ...prev, id_session: session.id }));
-                    setSearchTerm('');
-                  }}
-                  className={`w-full px-4 py-3 text-left transition-colors hover:bg-gray-50 ${
-                    formData.id_session === session.id ? 'bg-green-50' : ''
-                  }`}
-                >
-                  <div className="font-semibold" style={{ color: COLORS.text }}>{session.nom_session || `${session.mois} ${session.annee}`}</div>
-                  <div className="text-sm" style={{ color: COLORS.textLight }}>
-                    {session.nom_type_cours} | {session.nb_inscrits || 0} inscrits
-                  </div>
-                </button>
-              ))
-            ) : (
-              <div className="px-4 py-3 text-center" style={{ color: COLORS.textLight }}>Aucune session trouvée</div>
-            )}
-          </div>
+          {searchTerm && (
+            <div className="mt-2 max-h-48 overflow-y-auto border-2 rounded-xl shadow-lg" style={{ borderColor: COLORS.border, backgroundColor: COLORS.card }}>
+              {filteredSessions.length > 0 ? (
+                filteredSessions.map(session => (
+                  <button
+                    key={session.id}
+                    onClick={() => {
+                      setFormData(prev => ({ ...prev, id_session: session.id, id_groupe: '', id_creneau: '' }));
+                      setSearchTerm('');
+                    }}
+                    className={`w-full px-4 py-3 text-left transition-colors hover:bg-gray-50 border-b last:border-0 ${
+                      formData.id_session === session.id ? 'bg-green-50' : ''
+                    }`}
+                    style={{ borderColor: COLORS.border }}
+                  >
+                    <div className="font-semibold" style={{ color: COLORS.text }}>{session.nom_session || `${session.mois} ${session.annee}`}</div>
+                    <div className="text-sm" style={{ color: COLORS.textLight }}>
+                      {session.nom_type_cours} • {session.nb_inscrits || 0} inscrits
+                    </div>
+                  </button>
+                ))
+              ) : (
+                <div className="px-4 py-3 text-center" style={{ color: COLORS.textLight }}>Aucune session trouvée</div>
+              )}
+            </div>
+          )}
 
-          {formData.id_session && (
-            <div className="mt-2 flex items-center gap-2 text-sm" style={{ color: COLORS.statGreenText }}>
+          {formData.id_session && !searchTerm && (
+            <div className="mt-2 flex items-center gap-2 text-sm px-3 py-2 rounded-lg" style={{ backgroundColor: COLORS.highlight, color: COLORS.statGreenText }}>
               <CheckCircleIcon className="w-4 h-4" />
-              <span className="font-medium">Session sélectionnée : {sessions.find(s => s.id === formData.id_session)?.nom_session || `${sessions.find(s => s.id === formData.id_session)?.mois} ${sessions.find(s => s.id === formData.id_session)?.annee}`}</span>
+              <span className="font-medium">Session : {sessions.find(s => s.id === formData.id_session)?.nom_session || `${sessions.find(s => s.id === formData.id_session)?.mois} ${sessions.find(s => s.id === formData.id_session)?.annee}`}</span>
             </div>
           )}
         </div>
 
-        {/* Liste des créneaux */}
-        {creneaux.length > 0 && (
+        {/* 2. Sélection du créneau */}
+        {formData.id_session && (
           <div>
             <label className="block text-sm font-semibold mb-2" style={{ color: COLORS.text }}>
-              Sélectionner un créneau *
+              Créneau *
             </label>
             <select
               name="id_creneau"
@@ -348,34 +319,42 @@ const AttributionGroupes = () => {
                 </option>
               ))}
             </select>
+            {creneaux.length === 0 && (
+              <p className="mt-1 text-xs" style={{ color: '#F59E0B' }}>Aucun créneau disponible pour cette session</p>
+            )}
           </div>
         )}
 
-        {/* Professeur */}
-        <div>
-          <label className="block text-sm font-semibold mb-2" style={{ color: COLORS.text }}>
-            Sélectionner un professeur *
-          </label>
-          <select
-            name="id_professeur"
-            value={formData.id_professeur}
-            onChange={handleInputChange}
-            className="w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all"
-            style={{ borderColor: COLORS.border, backgroundColor: COLORS.bg }}
-          >
-            <option value="">Choisir un professeur</option>
-            {professeurs.map(prof => (
-              <option key={prof.id} value={prof.id}>
-                {prof.nom} {prof.prenom}
-              </option>
-            ))}
-          </select>
-        </div>
+        {/* 3. Sélection du groupe */}
+        {formData.id_creneau && (
+          <div>
+            <label className="block text-sm font-semibold mb-2" style={{ color: COLORS.text }}>
+              Groupe *
+            </label>
+            <select
+              name="id_groupe"
+              value={formData.id_groupe}
+              onChange={handleInputChange}
+              className="w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all"
+              style={{ borderColor: COLORS.border, backgroundColor: COLORS.bg }}
+            >
+              <option value="">Choisir un groupe</option>
+              {groupes.filter(g => g.id_creneau === parseInt(formData.id_creneau)).map(groupe => (
+                <option key={groupe.id} value={groupe.id}>
+                  {groupe.nom_groupe}
+                </option>
+              ))}
+            </select>
+            {groupes.filter(g => g.id_creneau === parseInt(formData.id_creneau)).length === 0 && (
+              <p className="mt-1 text-xs" style={{ color: '#F59E0B' }}>Aucun groupe disponible pour ce créneau</p>
+            )}
+          </div>
+        )}
 
-        {/* Nombre d'apprenants */}
+        {/* 4. Nombre d'apprenants */}
         <div>
           <label className="block text-sm font-semibold mb-2" style={{ color: COLORS.text }}>
-            Nombre d'apprenants à sélectionner
+            Nombre maximum d'apprenants
           </label>
           <input
             type="number"
@@ -389,7 +368,7 @@ const AttributionGroupes = () => {
           />
         </div>
 
-        {/* Liste des apprenants */}
+        {/* 5. Liste des apprenants */}
         {showApprenantsList && apprenants.length > 0 && (
           <div>
             <div className="flex justify-between items-center mb-4">

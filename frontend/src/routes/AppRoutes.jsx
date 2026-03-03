@@ -27,6 +27,7 @@ import Motivation from '../components/GestionCours/Motivation';
 import Salle from '../components/GestionCours/Salle';
 import AttributionGroupes from '../pages/Dashboard/AttributionGroupes';
 import ListeGroupes from '../pages/Dashboard/ListeGroupes';
+import AttributionSalle from '../pages/Dashboard/AttributionSalle';
 import DashboardProfesseur from '../pages/Dashboard/DashboardProfesseur';
 import DashboardApprenant from '../pages/Dashboard/DashboardApprenant';
 import Organisation from '../components/GestionCours/Organisation';
@@ -267,6 +268,14 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute allowedServices={['pedagogie']}>
             <ListeGroupes />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "attribution-salle",
+        element: (
+          <ProtectedRoute allowedServices={['pedagogie']}>
+            <AttributionSalle />
           </ProtectedRoute>
         ),
       },

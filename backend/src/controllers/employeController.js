@@ -97,6 +97,51 @@ export const updateEmploye = async (req, res) => {
   }
 };
 
+// PUT: Mettre à jour le mot de passe d'un employé
+export const updatePassword = async (req, res) => {
+  const { id } = req.params;
+  const { current_password, new_password } = req.body;
+
+  if (!current_password || !new_password) {
+    return res.status(400).json({ message: "Le mot de passe actuel et le nouveau mot de passe sont requis" });
+  }
+
+  if (new_password.length < 6) {
+    return res.status(400).json({ message: "Le mot de passe doit contenir au moins 6 caractères" });
+  }
+
+  try {
+    // Vérifier l'employé et le mot de passe actuel
+    const employeCheck = await pool.query('SELECT id, mot_passe FROM employe WHERE id = $1', [id]);
+    
+    if (employeCheck.rows.length === 0) {
+      return res.status(404).json({ message: "Employé non trouvé" });
+    }
+
+    const employe = employeCheck.rows[0];
+    
+    // Vérifier le mot de passe actuel
+    const passwordMatch = await bcrypt.compare(current_password, employe.mot_passe);
+    if (!passwordMatch) {
+      return res.status(401).json({ message: "Mot de passe actuel incorrect" });
+    }
+
+    // Hacher le nouveau mot de passe
+    const hashedPassword = await bcrypt.hash(new_password, 10);
+
+    // Mettre à jour le mot de passe
+    const result = await pool.query(
+      'UPDATE employe SET mot_passe = $1 WHERE id = $2 RETURNING id, nom, prenom, email',
+      [hashedPassword, id]
+    );
+
+    res.status(200).json({ message: "Mot de passe mis à jour avec succès", user: result.rows[0] });
+  } catch (error) {
+    console.error("Erreur lors de la mise à jour du mot de passe :", error);
+    res.status(500).json({ message: "Erreur serveur" });
+  }
+};
+
 // PATCH: Activer/Désactiver un employé
 export const toggleEmployeStatus = async (req, res) => {
   const { id } = req.params;

@@ -5,17 +5,21 @@ import groupeService from '../../services/groupeService';
 import niveauService from '../../services/niveauService';
 import creneauService from '../../services/creneauService';
 import professeurService from '../../services/professeurService';
-import { EllipsisHorizontalIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+import sessionService from '../../services/sessionService';
+import { EllipsisHorizontalIcon, PencilIcon, TrashIcon, PlusIcon } from '@heroicons/react/24/outline';
 
 const Groupe = () => {
   const [groupes, setGroupes] = useState([]);
   const [niveaux, setNiveaux] = useState([]);
   const [creneaux, setCreneaux] = useState([]);
   const [professeurs, setProfesseurs] = useState([]);
+  const [sessions, setSessions] = useState([]);
+  const [sessionSearch, setSessionSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentGroupe, setCurrentGroupe] = useState(null);
   const [formData, setFormData] = useState({
     nom_groupe: '',
+    id_session: '',
     id_creneau: '',
     id_professeur: ''
   });
@@ -26,16 +30,34 @@ const Groupe = () => {
   // Charger les données
   const loadData = async () => {
     try {
-      const [groupesData, niveauxData, creneauxData, professeursData] = await Promise.all([
+      const [groupesData, niveauxData, creneauxData, professeursData, sessionsData] = await Promise.all([
         groupeService.getAll(),
         niveauService.getAll(),
         creneauService.getAll(),
-        professeurService.getAll()
+        professeurService.getAll(),
+        sessionService.getAll()
       ]);
+
+      console.log('Groupes data:', groupesData);
+      console.log('Professeurs data:', professeursData);
+
+      // Map professeurs to handle nom_employe/prenom_employe fields
+      const mappedProfesseurs = Array.isArray(professeursData)
+        ? professeursData.map(prof => ({
+            ...prof,
+            id: prof.id,
+            nom: prof.nom_employe || prof.nom || '',
+            prenom: prof.prenom_employe || prof.prenom || ''
+          }))
+        : [];
+
+      console.log('Mapped Professeurs:', mappedProfesseurs);
+
       setGroupes(Array.isArray(groupesData) ? groupesData : []);
       setNiveaux(Array.isArray(niveauxData) ? niveauxData : []);
       setCreneaux(Array.isArray(creneauxData) ? creneauxData : []);
-      setProfesseurs(Array.isArray(professeursData) ? professeursData : []);
+      setProfesseurs(mappedProfesseurs);
+      setSessions(Array.isArray(sessionsData) ? sessionsData : []);
       setLoading(false);
     } catch (error) {
       toast.error('Erreur lors du chargement des groupes');
@@ -55,17 +77,40 @@ const Groupe = () => {
       ...prev,
       [name]: value
     }));
+    
+    // Reset creneau when session changes
+    if (name === 'id_session') {
+      setFormData(prev => ({ ...prev, id_creneau: '' }));
+    }
+  };
+
+  // Filter creneaux by session's type_cours
+  const getFilteredCreneaux = () => {
+    if (!formData.id_session) return creneaux;
+    const session = sessions.find(s => s.id === parseInt(formData.id_session));
+    if (!session || !session.id_type_cours) return creneaux;
+    return creneaux.filter(c => c.id_type_cours === session.id_type_cours);
+  };
+
+  // Filter sessions by search term
+  const getFilteredSessions = () => {
+    if (!sessionSearch) return sessions;
+    return sessions.filter(s => 
+      s.nom_session?.toLowerCase().includes(sessionSearch.toLowerCase()) ||
+      s.mois?.toLowerCase().includes(sessionSearch.toLowerCase()) ||
+      s.annee?.toString().includes(sessionSearch)
+    );
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const submitData = {
-        ...formData,
+        nom_groupe: formData.nom_groupe,
         id_creneau: parseInt(formData.id_creneau, 10),
         id_professeur: parseInt(formData.id_professeur, 10)
       };
-      
+
       if (currentGroupe) {
         await groupeService.update(currentGroupe.id, submitData);
         toast.success('Groupe modifié avec succès');
@@ -85,6 +130,7 @@ const Groupe = () => {
     setCurrentGroupe(groupe);
     setFormData({
       nom_groupe: groupe.nom_groupe || '',
+      id_session: '',
       id_creneau: groupe.id_creneau?.toString() || '',
       id_professeur: groupe.id_professeur?.toString() || ''
     });
@@ -96,9 +142,11 @@ const Groupe = () => {
     setCurrentGroupe(null);
     setFormData({
       nom_groupe: '',
+      id_session: '',
       id_creneau: '',
       id_professeur: ''
     });
+    setSessionSearch('');
     setIsModalOpen(true);
   };
 
@@ -157,8 +205,34 @@ const Groupe = () => {
           </thead>
           <tbody className="divide-y divide-gray-100">
             {groupes.map((groupe, index) => {
-              const prof = professeurs.find(p => p.id === groupe.id_professeur);
               const creneau = creneaux.find(c => c.id === groupe.id_creneau);
+              
+              // Try multiple ways to get professor name
+              let professeurName = null;
+
+              // Method 1: From backend JOIN (nom_prof, prenom_prof)
+              if (groupe.nom_prof && groupe.prenom_prof) {
+                professeurName = `${groupe.nom_prof} ${groupe.prenom_prof}`;
+              }
+              // Method 2: From professeurs array lookup
+              else if (groupe.id_professeur) {
+                const prof = professeurs.find(p => {
+                  console.log(`Checking prof ${p.id} (${p.nom}) against groupe.id_professeur ${groupe.id_professeur}`);
+                  return p.id === groupe.id_professeur;
+                });
+                if (prof && prof.nom) {
+                  professeurName = `${prof.nom} ${prof.prenom || ''}`;
+                }
+              }
+
+              console.log(`Groupe ${groupe.nom_groupe}:`, {
+                id_professeur: groupe.id_professeur,
+                nom_prof: groupe.nom_prof,
+                prenom_prof: groupe.prenom_prof,
+                professeurName,
+                professeursCount: professeurs.length
+              });
+              
               return (
                 <tr key={groupe.id} className="hover:bg-blue-50/50 transition-colors">
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -183,7 +257,9 @@ const Groupe = () => {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
                       </div>
-                      <span className="ml-2 text-sm text-gray-600">{prof ? `${prof.nom} ${prof.prenom}` : <span className="text-gray-400">Non assigné</span>}</span>
+                      <span className="ml-2 text-sm text-gray-600">
+                        {professeurName || <span className="text-gray-400">Non assigné</span>}
+                      </span>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -254,9 +330,10 @@ const Groupe = () => {
 
             <form onSubmit={handleSubmit} className="p-6 max-h-[70vh] overflow-y-auto">
               <div className="space-y-4">
+                {/* Nom du groupe */}
                 <div>
                   <label htmlFor="nom_groupe" className="block text-sm font-medium text-gray-700 mb-1">
-                    Nom du groupe
+                    Nom du groupe *
                   </label>
                   <input
                     type="text"
@@ -265,13 +342,56 @@ const Groupe = () => {
                     value={formData.nom_groupe}
                     onChange={handleInputChange}
                     required
+                    placeholder="Ex: Groupe A1 - Lundi 10h"
                     className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
 
+                {/* Recherche de session */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Session *
+                  </label>
+                  <input
+                    type="text"
+                    value={sessionSearch}
+                    onChange={(e) => setSessionSearch(e.target.value)}
+                    placeholder="Rechercher une session..."
+                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  {sessionSearch && (
+                    <div className="mt-1 max-h-32 overflow-y-auto border border-gray-300 rounded-lg bg-white">
+                      {getFilteredSessions().length > 0 ? (
+                        getFilteredSessions().map(session => (
+                          <button
+                            key={session.id}
+                            type="button"
+                            onClick={() => {
+                              setFormData(prev => ({ ...prev, id_session: session.id.toString() }));
+                              setSessionSearch('');
+                            }}
+                            className="w-full px-3 py-2 text-left hover:bg-blue-50 border-b last:border-0"
+                          >
+                            <div className="font-medium text-sm">{session.nom_session || `${session.mois} ${session.annee}`}</div>
+                            <div className="text-xs text-gray-500">{session.nom_type_cours}</div>
+                          </button>
+                        ))
+                      ) : (
+                        <div className="px-3 py-2 text-sm text-gray-500 text-center">Aucune session trouvée</div>
+                      )}
+                    </div>
+                  )}
+                  {formData.id_session && !sessionSearch && (
+                    <div className="mt-1 text-xs text-green-600">
+                      ✓ Session : {sessions.find(s => s.id === parseInt(formData.id_session))?.nom_session || 'Sélectionnée'}
+                    </div>
+                  )}
+                </div>
+
+                {/* Créneau (filtré par type_cours de la session) */}
                 <div>
                   <label htmlFor="id_creneau" className="block text-sm font-medium text-gray-700 mb-1">
-                    Créneau
+                    Créneau *
                   </label>
                   <select
                     id="id_creneau"
@@ -279,20 +399,25 @@ const Groupe = () => {
                     value={formData.id_creneau}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    disabled={!formData.id_session}
+                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
                   >
                     <option value="">Sélectionner un créneau</option>
-                    {creneaux.map(creneau => (
+                    {getFilteredCreneaux().map(creneau => (
                       <option key={creneau.id} value={creneau.id}>
                         {creneau.jour_semaine?.join(', ')} - {creneau.heure_debut?.substring(0,5)} à {creneau.heure_fin?.substring(0,5)}
                       </option>
                     ))}
                   </select>
+                  {!formData.id_session && (
+                    <p className="mt-1 text-xs text-gray-500">Sélectionnez d'abord une session</p>
+                  )}
                 </div>
 
+                {/* Professeur */}
                 <div>
                   <label htmlFor="id_professeur" className="block text-sm font-medium text-gray-700 mb-1">
-                    Professeur
+                    Professeur *
                   </label>
                   <select
                     id="id_professeur"
@@ -314,7 +439,7 @@ const Groupe = () => {
 
               <div className="flex justify-end space-x-3 mt-6 pt-4 border-t sticky bottom-0 bg-white">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">Annuler</button>
-                <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">{currentGroupe ? 'Modifier' : 'Ajouter'}</button>
+                <button type="submit" className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all shadow-md">{currentGroupe ? 'Modifier' : 'Créer'}</button>
               </div>
             </form>
           </div>

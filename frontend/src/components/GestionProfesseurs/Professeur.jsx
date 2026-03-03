@@ -101,29 +101,25 @@ const Professeur = () => {
     try {
       const response = await professeurService.getProfesseurs();
       console.log('Professeurs response:', response);
+      
+      let dataArray = [];
       if (response && response.data) {
-        // Map the data to match expected format
-        const mappedData = response.data.map(prof => ({
-          ...prof,
-          nom: prof.nom_employe || prof.nom,
-          prenom: prof.prenom_employe || prof.prenom,
-          tel: prof.tel_employe || prof.tel,
-          email: prof.email_employe || prof.email
-        }));
-        console.log('Mapped professeurs:', mappedData);
-        setProfesseurs(mappedData);
+        dataArray = response.data;
       } else if (Array.isArray(response)) {
-        // Response is already an array
-        const mappedData = response.map(prof => ({
-          ...prof,
-          nom: prof.nom_employe || prof.nom,
-          prenom: prof.prenom_employe || prof.prenom,
-          tel: prof.tel_employe || prof.tel,
-          email: prof.email_employe || prof.email
-        }));
-        console.log('Mapped professeurs (array response):', mappedData);
-        setProfesseurs(mappedData);
+        dataArray = response;
       }
+      
+      // Map the data to handle null/undefined values
+      const mappedData = dataArray.map(prof => ({
+        ...prof,
+        nom: prof.nom_employe || prof.nom || '',
+        prenom: prof.prenom_employe || prof.prenom || '',
+        tel: prof.tel_employe || prof.tel || '',
+        email: prof.email_employe || prof.email || ''
+      }));
+      
+      console.log('Mapped professeurs:', mappedData);
+      setProfesseurs(mappedData);
     } catch (error) {
       console.error('Error fetching professeurs:', error);
       setError(error.response?.data?.message || 'Erreur lors du chargement des professeurs');
@@ -299,10 +295,10 @@ const Professeur = () => {
                 filteredProfesseurs.map((prof, index) => (
                   <tr key={prof.id} className="border-b hover:bg-gray-50 transition-colors" style={{ borderColor: COLORS.border }}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-center" style={{ color: COLORS.textLight }}>{index + 1}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold" style={{ color: COLORS.text }}>{prof.nom}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm" style={{ color: COLORS.textLight }}>{prof.prenom}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm" style={{ color: COLORS.textLight }}>{prof.email}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm" style={{ color: COLORS.textLight }}>{prof.tel}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold" style={{ color: COLORS.text }}>{prof.nom || '—'}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm" style={{ color: COLORS.textLight }}>{prof.prenom || '—'}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm" style={{ color: COLORS.textLight }}>{prof.email || '—'}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm" style={{ color: COLORS.textLight }}>{prof.tel || '—'}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-right">
                       <div className="relative">
                         <button

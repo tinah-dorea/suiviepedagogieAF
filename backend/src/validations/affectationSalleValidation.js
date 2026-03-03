@@ -9,9 +9,9 @@ const affectationSalleSchema = Joi.object({
 const createAffectationSalleValidation = (req, res, next) => {
   const { error, value } = affectationSalleSchema.validate(req.body);
   if (error) {
-    return res.status(400).json({ 
-      message: 'Erreur de validation', 
-      details: error.details.map(detail => detail.message) 
+    return res.status(400).json({
+      message: 'Erreur de validation',
+      details: error.details.map(detail => detail.message)
     });
   }
   req.validatedData = value;
@@ -23,12 +23,12 @@ const updateAffectationSalleValidation = (req, res, next) => {
   if (updates.length === 0) {
     return res.status(400).json({ message: 'Aucune donnée à mettre à jour' });
   }
-  
-  const { error, value } = affectationSalleSchema.fork(['id_groupe', 'date_cours', 'id_salle'], schema => schema.optional()).validate(req.body);
+
+  const { error, value } = affectationSalleSchema.fork(['id_groupe', 'id_salle'], schema => schema.optional()).validate(req.body);
   if (error) {
-    return res.status(400).json({ 
-      message: 'Erreur de validation', 
-      details: error.details.map(detail => detail.message) 
+    return res.status(400).json({
+      message: 'Erreur de validation',
+      details: error.details.map(detail => detail.message)
     });
   }
   req.validatedData = value;
