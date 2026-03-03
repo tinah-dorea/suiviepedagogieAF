@@ -1,15 +1,35 @@
 import { useState, useMemo } from 'react';
-import api from '../../services/api';
 import { useNavigate } from 'react-router-dom';
+import { AcademicCapIcon, EnvelopeIcon, PhoneIcon, EyeIcon, EyeSlashIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
+import api from '../../services/api';
 import { getServiceRoute, SERVICE_CONFIG } from '../../utils/auth';
+
+// Modern Pastel Palette - matching ConsultationCours & HomePage
+const COLORS = {
+  bg: '#F8F9FA',
+  card: '#FFFFFF',
+  primary: '#6B9080',
+  secondary: '#A4C3B2',
+  accent: '#EAF4F4',
+  highlight: '#F6FFF8',
+  text: '#2D3436',
+  textLight: '#636E72',
+  border: '#E8E8E8',
+  gradient: 'linear-gradient(135deg, #6B9080 0%, #A4C3B2 100%)',
+  error: '#EF4444',
+  errorBg: '#FEF2F2',
+  success: '#10B981',
+  successBg: '#F0FDF4',
+};
 
 export default function Login() {
   const [email, setEmail] = useState('');
-  const [telephone, setTelephone] = useState(''); // Nouveau champ pour le téléphone
+  const [telephone, setTelephone] = useState('');
   const [motPasse, setMotPasse] = useState('');
   const [message, setMessage] = useState('');
   const [isLoginMode, setIsLoginMode] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
+  const [focused, setFocused] = useState(null);
   const navigate = useNavigate();
   const servicesDisponibles = useMemo(() => Object.values(SERVICE_CONFIG).map((config) => config.aliases[0]), []);
 
@@ -42,30 +62,19 @@ export default function Login() {
       
       // Stockage dans localStorage
       localStorage.setItem('token', res.data.token);
-      
+
       // Store user data (employee or student)
       const userData = res.data.employe || res.data.student;
       localStorage.setItem('user', JSON.stringify(userData));
-      
+
       setMessage('✅ Connexion réussie ! Redirection...');
-      
+
       // Redirection basée sur le service
       const userService = userData.service;
-      console.log("Service de l'utilisateur:", userService);
-      console.log("Informations utilisateur:", userData);
-      
-      if (!userService) {
-        console.log("Service manquant dans la réponse:", userData);
-        setMessage("Veuillez contacter l'administrateur pour définir votre service");
-        return;
-      }
-
       const redirectPath = getServiceRoute(userService);
       if (redirectPath) {
-        console.log(`Redirection vers ${redirectPath}`);
         navigate(redirectPath, { replace: true });
       } else {
-        console.log("Service non reconnu:", userService);
         setMessage(`Service "${userService}" non reconnu. Services valides : ${servicesDisponibles.join(', ')}`);
       }
       
@@ -78,146 +87,150 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex justify-center items-center p-4" style={{ backgroundColor: '#F9FAFB' }}>
-      <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md" style={{ border: '1px solid #E5E7EB' }}>
+    <div className="min-h-screen flex" style={{ backgroundColor: COLORS.bg }}>
+      {/* Left side - Decorative gradient */}
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden" style={{ background: COLORS.gradient }}>
+        {/* Decorative circles */}
+        <div className="absolute top-20 left-20 w-96 h-96 bg-white opacity-10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 right-20 w-80 h-80 bg-white opacity-10 rounded-full blur-3xl"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-white opacity-5 rounded-full blur-2xl"></div>
         
-        {/* Header avec logo Alliance Française */}
-        <div className="mb-8">
-          <button 
-            onClick={() => navigate('/')}
-            className="flex items-center mb-6 text-sm transition-colors duration-200"
-            style={{ color: '#6B7280' }}
-            onMouseEnter={(e) => e.target.style.color = '#374151'}
-            onMouseLeave={(e) => e.target.style.color = '#6B7280'}
-          >
-            
-          </button>
-          
-          <div className="text-center">
-            {/* Logo stylisé Alliance Française */}
-            <div className="mb-4">
-              <div 
-                className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-3"
-                style={{ backgroundColor: '#DFF6FF' }}
-              >
-                <span className="text-2xl font-bold" style={{ color: '#758695' }}>af</span>
-              </div>
-              <h1 className="text-2xl font-bold mb-1" style={{ color: '#758695', fontFamily: "'Source Sans 3', sans-serif" }}>
-                Alliance<span style={{ color: '#758695' }}> Française</span>
-              </h1>
+        <div className="relative z-10 flex flex-col justify-center items-center p-12 text-white text-center">
+          <div className="w-28 h-28 rounded-3xl bg-white/20 backdrop-blur-sm flex items-center justify-center mb-8 shadow-2xl">
+            <AcademicCapIcon className="w-16 h-16 text-white" />
+          </div>
+          <h1 className="text-5xl md:text-6xl font-bold mb-6 tracking-tight">Alliance Française Mahajanga</h1>
+          <p className="text-xl md:text-2xl text-white/90 max-w-lg mb-12 font-light leading-relaxed">
+            Apprenez le français dans un cadre d'excellence
+          </p>
+          <div className="flex flex-col gap-5 text-white/85">
+            <div className="flex items-center justify-center gap-3 bg-white/10 backdrop-blur-sm px-6 py-3 rounded-full">
+              <div className="w-2.5 h-2.5 bg-white rounded-full animate-pulse"></div>
+              <span className="font-medium">Formations de qualité</span>
             </div>
-            <h2 className="text-xl font-semibold mb-2" style={{ color: '#758695', fontFamily: "'Source Sans 3', sans-serif" }}>
-              Authentification
-            </h2>
-            <p className="text-sm" style={{ color: '#6B7280' }}>
-              Connexion vous à votre compte ou contacter le responsable
-            </p>
+            <div className="flex items-center justify-center gap-3 bg-white/10 backdrop-blur-sm px-6 py-3 rounded-full">
+              <div className="w-2.5 h-2.5 bg-white rounded-full animate-pulse"></div>
+              <span className="font-medium">Professeurs certifiés</span>
+            </div>
           </div>
         </div>
+      </div>
 
-        {/* Onglets améliorés */}
-        <div className="flex rounded-xl p-1 mb-6" style={{ backgroundColor: '#F3F4F6' }}>
-          <button 
-            className={`flex-1 py-3 text-sm rounded-lg transition-all duration-200 ${
-              isLoginMode 
-                ? 'bg-white shadow-lg font-semibold' 
-                : 'hover:bg-white hover:bg-opacity-50'
-            }`}
-            style={{ 
-              color: isLoginMode ? '#1F2937' : '#6B7280'
-            }}
-            onClick={() => setIsLoginMode(true)}
+      {/* Right side - Login form */}
+      <div className="flex-1 flex items-center justify-center p-8">
+        <div className="w-full max-w-md">
+          {/* Back button */}
+          <button
+            onClick={() => navigate('/')}
+            className="flex items-center gap-2 mb-8 text-sm font-semibold transition-colors duration-200"
+            style={{ color: COLORS.textLight }}
+            onMouseEnter={(e) => e.target.style.color = COLORS.primary}
+            onMouseLeave={(e) => e.target.style.color = COLORS.textLight}
           >
-            Connexion
+            <ArrowLeftIcon className="w-5 h-5" />
+            Retour à l'accueil
           </button>
-        
-        </div>
+
+          <div className="bg-white rounded-3xl shadow-xl p-8 md:p-10" style={{ border: `1px solid ${COLORS.border}` }}>
+            {/* Header */}
+            <div className="text-center mb-8">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4" style={{ background: COLORS.gradient }}>
+                <AcademicCapIcon className="w-8 h-8 text-white" />
+              </div>
+              <h2 className="text-2xl font-bold mb-2" style={{ color: COLORS.text }}>
+                Authentification
+              </h2>
+              <p className="text-sm" style={{ color: COLORS.textLight }}>
+                Connectez-vous à votre espace personnel
+              </p>
+            </div>
+
+            {/* Message d'état */}
+            {message && (
+              <div
+                className={`mb-6 p-4 rounded-2xl flex items-start gap-3 ${message.includes('✅') ? '' : ''}`}
+                style={{
+                  backgroundColor: message.includes('✅') ? COLORS.successBg : COLORS.errorBg,
+                  color: message.includes('✅') ? COLORS.success : COLORS.error,
+                }}
+              >
+                <span className="flex-1 text-sm font-medium">{message}</span>
+              </div>
+            )}
 
         {/* Formulaire de Connexion */}
         {isLoginMode ? (
-          <form onSubmit={handleSubmit} className="space-y-6">
-
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Email ou Téléphone */}
             <div>
-              <label 
-                className="block text-sm font-semibold mb-2" 
-                style={{ color: '#1F2937' }}
-              >
-                Email ou Téléphone *
+              <label className="block text-sm font-semibold mb-2" style={{ color: COLORS.text }}>
+                Email ou Téléphone
               </label>
-              <div className="flex space-x-2">
-                <input
-                  type="email"
-                  placeholder="Email"
-                  className="w-1/2 p-4 border-2 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4"
-                  style={{ 
-                    borderColor: '#D1D5DB',
-                    fontSize: '16px'
-                  }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = '#DC2626';
-                    e.target.style.boxShadow = '0 0 0 4px rgba(220, 38, 38, 0.1)';
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = '#D1D5DB';
-                    e.target.style.boxShadow = 'none';
-                  }}
-                  value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                    // Effacer le téléphone si l'email est saisi
-                    if(e.target.value) setTelephone('');
-                  }}
-                />
-                <input
-                  type="tel"
-                  placeholder="Téléphone"
-                  className="w-1/2 p-4 border-2 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4"
-                  style={{ 
-                    borderColor: '#D1D5DB',
-                    fontSize: '16px'
-                  }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = '#DC2626';
-                    e.target.style.boxShadow = '0 0 0 4px rgba(220, 38, 38, 0.1)';
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = '#D1D5DB';
-                    e.target.style.boxShadow = 'none';
-                  }}
-                  value={telephone}
-                  onChange={(e) => {
-                    setTelephone(e.target.value);
-                    // Effacer l'email si le téléphone est saisi
-                    if(e.target.value) setEmail('');
-                  }}
-                />
+              <div className="flex gap-3">
+                <div className="relative flex-1">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2">
+                    <EnvelopeIcon className={`w-5 h-5 transition-colors ${focused === 'email' ? '' : ''}`} style={{ color: focused === 'email' ? COLORS.primary : COLORS.textLight }} />
+                  </div>
+                  <input
+                    type="email"
+                    placeholder="Email"
+                    className={`w-full pl-12 pr-4 py-3.5 rounded-xl border-2 transition-all duration-200 focus:outline-none text-sm`}
+                    style={{
+                      borderColor: focused === 'email' ? COLORS.primary : COLORS.border,
+                      backgroundColor: COLORS.bg,
+                      color: COLORS.text,
+                    }}
+                    onFocus={() => setFocused('email')}
+                    onBlur={() => setFocused(null)}
+                    value={email}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      if(e.target.value) setTelephone('');
+                    }}
+                  />
+                </div>
+                <div className="relative flex-1">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2">
+                    <PhoneIcon className={`w-5 h-5 transition-colors`} style={{ color: focused === 'tel' ? COLORS.primary : COLORS.textLight }} />
+                  </div>
+                  <input
+                    type="tel"
+                    placeholder="Téléphone"
+                    className={`w-full pl-12 pr-4 py-3.5 rounded-xl border-2 transition-all duration-200 focus:outline-none text-sm`}
+                    style={{
+                      borderColor: focused === 'tel' ? COLORS.primary : COLORS.border,
+                      backgroundColor: COLORS.bg,
+                      color: COLORS.text,
+                    }}
+                    onFocus={() => setFocused('tel')}
+                    onBlur={() => setFocused(null)}
+                    value={telephone}
+                    onChange={(e) => {
+                      setTelephone(e.target.value);
+                      if(e.target.value) setEmail('');
+                    }}
+                  />
+                </div>
               </div>
             </div>
-            
+
+            {/* Mot de passe */}
             <div>
-              <label 
-                className="block text-sm font-semibold mb-2" 
-                style={{ color: '#1F2937' }}
-              >
-                Mot de passe *
+              <label className="block text-sm font-semibold mb-2" style={{ color: COLORS.text }}>
+                Mot de passe
               </label>
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
                   placeholder="Entrez votre mot de passe"
-                  className="w-full p-4 pr-12 border-2 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4"
-                  style={{ 
-                    borderColor: '#D1D5DB',
-                    fontSize: '16px'
+                  className={`w-full pl-4 pr-12 py-3.5 rounded-xl border-2 transition-all duration-200 focus:outline-none text-sm`}
+                  style={{
+                    borderColor: focused === 'password' ? COLORS.primary : COLORS.border,
+                    backgroundColor: COLORS.bg,
+                    color: COLORS.text,
                   }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = '#DC2626';
-                    e.target.style.boxShadow = '0 0 0 4px rgba(220, 38, 38, 0.1)';
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = '#D1D5DB';
-                    e.target.style.boxShadow = 'none';
-                  }}
+                  onFocus={() => setFocused('password')}
+                  onBlur={() => setFocused(null)}
                   value={motPasse}
                   onChange={(e) => setMotPasse(e.target.value)}
                   required
@@ -226,60 +239,32 @@ export default function Login() {
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute inset-y-0 right-0 flex items-center pr-4 transition-colors duration-200"
-                  style={{ color: '#6B7280' }}
-                  onMouseEnter={(e) => e.target.style.color = '#374151'}
-                  onMouseLeave={(e) => e.target.style.color = '#6B7280'}
+                  style={{ color: COLORS.textLight }}
+                  onMouseEnter={(e) => e.target.style.color = COLORS.primary}
+                  onMouseLeave={(e) => e.target.style.color = COLORS.textLight}
                 >
                   {showPassword ? (
-                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878l12 12" />
-                    </svg>
+                    <EyeSlashIcon className="w-5 h-5" />
                   ) : (
-                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
+                    <EyeIcon className="w-5 h-5" />
                   )}
                 </button>
               </div>
-              <p className="mt-1 text-xs text-gray-500">
-                Utilisez votre numéro de téléphone comme mot de passe
-              </p>
             </div>
 
-            <div className="flex items-center justify-between text-sm">
-              
-              <button 
-                type="button" 
-                className="font-medium hover:underline transition-colors duration-200"
-                style={{ color: '#DC2626' }}
-                onMouseEnter={(e) => e.target.style.color = '#B91C1C'}
-                onMouseLeave={(e) => e.target.style.color = '#DC2626'}
-              >
-                Mot de passe oublié ?
-              </button>
-            </div>
-
+            {/* Bouton de connexion */}
             <button
               type="submit"
-              className="w-full text-white py-4 rounded-xl font-bold text-lg transition-all duration-200 transform hover:scale-[1.02] focus:outline-none focus:ring-4"
-            style={{ 
-              backgroundColor: '#758695',
-              boxShadow: '0 4px 14px 0 rgba(117, 134, 149, 0.3)'
-            }}
+              className="w-full text-white py-4 rounded-xl font-bold text-lg transition-all duration-300 transform hover:scale-[1.02] focus:outline-none shadow-lg hover:shadow-xl"
+              style={{
+                background: COLORS.gradient,
+                boxShadow: '0 4px 14px 0 rgba(107, 144, 128, 0.4)'
+              }}
               onMouseEnter={(e) => {
-                e.target.style.backgroundColor = '#5a6b7a';
-                e.target.style.boxShadow = '0 6px 20px 0 rgba(185, 28, 28, 0.4)';
+                e.target.style.transform = 'scale(1.02)';
               }}
               onMouseLeave={(e) => {
-                e.target.style.backgroundColor = '#758695';
-                e.target.style.boxShadow = '0 4px 14px 0 rgba(117, 134, 149, 0.3)';
-              }}
-              onFocus={(e) => {
-                e.target.style.boxShadow = '0 0 0 4px rgba(117, 134, 149, 0.2)';
-              }}
-              onBlur={(e) => {
-                e.target.style.boxShadow = '0 4px 14px 0 rgba(220, 38, 38, 0.3)';
+                e.target.style.transform = 'scale(1)';
               }}
             >
               Se connecter
@@ -287,43 +272,17 @@ export default function Login() {
           </form>
         ) : (
           <div className="text-center py-8">
-            <div 
-              className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center"
-              style={{ backgroundColor: '#F3F4F6' }}
-            >
-              <svg className="w-8 h-8" style={{ color: '#9CA3AF' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4" style={{ backgroundColor: COLORS.accent }}>
+              <AcademicCapIcon className="w-8 h-8" style={{ color: COLORS.primary }} />
             </div>
-            <p style={{ color: '#6CA3AF' }}>L'inscription n'est pas encore disponible.</p>
-            <p className="text-sm mt-2" style={{ color: '#9CA3AF' }}>
+            <p className="font-semibold mb-2" style={{ color: COLORS.text }}>L'inscription n'est pas encore disponible.</p>
+            <p className="text-sm" style={{ color: COLORS.textLight }}>
               Contactez votre administrateur pour obtenir un compte.
             </p>
           </div>
         )}
 
-        {/* Message d'état */}
-        {message && (
-          <div 
-            className={`mt-6 p-4 rounded-xl text-center text-sm font-medium border ${
-              message.includes('✅') 
-                ? 'text-green-700' 
-                : 'text-red-700'
-            }`}
-            style={{
-              backgroundColor: message.includes('✅') ? '#F0FDF4' : '#FEF2F2',
-              borderColor: message.includes('✅') ? '#BBF7D0' : '#FECACA'
-            }}
-          >
-            {message}
           </div>
-        )}
-
-        {/* Footer */}
-        <div className="mt-8 pt-6 text-center" style={{ borderTop: '1px solid #F3F4F6' }}>
-          <p className="text-xs" style={{ color: '#9CA3AF' }}>
-            © 2024 Alliance Française. Tous droits réservés.
-          </p>
         </div>
       </div>
     </div>

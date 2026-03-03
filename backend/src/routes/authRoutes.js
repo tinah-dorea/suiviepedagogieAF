@@ -1,11 +1,10 @@
 import express from 'express';
 import { login, loginStudent } from '../controllers/authController.js';
-import { loginValidation } from '../validations/authValidation.js'; // Using the main validation
-import { validateRequest } from '../middlewares/validateRequest.js';
+import { loginValidation, loginStudentValidation } from '../validations/authValidation.js';
 
 const router = express.Router();
 
-router.post('/login', loginValidation, validateRequest, login);
-router.post('/login-student', loginValidation, validateRequest, loginStudent); // Keep for compatibility
+router.post('/login', loginValidation, login);
+router.post('/login-student', loginStudentValidation, loginStudent);
 
 export default router;

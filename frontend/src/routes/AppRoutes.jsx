@@ -7,6 +7,7 @@ import Dashboard from '../pages/Dashboard/Dashboard';
 import DashboardPedagogique from '../pages/Dashboard/DashboardPedagogique';
 import DashboardAccueil from '../pages/Dashboard/DashboardAccueil';
 import DashboardPedagogiqueAttribution from '../pages/Dashboard/DashboardPedagogiqueAttribution';
+import DashboardPedagogiqueAccueil from '../pages/Dashboard/DashboardPedagogiqueAccueil';
 import Role from '../components/GestionRoles/Role';
 import Employe from '../components/GestionEmployes/Employe';
 import DashboardRessourcesHumaines from '../pages/Dashboard/DashboardRessourcesHumaines';
@@ -14,11 +15,26 @@ import Professeur from '../components/GestionProfesseurs/Professeur';
 import GestionCours from '../pages/Cours/GestionCours';
 import GestionInscription from '../components/GestionInscription/GestionInscription';
 import Planning from '../components/GestionCours/Planning';
+import Session from '../components/GestionCours/Session';
+import Groupe from '../components/GestionCours/Groupe';
+import Horaire from '../components/GestionCours/Horaire';
+import Creneau from '../components/GestionCours/Creneau';
+import TypeCours from '../components/GestionCours/TypeCours';
+import TypeService from '../components/GestionCours/TypeService';
+import Niveau from '../components/GestionCours/Niveau';
+import Categorie from '../components/GestionCours/Categorie';
+import Motivation from '../components/GestionCours/Motivation';
+import Salle from '../components/GestionCours/Salle';
+import AttributionGroupes from '../pages/Dashboard/AttributionGroupes';
+import ListeGroupes from '../pages/Dashboard/ListeGroupes';
 import DashboardProfesseur from '../pages/Dashboard/DashboardProfesseur';
 import DashboardApprenant from '../pages/Dashboard/DashboardApprenant';
 import Organisation from '../components/GestionCours/Organisation';
 import Profile from '../components/Layout/Profile';
 import Sessions from '../pages/Sessions';
+import VoirCours from '../pages/Dashboard/VoirCours';
+import ConsulterAttributs from '../pages/Dashboard/ConsulterAttributs';
+import Presence from '../pages/Dashboard/Presence';
 import ConsultationCours from '../pages/ConsultationCours';
 import { isServiceAllowed, getServiceRoute } from '../utils/auth';
 import HomePage from '../pages/HomePage';
@@ -27,7 +43,7 @@ import HomePage from '../pages/HomePage';
 const ProtectedRoute = ({ children, allowedServices = [] }) => {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const isAuthenticated = !!localStorage.getItem('token');
-  
+
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
@@ -100,7 +116,7 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <DashboardAccueil />,
+        element: <DashboardPedagogiqueAccueil />,
       },
       {
         path: "professeurs",
@@ -119,6 +135,54 @@ const router = createBrowserRouter([
         ),
       },
       {
+        path: "type-service",
+        element: (
+          <ProtectedRoute allowedServices={['pedagogie']}>
+            <TypeService />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "type-cours",
+        element: (
+          <ProtectedRoute allowedServices={['pedagogie']}>
+            <TypeCours />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "niveaux",
+        element: (
+          <ProtectedRoute allowedServices={['pedagogie']}>
+            <Niveau />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "categorie",
+        element: (
+          <ProtectedRoute allowedServices={['pedagogie']}>
+            <Categorie />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "motivation",
+        element: (
+          <ProtectedRoute allowedServices={['pedagogie']}>
+            <Motivation />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "salles",
+        element: (
+          <ProtectedRoute allowedServices={['pedagogie']}>
+            <Salle />
+          </ProtectedRoute>
+        ),
+      },
+      {
         path: "planning",
         element: (
           <ProtectedRoute allowedServices={['pedagogie']}>
@@ -131,6 +195,22 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute allowedServices={['pedagogie']}>
             <Organisation />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "horaires",
+        element: (
+          <ProtectedRoute allowedServices={['pedagogie']}>
+            <Horaire />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "creneaux",
+        element: (
+          <ProtectedRoute allowedServices={['pedagogie']}>
+            <Creneau />
           </ProtectedRoute>
         ),
       },
@@ -158,6 +238,70 @@ const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
+      {
+        path: "session",
+        element: (
+          <ProtectedRoute allowedServices={['pedagogie']}>
+            <Session />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "groupes",
+        element: (
+          <ProtectedRoute allowedServices={['pedagogie']}>
+            <Groupe />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "attribution-groupes",
+        element: (
+          <ProtectedRoute allowedServices={['pedagogie']}>
+            <AttributionGroupes />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "liste-groupes",
+        element: (
+          <ProtectedRoute allowedServices={['pedagogie']}>
+            <ListeGroupes />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "horaires",
+        element: (
+          <ProtectedRoute allowedServices={['pedagogie']}>
+            <Horaire />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "horaires-cours",
+        element: (
+          <ProtectedRoute allowedServices={['pedagogie']}>
+            <Horaire />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "creneaux",
+        element: (
+          <ProtectedRoute allowedServices={['pedagogie']}>
+            <Creneau />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "creneaux-cours",
+        element: (
+          <ProtectedRoute allowedServices={['pedagogie']}>
+            <Creneau />
+          </ProtectedRoute>
+        ),
+      },
     ],
   },
   {
@@ -170,21 +314,33 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <DashboardAccueil />,
-      },
-      {
-        path: "cours",
         element: (
           <ProtectedRoute allowedServices={['professeurs']}>
-            <GestionCours />
+            <DashboardAccueil />
           </ProtectedRoute>
         ),
       },
       {
-        path: "planning",
+        path: "voir-cours",
         element: (
           <ProtectedRoute allowedServices={['professeurs']}>
-            <Planning />
+            <VoirCours />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "consulter-attributs",
+        element: (
+          <ProtectedRoute allowedServices={['professeurs']}>
+            <ConsulterAttributs />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "presence",
+        element: (
+          <ProtectedRoute allowedServices={['professeurs']}>
+            <Presence />
           </ProtectedRoute>
         ),
       },

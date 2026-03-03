@@ -1,13 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import { AcademicCapIcon, BookOpenIcon, ClockIcon, CalendarIcon, MapPinIcon, PhoneIcon, EnvelopeIcon } from '@heroicons/react/24/outline';
 import typeServiceApi from '../services/typeService';
 
 import accueilImg from '../assets/images/accueil.jpg';
 import localImg from '../assets/images/local.jpg';
+import logoAFM from '../assets/images/logo AFM.png';
 
-// Palette: #F5F1E6 majorité, #DFF6FF accompagnement, #758695 titres/hover
-const COLORS = { bg: '#F5F1E6', accent: '#DFF6FF', primary: '#758695', white: '#FFFFFF' };
+// Modern Pastel Palette - matching ConsultationCours
+const COLORS = {
+  bg: '#F8F9FA',
+  card: '#FFFFFF',
+  primary: '#6B9080',
+  secondary: '#A4C3B2',
+  accent: '#EAF4F4',
+  highlight: '#F6FFF8',
+  text: '#2D3436',
+  textLight: '#636E72',
+  border: '#E8E8E8',
+  gradient: 'linear-gradient(135deg, #6B9080 0%, #A4C3B2 100%)',
+};
 
 const HomePage = () => {
   const [aboutInfo, setAboutInfo] = useState(null);
@@ -43,10 +56,13 @@ const HomePage = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen" style={{ backgroundColor: COLORS.bg }}>
-        <div className="flex flex-col items-center gap-4">
-          <div className="animate-spin rounded-full h-14 w-14 border-t-2 border-b-2" style={{ borderColor: COLORS.primary, backgroundColor: COLORS.bg }}></div>
-          <p className="font-medium text-gray-600">Chargement...</p>
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: COLORS.bg }}>
+        <div className="text-center">
+          <div className="relative inline-block">
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-opacity-30 mx-auto mb-6" style={{ borderColor: COLORS.primary, borderTopColor: 'transparent' }} />
+            <AcademicCapIcon className="w-8 h-8 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" style={{ color: COLORS.primary }} />
+          </div>
+          <p className="text-lg font-medium" style={{ color: COLORS.text }}>Chargement...</p>
         </div>
       </div>
     );
@@ -62,27 +78,24 @@ const HomePage = () => {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: COLORS.bg }}>
-      {/* Header fixe */}
-      <header className="fixed top-0 left-0 right-0 shadow-md z-50" style={{ backgroundColor: COLORS.white }}>
+      {/* Header fixe avec gradient */}
+      <header className="fixed top-0 left-0 right-0 shadow-lg z-50" style={{ background: COLORS.gradient }}>
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center">
-            {aboutInfo?.logo_url ? (
-              <img
-                src={aboutInfo.logo_url}
-                alt={aboutInfo.nom_etablissement}
-                className="h-12 object-contain"
-              />
-            ) : (
-              <h1 className="text-xl font-bold" style={{ color: COLORS.primary, fontFamily: "'Source Sans 3', sans-serif" }}>{aboutInfo?.nom_etablissement || 'Alliance Française'}</h1>
-            )}
+          <div className="flex items-center gap-3">
+            <img
+              src={logoAFM}
+              alt="Logo AFM"
+              className="h-10 md:h-12 object-contain"
+            />
+            <h1 className="text-xl font-bold text-white">{aboutInfo?.nom_etablissement || 'Alliance Française'}</h1>
           </div>
 
           <nav className="hidden md:flex justify-center space-x-10">
-            <a href="#accueil" className="font-semibold transition-colors duration-200 hover:opacity-80" style={{ color: COLORS.primary }}>Accueil</a>
-            <a href="#services" className="font-semibold transition-colors duration-200 hover:opacity-80" style={{ color: COLORS.primary }}>
+            <a href="#accueil" className="font-semibold transition-colors duration-200 text-white hover:text-white/80">Accueil</a>
+            <a href="#services" className="font-semibold transition-colors duration-200 text-white hover:text-white/80">
               Services
             </a>
-            <a href="#apropos" className="font-semibold transition-colors duration-200 hover:opacity-80" style={{ color: COLORS.primary }}>
+            <a href="#apropos" className="font-semibold transition-colors duration-200 text-white hover:text-white/80">
               À propos
             </a>
           </nav>
@@ -90,8 +103,8 @@ const HomePage = () => {
           <div>
             <Link
               to="/login"
-              className="px-5 py-2.5 font-semibold rounded-lg transition-all duration-300 shadow-md hover:shadow-lg"
-              style={{ backgroundColor: COLORS.primary, color: COLORS.white }}
+              className="px-5 py-2.5 font-semibold rounded-xl transition-all duration-300 shadow-md hover:shadow-lg bg-white text-opacity-90 hover:text-opacity-100"
+              style={{ color: COLORS.primary }}
             >
               Se connecter
             </Link>
@@ -99,7 +112,7 @@ const HomePage = () => {
         </div>
       </header>
 
-      {/* Section Hero - Accueil avec background accueil.jpg */}
+      {/* Section Hero - Accueil avec overlay gradient */}
       <section
         id="accueil"
         className="min-h-screen flex items-center justify-center relative overflow-hidden"
@@ -110,51 +123,86 @@ const HomePage = () => {
           backgroundAttachment: 'fixed',
         }}
       >
-        <div className="absolute inset-0 opacity-50" style={{ backgroundColor: COLORS.primary }}></div>
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(107,144,128,0.85) 0%, rgba(164,195,178,0.75) 100%)' }}></div>
+        
+        {/* Decorative circles */}
+        <div className="absolute top-20 left-10 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-white opacity-5 rounded-full blur-3xl"></div>
+        
         <div className="relative z-10 text-center px-6 pt-24">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 drop-shadow-lg" style={{ color: COLORS.white }}>
+          <div className="inline-block mb-8">
+            <img
+              src={logoAFM}
+              alt="Logo AFM"
+              className="h-32 md:h-40 lg:h-48 object-contain drop-shadow-2xl mx-auto"
+            />
+          </div>
+          <h1 className="text-4xl md:text-6xl font-bold drop-shadow-lg mb-4 text-white">
             {aboutInfo?.nom_etablissement || 'Alliance Française'}
           </h1>
-          <p className="text-xl md:text-2xl mb-8 max-w-2xl mx-auto opacity-90" style={{ color: COLORS.white }}>
+          <p className="text-xl md:text-2xl mb-10 max-w-2xl mx-auto text-white/95 font-light">
             Apprenez le français dans un cadre d'excellence
           </p>
-          <Link
-            to="/cours"
-            className="inline-block px-10 py-4 text-white text-lg font-semibold rounded-xl transition-all duration-300 shadow-xl hover:shadow-2xl hover:scale-105"
-            style={{ backgroundColor: COLORS.primary }}
-          >
-            Consulter les cours
-          </Link>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link
+              to="/cours"
+              className="inline-flex items-center justify-center gap-2 px-8 py-4 text-white text-lg font-semibold rounded-xl transition-all duration-300 shadow-xl hover:shadow-2xl hover:scale-105"
+              style={{ backgroundColor: COLORS.primary }}
+            >
+              <BookOpenIcon className="w-6 h-6" />
+              Consulter les cours
+            </Link>
+            <a
+              href="#services"
+              className="inline-flex items-center justify-center gap-2 px-8 py-4 text-white text-lg font-semibold rounded-xl transition-all duration-300 border-2 border-white/50 hover:bg-white hover:text-opacity-90"
+              style={{ color: COLORS.white }}
+            >
+              <AcademicCapIcon className="w-6 h-6" />
+              Nos Services
+            </a>
+          </div>
         </div>
       </section>
 
       {/* Section Services - Données dynamiques depuis type_service */}
-      <section id="services" className="py-24" style={{ backgroundColor: COLORS.accent }}>
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-4" style={{ color: COLORS.primary }}>Nos Services</h2>
-          <p className="text-center mb-16 max-w-2xl mx-auto text-gray-600">
-            Découvrez notre gamme complète de formations en français adaptées à vos besoins
-          </p>
+      <section id="services" className="py-20 relative overflow-hidden" style={{ backgroundColor: COLORS.accent }}>
+        {/* Decorative elements */}
+        <div className="absolute top-0 right-0 w-80 h-80 bg-white opacity-30 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-white opacity-30 rounded-full blur-3xl"></div>
+        
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4" style={{ backgroundColor: COLORS.primary }}>
+              <AcademicCapIcon className="w-8 h-8 text-white" />
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{ color: COLORS.text }}>Nos Services</h2>
+            <p className="text-lg max-w-2xl mx-auto" style={{ color: COLORS.textLight }}>
+              Découvrez notre gamme complète de formations en français adaptées à vos besoins
+            </p>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {typeServices.length > 0 ? (
-              typeServices.map((service) => (
+              typeServices.map((service, idx) => (
                 <div
                   key={service.id}
-                  className="rounded-2xl shadow-lg p-8 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border"
-                  style={{ backgroundColor: COLORS.white, borderColor: 'rgba(117,134,149,0.2)' }}
+                  className="group rounded-3xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-opacity-50 hover:-translate-y-2"
+                  style={{ backgroundColor: COLORS.card, borderColor: COLORS.border }}
                 >
-                  <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-6" style={{ backgroundColor: COLORS.accent }}>
-                    <span className="text-2xl font-bold" style={{ color: COLORS.primary }}>{service.nom_service?.charAt(0) || '?'}</span>
+                  <div className="h-2" style={{ backgroundColor: COLORS.primary }}></div>
+                  <div className="p-8">
+                    <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 transition-transform group-hover:scale-110" style={{ backgroundColor: COLORS.accent }}>
+                      <span className="text-3xl font-bold" style={{ color: COLORS.primary }}>{service.nom_service?.charAt(0) || '?'}</span>
+                    </div>
+                    <h3 className="text-xl font-bold mb-3" style={{ color: COLORS.text }}>{service.nom_service}</h3>
+                    <p className="leading-relaxed" style={{ color: COLORS.textLight }}>
+                      {service.libelle || 'Formation de qualité pour tous les niveaux.'}
+                    </p>
                   </div>
-                  <h3 className="text-xl font-bold mb-3" style={{ color: COLORS.primary }}>{service.nom_service}</h3>
-                  <p className="leading-relaxed text-gray-600">
-                    {service.libelle || 'Formation de qualité pour tous les niveaux.'}
-                  </p>
                 </div>
               ))
             ) : (
-              <div className="col-span-full text-center py-12 text-gray-600">
+              <div className="col-span-full text-center py-12" style={{ color: COLORS.textLight }}>
                 <p>Aucun service disponible pour le moment.</p>
               </div>
             )}
@@ -163,53 +211,113 @@ const HomePage = () => {
       </section>
 
       {/* Section À propos - Description avec image local.jpg */}
-      <section id="apropos" className="py-24" style={{ backgroundColor: COLORS.white }}>
+      <section id="apropos" className="py-20" style={{ backgroundColor: COLORS.card }}>
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-16" style={{ color: COLORS.primary }}>À propos de nous</h2>
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4" style={{ backgroundColor: COLORS.secondary }}>
+              <BookOpenIcon className="w-8 h-8 text-white" />
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{ color: COLORS.text }}>À propos de nous</h2>
+          </div>
 
           <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
             <div className="lg:w-1/2 order-2 lg:order-1">
-              <h3 className="text-2xl font-bold mb-6" style={{ color: COLORS.primary }}>Que faisons-nous ?</h3>
-              <p className="leading-relaxed text-lg text-gray-700">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6" style={{ backgroundColor: COLORS.accent }}>
+                <AcademicCapIcon className="w-5 h-5" style={{ color: COLORS.primary }} />
+                <span className="text-sm font-semibold" style={{ color: COLORS.primary }}>Notre mission</span>
+              </div>
+              <h3 className="text-3xl font-bold mb-6" style={{ color: COLORS.text }}>
+                Excellence et qualité pédagogique
+              </h3>
+              <p className="leading-relaxed text-lg mb-6" style={{ color: COLORS.textLight }}>
                 {aboutInfo?.description || 'L\'Alliance Française propose des formations en français de qualité pour tous les publics.'}
               </p>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-4 rounded-2xl" style={{ backgroundColor: COLORS.highlight }}>
+                  <ClockIcon className="w-8 h-8 mb-2" style={{ color: COLORS.primary }} />
+                  <p className="font-semibold" style={{ color: COLORS.text }}>Horaires flexibles</p>
+                  <p className="text-sm" style={{ color: COLORS.textLight }}>Cours du lundi au samedi</p>
+                </div>
+                <div className="p-4 rounded-2xl" style={{ backgroundColor: COLORS.highlight }}>
+                  <AcademicCapIcon className="w-8 h-8 mb-2" style={{ color: COLORS.primary }} />
+                  <p className="font-semibold" style={{ color: COLORS.text }}>Professeurs qualifiés</p>
+                  <p className="text-sm" style={{ color: COLORS.textLight }}>Expérience certifiée</p>
+                </div>
+              </div>
             </div>
 
             <div className="lg:w-1/2 order-1 lg:order-2">
-              <img
-                src={localImg}
-                alt="Nos locaux"
-                className="w-full h-auto rounded-2xl shadow-xl object-cover max-h-[400px]"
-              />
+              <div className="relative">
+                <div className="absolute -top-4 -left-4 w-72 h-72 rounded-3xl opacity-20" style={{ backgroundColor: COLORS.secondary }}></div>
+                <div className="absolute -bottom-4 -right-4 w-72 h-72 rounded-3xl opacity-20" style={{ backgroundColor: COLORS.primary }}></div>
+                <img
+                  src={localImg}
+                  alt="Nos locaux"
+                  className="relative w-full h-auto rounded-3xl shadow-2xl object-cover max-h-[500px]"
+                />
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="py-16" style={{ backgroundColor: COLORS.primary, color: COLORS.white }}>
+      <footer className="py-16" style={{ background: COLORS.gradient, color: COLORS.white }}>
         <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-8">
-            <div className="flex items-center gap-4">
-              {aboutInfo?.logo_url && (
-                <img src={aboutInfo.logo_url} alt="Logo" className="h-12 object-contain opacity-90" />
-              )}
-              <span className="text-lg font-semibold">{aboutInfo?.nom_etablissement}</span>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
+            {/* Logo et nom */}
+            <div>
+              <div className="flex items-center gap-3 mb-6">
+                {aboutInfo?.logo_url && (
+                  <img src={aboutInfo.logo_url} alt="Logo" className="h-12 object-contain brightness-0 invert" />
+                )}
+                <span className="text-xl font-bold">{aboutInfo?.nom_etablissement}</span>
+              </div>
+              <p className="text-white/80 leading-relaxed">
+                Apprenez le français avec des experts dans un cadre d'excellence.
+              </p>
             </div>
 
-            <div className="text-center md:text-right">
-              <p className="text-lg font-semibold mb-2">Contact</p>
-              <p className="opacity-90">Tél: {aboutInfo?.tel}</p>
-              <p className="opacity-90">Email: {aboutInfo?.email}</p>
-              <p className="opacity-90">Adresse: {aboutInfo?.adresse}</p>
-              <p className="opacity-90 mt-2">
-                Ouvert: {aboutInfo?.jours_ouverture} de {aboutInfo?.heure_ouverture?.substring(0, 5)} à {aboutInfo?.heure_fermeture?.substring(0, 5)}
-              </p>
+            {/* Navigation */}
+            <div>
+              <h4 className="text-lg font-bold mb-4">Navigation</h4>
+              <ul className="space-y-2">
+                <li><a href="#accueil" className="text-white/80 hover:text-white transition-colors">Accueil</a></li>
+                <li><a href="#services" className="text-white/80 hover:text-white transition-colors">Services</a></li>
+                <li><a href="#apropos" className="text-white/80 hover:text-white transition-colors">À propos</a></li>
+                <li><Link to="/login" className="text-white/80 hover:text-white transition-colors">Se connecter</Link></li>
+              </ul>
+            </div>
+
+            {/* Contact */}
+            <div>
+              <h4 className="text-lg font-bold mb-4">Contact</h4>
+              <div className="space-y-3">
+                <div className="flex items-start gap-3">
+                  <PhoneIcon className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                  <span className="text-white/80">{aboutInfo?.tel}</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <EnvelopeIcon className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                  <span className="text-white/80">{aboutInfo?.email}</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <MapPinIcon className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                  <span className="text-white/80">{aboutInfo?.adresse}</span>
+                </div>
+                <div className="flex items-center gap-3 pt-2">
+                  <ClockIcon className="w-5 h-5 flex-shrink-0" />
+                  <span className="text-white/80">
+                    {aboutInfo?.jours_ouverture} de {aboutInfo?.heure_ouverture?.substring(0, 5)} à {aboutInfo?.heure_fermeture?.substring(0, 5)}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="border-t border-white/30 mt-10 pt-8 text-center opacity-80">
-            <p>&copy; {new Date().getFullYear()} {aboutInfo?.nom_etablissement}. Tous droits réservés.</p>
+          <div className="border-t border-white/20 pt-8 text-center">
+            <p className="text-white/70">&copy; {new Date().getFullYear()} {aboutInfo?.nom_etablissement}. Tous droits réservés.</p>
           </div>
         </div>
       </footer>

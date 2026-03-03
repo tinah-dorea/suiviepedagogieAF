@@ -5,13 +5,15 @@ const getAllGroupes = async (req, res) => {
     try {
         const result = await pool.query(`
             SELECT g.*,
+                   c.id AS id_creneau,
                    hc.id AS id_horaire_cours,
-                   s.nom_session,
+                   tc.nom_type_cours,
                    e.nom AS nom_prof,
                    e.prenom AS prenom_prof
             FROM groupe g
-            LEFT JOIN horaire_cours hc ON g.id_horaire_cours = hc.id
-            LEFT JOIN session s ON hc.id_session = s.id
+            LEFT JOIN creneau c ON g.id_creneau = c.id
+            LEFT JOIN horaire_cours hc ON c.id_horaire_cours = hc.id
+            LEFT JOIN type_cours tc ON hc.id_type_cours = tc.id
             LEFT JOIN professeur p ON g.id_professeur = p.id
             LEFT JOIN employe e ON p.id_employe = e.id
             ORDER BY g.nom_groupe ASC
@@ -28,18 +30,20 @@ const getGroupeById = async (req, res) => {
     try {
         const result = await pool.query(`
             SELECT g.*,
+                   c.id AS id_creneau,
                    hc.id AS id_horaire_cours,
-                   s.nom_session,
+                   tc.nom_type_cours,
                    e.nom AS nom_prof,
                    e.prenom AS prenom_prof
             FROM groupe g
-            LEFT JOIN horaire_cours hc ON g.id_horaire_cours = hc.id
-            LEFT JOIN session s ON hc.id_session = s.id
+            LEFT JOIN creneau c ON g.id_creneau = c.id
+            LEFT JOIN horaire_cours hc ON c.id_horaire_cours = hc.id
+            LEFT JOIN type_cours tc ON hc.id_type_cours = tc.id
             LEFT JOIN professeur p ON g.id_professeur = p.id
             LEFT JOIN employe e ON p.id_employe = e.id
             WHERE g.id = $1
         `, [id]);
-        
+
         if (result.rows.length === 0) return res.status(404).json({ message: 'Groupe non trouvé' });
         res.json(result.rows[0]);
     } catch (error) {
@@ -49,38 +53,38 @@ const getGroupeById = async (req, res) => {
 
 // Créer un nouveau groupe
 const createGroupe = async (req, res) => {
-    const { nom_groupe, id_horaire_cours, id_professeur } = req.body;
-    
-    if (!nom_groupe || !id_horaire_cours || !id_professeur) {
-        return res.status(400).json({ message: 'nom_groupe, id_horaire_cours et id_professeur sont requis' });
+    const { nom_groupe, id_creneau, id_professeur } = req.body;
+
+    if (!nom_groupe || !id_creneau || !id_professeur) {
+        return res.status(400).json({ message: 'nom_groupe, id_creneau et id_professeur sont requis' });
     }
-    
+
     try {
-        // Vérifier si l'horaire_cours existe
-        const horaireCheck = await pool.query('SELECT id FROM horaire_cours WHERE id = $1', [id_horaire_cours]);
-        if (horaireCheck.rows.length === 0) {
-            return res.status(404).json({ message: 'Horaire de cours non trouvé' });
+        // Vérifier si le créneau existe
+        const creneauCheck = await pool.query('SELECT id FROM creneau WHERE id = $1', [id_creneau]);
+        if (creneauCheck.rows.length === 0) {
+            return res.status(404).json({ message: 'Créneau non trouvé' });
         }
-        
+
         // Vérifier si le professeur existe
         const profCheck = await pool.query('SELECT id FROM professeur WHERE id = $1', [id_professeur]);
         if (profCheck.rows.length === 0) {
             return res.status(404).json({ message: 'Professeur non trouvé' });
         }
-        
-        // Vérifier si un groupe avec ce nom et cet horaire existe déjà
+
+        // Vérifier si un groupe avec ce nom et ce créneau existe déjà
         const existingGroupe = await pool.query(
-            'SELECT id FROM groupe WHERE nom_groupe = $1 AND id_horaire_cours = $2',
-            [nom_groupe, id_horaire_cours]
+            'SELECT id FROM groupe WHERE nom_groupe = $1 AND id_creneau = $2',
+            [nom_groupe, id_creneau]
         );
         if (existingGroupe.rows.length > 0) {
-            return res.status(409).json({ message: 'Un groupe avec ce nom existe déjà pour cet horaire' });
+            return res.status(409).json({ message: 'Un groupe avec ce nom existe déjà pour ce créneau' });
         }
-        
+
         const result = await pool.query(
-            `INSERT INTO groupe (nom_groupe, id_horaire_cours, id_professeur) 
+            `INSERT INTO groupe (nom_groupe, id_creneau, id_professeur)
              VALUES ($1, $2, $3) RETURNING *`,
-            [nom_groupe, id_horaire_cours, id_professeur]
+            [nom_groupe, id_creneau, id_professeur]
         );
         res.status(201).json(result.rows[0]);
     } catch (error) {
@@ -91,39 +95,39 @@ const createGroupe = async (req, res) => {
 // Mettre à jour un groupe
 const updateGroupe = async (req, res) => {
     const { id } = req.params;
-    const { nom_groupe, id_horaire_cours, id_professeur } = req.body;
-    
+    const { nom_groupe, id_creneau, id_professeur } = req.body;
+
     try {
-        // Vérifier si l'horaire_cours existe
-        const horaireCheck = await pool.query('SELECT id FROM horaire_cours WHERE id = $1', [id_horaire_cours]);
-        if (horaireCheck.rows.length === 0) {
-            return res.status(404).json({ message: 'Horaire de cours non trouvé' });
+        // Vérifier si le créneau existe
+        const creneauCheck = await pool.query('SELECT id FROM creneau WHERE id = $1', [id_creneau]);
+        if (creneauCheck.rows.length === 0) {
+            return res.status(404).json({ message: 'Créneau non trouvé' });
         }
-        
+
         // Vérifier si le professeur existe
         const profCheck = await pool.query('SELECT id FROM professeur WHERE id = $1', [id_professeur]);
         if (profCheck.rows.length === 0) {
             return res.status(404).json({ message: 'Professeur non trouvé' });
         }
-        
-        // Vérifier si un autre groupe avec ce nom et cet horaire existe déjà
+
+        // Vérifier si un autre groupe avec ce nom et ce créneau existe déjà
         const existingGroupe = await pool.query(
-            'SELECT id FROM groupe WHERE nom_groupe = $1 AND id_horaire_cours = $2 AND id != $3',
-            [nom_groupe, id_horaire_cours, id]
+            'SELECT id FROM groupe WHERE nom_groupe = $1 AND id_creneau = $2 AND id != $3',
+            [nom_groupe, id_creneau, id]
         );
         if (existingGroupe.rows.length > 0) {
-            return res.status(409).json({ message: 'Un groupe avec ce nom existe déjà pour cet horaire' });
+            return res.status(409).json({ message: 'Un groupe avec ce nom existe déjà pour ce créneau' });
         }
-        
+
         const result = await pool.query(
-            `UPDATE groupe SET 
-                nom_groupe=$1, 
-                id_horaire_cours=$2, 
-                id_professeur=$3 
+            `UPDATE groupe SET
+                nom_groupe=$1,
+                id_creneau=$2,
+                id_professeur=$3
              WHERE id=$4 RETURNING *`,
-            [nom_groupe, id_horaire_cours, id_professeur, id]
+            [nom_groupe, id_creneau, id_professeur, id]
         );
-        
+
         if (result.rows.length === 0) return res.status(404).json({ message: 'Groupe non trouvé' });
         res.json(result.rows[0]);
     } catch (error) {

@@ -4,7 +4,9 @@ import {
     getPresenceById,
     createPresence,
     updatePresence,
-    deletePresence
+    deletePresence,
+    getPresencesByGroupe,
+    getPresencesByApprenant
 } from '../controllers/presenceController.js';
 import { authenticateToken } from '../middlewares/authMiddleware.js';
 import { createPresenceValidation, updatePresenceValidation } from '../validations/presenceValidation.js';
@@ -17,5 +19,7 @@ router.get('/:id', getPresenceById);
 router.post('/', createPresenceValidation, createPresence);
 router.put('/:id', updatePresenceValidation, updatePresence);
 router.delete('/:id', deletePresence);
+router.get('/groupe/:groupeId', getPresencesByGroupe);
+router.get('/apprenant/:apprenantId', getPresencesByApprenant);
 
 export default router;

@@ -9,10 +9,8 @@ const getAllSessions = async (req, res) => {
                    COUNT(DISTINCT g.id) as nb_groupes
             FROM session s
             LEFT JOIN type_cours tc ON s.id_type_cours = tc.id
-            LEFT JOIN session_cours sc ON s.id = sc.id_session
-            LEFT JOIN creneau cr ON sc.id = cr.id_session_cours
-            LEFT JOIN inscription i ON cr.id = i.id_creneau
-            LEFT JOIN groupe g ON cr.id = g.id_creneau
+            LEFT JOIN inscription i ON s.id = i.id_session
+            LEFT JOIN groupe g ON i.id_groupe = g.id
             GROUP BY s.id, tc.nom_type_cours, s.duree_cours
             ORDER BY s.annee DESC, s.mois DESC
         `);
@@ -32,10 +30,8 @@ const getSessionById = async (req, res) => {
                    COUNT(DISTINCT g.id) as nb_groupes
             FROM session s
             LEFT JOIN type_cours tc ON s.id_type_cours = tc.id
-            LEFT JOIN session_cours sc ON s.id = sc.id_session
-            LEFT JOIN creneau cr ON sc.id = cr.id_session_cours
-            LEFT JOIN inscription i ON cr.id = i.id_creneau
-            LEFT JOIN groupe g ON cr.id = g.id_creneau
+            LEFT JOIN inscription i ON s.id = i.id_session
+            LEFT JOIN groupe g ON i.id_groupe = g.id
             WHERE s.id = $1
             GROUP BY s.id, tc.nom_type_cours, s.duree_cours
         `, [id]);
@@ -235,10 +231,8 @@ const getSessionsByTypeCours = async (req, res) => {
                    COUNT(DISTINCT g.id) as nb_groupes
             FROM session s
             LEFT JOIN type_cours tc ON s.id_type_cours = tc.id
-            LEFT JOIN session_cours sc ON s.id = sc.id_session
-            LEFT JOIN creneau cr ON sc.id = cr.id_session_cours
-            LEFT JOIN inscription i ON cr.id = i.id_creneau
-            LEFT JOIN groupe g ON cr.id = g.id_creneau
+            LEFT JOIN inscription i ON s.id = i.id_session
+            LEFT JOIN groupe g ON i.id_groupe = g.id
             WHERE s.id_type_cours = $1
             GROUP BY s.id, tc.nom_type_cours
             ORDER BY s.annee DESC, s.mois DESC
@@ -258,10 +252,8 @@ const getSessionsActives = async (req, res) => {
                    COUNT(DISTINCT g.id) as nb_groupes
             FROM session s
             LEFT JOIN type_cours tc ON s.id_type_cours = tc.id
-            LEFT JOIN session_cours sc ON s.id = sc.id_session
-            LEFT JOIN creneau cr ON sc.id = cr.id_session_cours
-            LEFT JOIN inscription i ON cr.id = i.id_creneau
-            LEFT JOIN groupe g ON cr.id = g.id_creneau
+            LEFT JOIN inscription i ON s.id = i.id_session
+            LEFT JOIN groupe g ON i.id_groupe = g.id
             WHERE date_fin >= CURRENT_DATE
             GROUP BY s.id, tc.nom_type_cours, s.duree_cours
             ORDER BY date_debut ASC
@@ -276,22 +268,20 @@ const getSessionsActives = async (req, res) => {
 const getSessionsByProfesseur = async (req, res) => {
     try {
         const profId = req.user.id; // L'ID du professeur connecté
-        
+
         const result = await pool.query(`
             SELECT DISTINCT s.*, tc.nom_type_cours, s.duree_cours,
                    COUNT(DISTINCT i.id) as nb_inscrits,
                    COUNT(DISTINCT g.id) as nb_groupes
             FROM session s
-            JOIN session_cours sc ON s.id = sc.id_session
-            JOIN creneau cr ON sc.id = cr.id_session_cours
-            JOIN groupe g ON cr.id = g.id_creneau
+            JOIN inscription i ON s.id = i.id_session
+            JOIN groupe g ON i.id_groupe = g.id
             JOIN type_cours tc ON s.id_type_cours = tc.id
-            LEFT JOIN inscription i ON cr.id = i.id_creneau
-            WHERE g.id_employe_prof = $1
+            WHERE g.id_professeur = $1
             GROUP BY s.id, tc.nom_type_cours, s.duree_cours
             ORDER BY s.annee DESC, s.mois DESC
         `, [profId]);
-        
+
         res.json(result.rows);
     } catch (error) {
         res.status(500).json({ message: error.message });

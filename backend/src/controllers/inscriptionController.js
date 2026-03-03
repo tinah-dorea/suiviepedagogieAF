@@ -433,6 +433,44 @@ const getInscriptionsByTypeCours = async (req, res) => {
     }
 };
 
+// Obtenir les inscriptions (apprenants) par groupe
+const getInscriptionsByGroupe = async (req, res) => {
+    const { groupeId } = req.params;
+    try {
+        const result = await pool.query(`
+            SELECT i.*,
+                   a.nom,
+                   a.prenom,
+                   a.email,
+                   a.tel,
+                   a.sexe as genre,
+                   s.nom_session,
+                   n.nom_niveau,
+                   c.nom_categorie,
+                   cr.jour_semaine,
+                   cr.heure_debut,
+                   cr.heure_fin,
+                   g.nom_groupe,
+                   pr.nom AS nom_professeur,
+                   pr.prenom AS prenom_professeur
+            FROM inscription i
+            LEFT JOIN apprenant a ON i.id_apprenant = a.id
+            LEFT JOIN session s ON i.id_session = s.id
+            LEFT JOIN niveau n ON i.id_niveau = n.id
+            LEFT JOIN categorie c ON i.id_categorie = c.id
+            LEFT JOIN creneau cr ON i.id_creneau = cr.id
+            LEFT JOIN groupe g ON i.id_groupe = g.id
+            LEFT JOIN employe pr ON g.id_professeur = pr.id
+            WHERE i.id_groupe = $1
+            ORDER BY a.nom, a.prenom
+        `, [groupeId]);
+        
+        res.json(result.rows);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 export { 
     getAllInscriptions, 
     getInscriptionById, 
@@ -441,5 +479,6 @@ export {
     deleteInscription,
     getInscriptionsByEmail,
     getInscriptionsBySession,
-    getInscriptionsByTypeCours
+    getInscriptionsByTypeCours,
+    getInscriptionsByGroupe
 };

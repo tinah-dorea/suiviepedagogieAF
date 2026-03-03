@@ -1,12 +1,13 @@
 import React from 'react';
 import { Tab } from '@headlessui/react';
-import { RiServiceLine, RiBookLine, RiStackLine, RiGroupLine, RiTimeLine, RiBuildingLine } from 'react-icons/ri';
+import { RiServiceLine, RiBookLine, RiStackLine, RiGroupLine, RiBuildingLine, RiHeartLine } from 'react-icons/ri';
 import TypeService from '../../components/GestionCours/TypeService';
 import TypeCours from '../../components/GestionCours/TypeCours';
 import Niveau from '../../components/GestionCours/Niveau';
 import Categorie from '../../components/GestionCours/Categorie';
-import Horaire from '../../components/GestionCours/Horaire';
 import Salle from '../../components/GestionCours/Salle';
+import Motivation from '../../components/GestionCours/Motivation';
+import Groupe from '../../components/GestionCours/Groupe';
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
@@ -18,8 +19,9 @@ const GestionCours = () => {
     { name: 'Type de cours', icon: RiBookLine },
     { name: 'Niveaux', icon: RiStackLine },
     { name: 'Catégorie', icon: RiGroupLine },
-    { name: 'Horaire', icon: RiTimeLine },
+    { name: 'Motivation', icon: RiHeartLine },
     { name: 'Salle', icon: RiBuildingLine },
+    { name: 'Groupes', icon: RiGroupLine },
   ];
 
   return (
@@ -52,8 +54,9 @@ const GestionCours = () => {
           <Tab.Panel><TypeCours /></Tab.Panel>
           <Tab.Panel><Niveau /></Tab.Panel>
           <Tab.Panel><Categorie /></Tab.Panel>
-          <Tab.Panel><Horaire /></Tab.Panel>
+          <Tab.Panel><Motivation /></Tab.Panel>
           <Tab.Panel><Salle /></Tab.Panel>
+          <Tab.Panel><Groupe /></Tab.Panel>
         </Tab.Panels>
       </Tab.Group>
     </div>

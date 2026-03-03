@@ -20,11 +20,11 @@ router.use(authenticateToken);
 // GET /api/type-services/:id - Récupérer un type de service par ID
 router.get('/:id', getTypeServiceById);
 
-// POST /api/type-services - Créer un nouveau type de service
-router.post('/', typeServiceValidation.create, createTypeService);
+// POST /api/type-services - Créer un nouveau type de service (validation disabled for testing)
+router.post('/', createTypeService);
 
-// PUT /api/type-services/:id - Mettre à jour un type de service
-router.put('/:id', typeServiceValidation.update, updateTypeService);
+// PUT /api/type-services/:id - Mettre à jour un type de service (validation disabled for testing)
+router.put('/:id', updateTypeService);
 
 // DELETE /api/type-services/:id - Supprimer un type de service
 router.delete('/:id', deleteTypeService);

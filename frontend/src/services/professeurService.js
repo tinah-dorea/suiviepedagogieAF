@@ -1,15 +1,18 @@
 import api from './api';
 
-const getProfesseurs = () => {
-    return api.get('/employes/professeurs');
+const getProfesseurs = async () => {
+    const response = await api.get('/professeurs');
+    return response.data;
 };
 
-const getEmployes = () => {
-    return api.get('/employes');
+const getEmployes = async () => {
+    const response = await api.get('/employes');
+    return response.data;
 };
 
-const getRoles = () => {
-    return api.get('/employes/roles');
+const getRoles = async () => {
+    const response = await api.get('/employes/roles');
+    return response.data;
 };
 
 const createEmploye = (data) => {
@@ -30,6 +33,7 @@ const deleteEmploye = (id) => {
 
 
 const professeurService = {
+    getAll: getProfesseurs,
     getProfesseurs,
     getEmployes,
     getRoles,

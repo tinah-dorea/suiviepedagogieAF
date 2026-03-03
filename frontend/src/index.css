@@ -8,9 +8,14 @@
   --color-primary: #758695;
 }
 
+html {
+  font-size: 125%;
+}
+
 body {
   font-family: 'Source Serif 4', Georgia, serif;
   background-color: var(--color-bg);
+  font-size: 1rem;
 }
 
 h1, h2, h3, h4, h5, h6 {

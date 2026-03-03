@@ -5,7 +5,7 @@ const getAllSalles = async (req, res) => {
     try {
         const result = await pool.query(`
             SELECT s.*,
-                   (SELECT COUNT(*) FROM inscription WHERE id_salle = s.id) as inscriptions_count
+                   (SELECT COUNT(*) FROM attribution_salle WHERE id_salle = s.id) as attributions_count
             FROM salle s
             ORDER BY s.nom_salle ASC
         `);
@@ -21,7 +21,7 @@ const getSalleById = async (req, res) => {
     try {
         const result = await pool.query(`
             SELECT s.*,
-                   (SELECT COUNT(*) FROM inscription WHERE id_salle = s.id) as inscriptions_count
+                   (SELECT COUNT(*) FROM attribution_salle WHERE id_salle = s.id) as attributions_count
             FROM salle s
             WHERE s.id = $1
         `, [id]);
@@ -39,7 +39,7 @@ const getSalleById = async (req, res) => {
 const createSalle = async (req, res) => {
     const {
         nom_salle,
-        capacite
+        capacite_max
     } = req.body;
 
     try {
@@ -62,7 +62,7 @@ const createSalle = async (req, res) => {
             ) VALUES ($1, $2) RETURNING *`,
             [
                 nom_salle,
-                capacite
+                capacite_max || null
             ]
         );
 
@@ -77,7 +77,7 @@ const updateSalle = async (req, res) => {
     const { id } = req.params;
     const {
         nom_salle,
-        capacite
+        capacite_max
     } = req.body;
 
     try {
@@ -102,7 +102,7 @@ const updateSalle = async (req, res) => {
             WHERE id = $3 RETURNING *`,
             [
                 nom_salle,
-                capacite,
+                capacite_max,
                 id
             ]
         );
@@ -147,10 +147,10 @@ const getSallesDisponibles = async (req, res) => {
     try {
         const result = await pool.query(`
             SELECT s.*,
-                   (SELECT COUNT(*) FROM inscription WHERE id_salle = s.id) as inscriptions_count,
-                   (s.capacite_max - (SELECT COUNT(*) FROM inscription WHERE id_salle = s.id)) as places_libres
+                   (SELECT COUNT(*) FROM attribution_salle WHERE id_salle = s.id) as attributions_count,
+                   (s.capacite_max - (SELECT COUNT(DISTINCT id_groupe) FROM attribution_salle WHERE id_salle = s.id)) as places_libres
             FROM salle s
-            WHERE (s.capacite_max - (SELECT COUNT(*) FROM inscription WHERE id_salle = s.id)) > 0
+            WHERE (s.capacite_max - (SELECT COUNT(DISTINCT id_groupe) FROM attribution_salle WHERE id_salle = s.id)) > 0
             ORDER BY s.nom_salle ASC
         `);
         res.json(result.rows);
@@ -166,7 +166,7 @@ const getSallesStats = async (req, res) => {
             SELECT
                 COUNT(*) as total_salles,
                 SUM(capacite_max) as capacite_totale,
-                SUM((SELECT COUNT(*) FROM inscription WHERE id_salle = s.id)) as inscriptions_totales,
+                SUM((SELECT COUNT(*) FROM attribution_salle WHERE id_salle = s.id)) as attributions_totales,
                 AVG(capacite_max) as capacite_moyenne
             FROM salle s
         `);

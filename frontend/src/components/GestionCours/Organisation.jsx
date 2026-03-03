@@ -1,8 +1,9 @@
 import React from 'react';
 import { Tab } from '@headlessui/react';
-import { RiTimeLine, RiGroupLine } from 'react-icons/ri';
+import { RiTimeLine, RiCalendarLine, RiBook2Line } from 'react-icons/ri';
+import Session from './Session';
+import Horaire from './Horaire';
 import Creneau from './Creneau';
-import Groupe from './Groupe';
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
@@ -10,8 +11,9 @@ function classNames(...classes) {
 
 const Organisation = () => {
   const tabs = [
+    { name: 'Sessions', icon: RiCalendarLine },
+    { name: 'Horaires des Cours', icon: RiBook2Line },
     { name: 'Créneaux horaires', icon: RiTimeLine },
-    { name: 'Groupes', icon: RiGroupLine },
   ];
 
   return (
@@ -46,6 +48,22 @@ const Organisation = () => {
               'ring-white ring-opacity-60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2'
             )}
           >
+            <Session />
+          </Tab.Panel>
+          <Tab.Panel
+            className={classNames(
+              'rounded-xl bg-white p-3',
+              'ring-white ring-opacity-60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2'
+            )}
+          >
+            <Horaire />
+          </Tab.Panel>
+          <Tab.Panel
+            className={classNames(
+              'rounded-xl bg-white p-3',
+              'ring-white ring-opacity-60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2'
+            )}
+          >
             <Creneau />
           </Tab.Panel>
           <Tab.Panel
@@ -54,7 +72,7 @@ const Organisation = () => {
               'ring-white ring-opacity-60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2'
             )}
           >
-            <Groupe />
+          
           </Tab.Panel>
         </Tab.Panels>
       </Tab.Group>

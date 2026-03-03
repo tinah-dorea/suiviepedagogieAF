@@ -13,7 +13,8 @@ const getSessionsPublic = async (req, res) => {
         `);
         res.json(result.rows);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error('Erreur getSessionsPublic:', error.message);
+        res.status(500).json({ message: 'Erreur serveur lors de la récupération des sessions', error: error.message });
     }
 };
 
@@ -21,6 +22,11 @@ const getSessionsPublic = async (req, res) => {
 const getSessionDetailPublic = async (req, res) => {
     const { id } = req.params;
     try {
+        // Vérifier si l'ID est valide
+        if (!id || isNaN(parseInt(id))) {
+            return res.status(400).json({ message: 'ID de session invalide' });
+        }
+
         const sessionResult = await pool.query(`
             SELECT s.*, tc.nom_type_cours
             FROM session s
@@ -34,6 +40,7 @@ const getSessionDetailPublic = async (req, res) => {
 
         const session = sessionResult.rows[0];
 
+        // Get horaires_cours by id_session (direct link to session)
         const horairesResult = await pool.query(`
             SELECT hc.*, c.nom_categorie
             FROM horaire_cours hc
@@ -59,7 +66,9 @@ const getSessionDetailPublic = async (req, res) => {
             horaires_cours: horaires
         });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error('Erreur getSessionDetailPublic:', error.message);
+        console.error('Détails:', error.stack);
+        res.status(500).json({ message: 'Erreur serveur lors de la récupération des détails', error: error.message });
     }
 };
 
@@ -71,7 +80,8 @@ const getTypeCoursPublic = async (req, res) => {
         `);
         res.json(result.rows);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error('Erreur getTypeCoursPublic:', error.message);
+        res.status(500).json({ message: 'Erreur serveur lors de la récupération des types de cours', error: error.message });
     }
 };
 

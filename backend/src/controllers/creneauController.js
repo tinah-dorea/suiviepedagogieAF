@@ -5,13 +5,14 @@ const getAllCreneaux = async (req, res) => {
         const result = await pool.query(`
             SELECT c.*,
                    hc.id AS id_horaire_cours,
-                   hc.id_session,
-                   s.nom_session,
+                   hc.id_type_cours,
+                   hc.id_niveau,
+                   tc.nom_type_cours,
                    hc.id_categorie,
                    cat.nom_categorie
             FROM creneau c
             LEFT JOIN horaire_cours hc ON c.id_horaire_cours = hc.id
-            LEFT JOIN session s ON hc.id_session = s.id
+            LEFT JOIN type_cours tc ON hc.id_type_cours = tc.id
             LEFT JOIN categorie cat ON hc.id_categorie = cat.id
             ORDER BY c.id ASC
         `);
@@ -27,13 +28,14 @@ const getCreneauById = async (req, res) => {
         const result = await pool.query(`
             SELECT c.*,
                    hc.id AS id_horaire_cours,
-                   hc.id_session,
-                   s.nom_session,
+                   hc.id_type_cours,
+                   hc.id_niveau,
+                   tc.nom_type_cours,
                    hc.id_categorie,
                    cat.nom_categorie
             FROM creneau c
             LEFT JOIN horaire_cours hc ON c.id_horaire_cours = hc.id
-            LEFT JOIN session s ON hc.id_session = s.id
+            LEFT JOIN type_cours tc ON hc.id_type_cours = tc.id
             LEFT JOIN categorie cat ON hc.id_categorie = cat.id
             WHERE c.id=$1
         `, [id]);
@@ -101,13 +103,13 @@ const getCreneauxByHoraireCours = async (req, res) => {
         const result = await pool.query(`
             SELECT c.*,
                    hc.id AS id_horaire_cours,
-                   hc.id_session,
-                   s.nom_session,
+                   hc.id_type_cours,
+                   tc.nom_type_cours,
                    hc.id_categorie,
                    cat.nom_categorie
             FROM creneau c
             LEFT JOIN horaire_cours hc ON c.id_horaire_cours = hc.id
-            LEFT JOIN session s ON hc.id_session = s.id
+            LEFT JOIN type_cours tc ON hc.id_type_cours = tc.id
             LEFT JOIN categorie cat ON hc.id_categorie = cat.id
             WHERE c.id_horaire_cours = $1
             ORDER BY c.id ASC

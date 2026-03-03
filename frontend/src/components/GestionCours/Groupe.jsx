@@ -1,29 +1,46 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
-import Modal from '../ui/Modal';
+import 'react-toastify/dist/ReactToastify.css';
 import groupeService from '../../services/groupeService';
-import { EllipsisHorizontalIcon } from '@heroicons/react/24/outline';
+import niveauService from '../../services/niveauService';
+import creneauService from '../../services/creneauService';
+import professeurService from '../../services/professeurService';
+import { EllipsisHorizontalIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 
 const Groupe = () => {
   const [groupes, setGroupes] = useState([]);
+  const [niveaux, setNiveaux] = useState([]);
+  const [creneaux, setCreneaux] = useState([]);
+  const [professeurs, setProfesseurs] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentGroupe, setCurrentGroupe] = useState(null);
   const [formData, setFormData] = useState({
-    libelle_groupe: '',
-    id_niveau: ''
+    nom_groupe: '',
+    id_creneau: '',
+    id_professeur: ''
   });
   const [loading, setLoading] = useState(true);
   const [openMenuId, setOpenMenuId] = useState(null);
+  const [deleteConfirmation, setDeleteConfirmation] = useState(null);
 
   // Charger les données
   const loadData = async () => {
     try {
-      const data = await groupeService.getAll();
-      setGroupes(data);
+      const [groupesData, niveauxData, creneauxData, professeursData] = await Promise.all([
+        groupeService.getAll(),
+        niveauService.getAll(),
+        creneauService.getAll(),
+        professeurService.getAll()
+      ]);
+      setGroupes(Array.isArray(groupesData) ? groupesData : []);
+      setNiveaux(Array.isArray(niveauxData) ? niveauxData : []);
+      setCreneaux(Array.isArray(creneauxData) ? creneauxData : []);
+      setProfesseurs(Array.isArray(professeursData) ? professeursData : []);
       setLoading(false);
     } catch (error) {
       toast.error('Erreur lors du chargement des groupes');
-      console.error(error);
+      console.error('Error details:', error);
+      setLoading(false);
     }
   };
 
@@ -43,11 +60,17 @@ const Groupe = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const submitData = {
+        ...formData,
+        id_creneau: parseInt(formData.id_creneau, 10),
+        id_professeur: parseInt(formData.id_professeur, 10)
+      };
+      
       if (currentGroupe) {
-        await groupeService.update(currentGroupe.id, formData);
+        await groupeService.update(currentGroupe.id, submitData);
         toast.success('Groupe modifié avec succès');
       } else {
-        await groupeService.create(formData);
+        await groupeService.create(submitData);
         toast.success('Groupe créé avec succès');
       }
       setIsModalOpen(false);
@@ -61,8 +84,9 @@ const Groupe = () => {
   const handleEdit = (groupe) => {
     setCurrentGroupe(groupe);
     setFormData({
-      libelle_groupe: groupe.libelle_groupe,
-      id_niveau: groupe.id_niveau
+      nom_groupe: groupe.nom_groupe || '',
+      id_creneau: groupe.id_creneau?.toString() || '',
+      id_professeur: groupe.id_professeur?.toString() || ''
     });
     setIsModalOpen(true);
   };
@@ -71,22 +95,26 @@ const Groupe = () => {
   const handleAdd = () => {
     setCurrentGroupe(null);
     setFormData({
-      libelle_groupe: '',
-      id_niveau: ''
+      nom_groupe: '',
+      id_creneau: '',
+      id_professeur: ''
     });
     setIsModalOpen(true);
   };
 
-  // Supprimer un groupe
-  const handleDelete = async (id) => {
-    if (window.confirm('Êtes-vous sûr de vouloir supprimer ce groupe ?')) {
-      try {
-        await groupeService.delete(id);
-        toast.success('Groupe supprimé avec succès');
-        loadData();
-      } catch (error) {
-        toast.error(error.response?.data?.message || 'Une erreur est survenue');
-      }
+  const handleDeleteClick = (id) => {
+    setDeleteConfirmation(id);
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await groupeService.delete(deleteConfirmation);
+      toast.success('Groupe supprimé avec succès');
+      loadData();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Une erreur est survenue');
+    } finally {
+      setDeleteConfirmation(null);
     }
   };
 
@@ -97,129 +125,222 @@ const Groupe = () => {
   }
 
   return (
-    <div className="p-4">
-      {/* En-tête */}
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold">Groupes</h2>
+    <div className="px-4 sm:px-8 py-4 sm:py-6">
+      <h1 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Gestion des Groupes</h1>
+
+      {/* En-tête avec actions */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <h2 className="text-lg font-semibold text-gray-900">Liste des Groupes</h2>
         <button
           onClick={handleAdd}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+          className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-sm font-medium rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all shadow-md hover:shadow-lg"
         >
+          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
           Ajouter
         </button>
       </div>
 
-      {loading && <p>Chargement...</p>}
-
-      <div className="bg-white rounded-xl shadow-md overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-gray-50">
+      {/* Table moderne */}
+      <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
+        <div className="overflow-x-auto">
+          <table className="min-w-full">
+          <thead className="bg-gradient-to-r from-blue-50 to-blue-100">
             <tr>
-              <th className="p-3 text-left">N°</th>
-              <th className="p-3 text-left">Libellé</th>
-              <th className="p-3 text-left">Niveau</th>
-              <th className="p-3 text-left">Actions</th>
+              <th className="px-6 py-4 text-left text-xs font-semibold text-blue-800 uppercase tracking-wider">N°</th>
+              <th className="px-6 py-4 text-left text-xs font-semibold text-blue-800 uppercase tracking-wider">Nom du groupe</th>
+              <th className="px-6 py-4 text-left text-xs font-semibold text-blue-800 uppercase tracking-wider">Professeur</th>
+              <th className="px-6 py-4 text-left text-xs font-semibold text-blue-800 uppercase tracking-wider">Créneau</th>
+              <th className="px-6 py-4 text-right text-xs font-semibold text-blue-800 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
-          <tbody>
-            {groupes.map((groupe, index) => (
-              <tr key={groupe.id} className="border-b hover:bg-gray-50">
-                <td className="p-3">{index + 1}</td>
-                <td className="p-3">{groupe.libelle_groupe}</td>
-                <td className="p-3">{groupe.id_niveau}</td>
-                <td className="p-3">
-                  <div className="relative">
-                    <button
-                      onClick={() => setOpenMenuId(openMenuId === groupe.id ? null : groupe.id)}
-                      className="text-gray-500 hover:text-gray-700"
-                    >
-                      <EllipsisHorizontalIcon className="h-5 w-5" />
-                    </button>
-                    
-                    {openMenuId === groupe.id && (
-                      <div className="absolute right-0 mt-1 w-40 bg-white border rounded-md shadow-lg z-10">
-                        <button
-                          onClick={() => {
-                            handleEdit(groupe);
-                            setOpenMenuId(null);
-                          }}
-                          className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 text-left"
-                        >
-                          Éditer
-                        </button>
-                        <button
-                          onClick={() => {
-                            handleDelete(groupe.id);
-                            setOpenMenuId(null);
-                          }}
-                          className="w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100 text-left"
-                        >
-                          Supprimer
-                        </button>
+          <tbody className="divide-y divide-gray-100">
+            {groupes.map((groupe, index) => {
+              const prof = professeurs.find(p => p.id === groupe.id_professeur);
+              const creneau = creneaux.find(c => c.id === groupe.id_creneau);
+              return (
+                <tr key={groupe.id} className="hover:bg-blue-50/50 transition-colors">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-blue-50 to-blue-100 text-blue-700 font-semibold">
+                      {index + 1}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-green-100 to-green-200 rounded-lg flex items-center justify-center">
+                        <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
                       </div>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            ))}
+                      <span className="ml-3 text-sm font-medium text-gray-900">{groupe.nom_groupe}</span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-purple-100 to-purple-200 rounded-full flex items-center justify-center">
+                        <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                      </div>
+                      <span className="ml-2 text-sm text-gray-600">{prof ? `${prof.nom} ${prof.prenom}` : <span className="text-gray-400">Non assigné</span>}</span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-amber-50 text-amber-700">
+                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      {creneau ? `${creneau.jour_semaine?.join(', ')} - ${creneau.heure_debut?.substring(0,5)}` : <span className="text-gray-400">Non assigné</span>}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right">
+                    <div className="relative">
+                      <button
+                        onClick={() => setOpenMenuId(openMenuId === groupe.id ? null : groupe.id)}
+                        className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                      >
+                        <EllipsisHorizontalIcon className="h-5 w-5" />
+                      </button>
+
+                      {openMenuId === groupe.id && (
+                        <div className="absolute right-0 mt-2 w-48 rounded-xl shadow-xl bg-white ring-1 ring-black ring-opacity-5 z-20 overflow-hidden">
+                          <div className="py-1">
+                            <button
+                              onClick={() => {
+                                handleEdit(groupe);
+                                setOpenMenuId(null);
+                              }}
+                              className="flex items-center w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 transition-colors"
+                            >
+                              <PencilIcon className="h-4 w-4 mr-3 text-blue-600" />
+                              Éditer
+                            </button>
+                            <button
+                              onClick={() => {
+                                handleDeleteClick(groupe.id);
+                                setOpenMenuId(null);
+                              }}
+                              className="flex items-center w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                            >
+                              <TrashIcon className="h-4 w-4 mr-3" />
+                              Supprimer
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
+        </div>
       </div>
 
       {/* Modal */}
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title={currentGroupe ? "Modifier le groupe" : "Ajouter un groupe"}
-      >
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="libelle_groupe" className="block text-sm font-medium text-gray-700">
-              Libellé du groupe
-            </label>
-            <input
-              type="text"
-              id="libelle_groupe"
-              name="libelle_groupe"
-              value={formData.libelle_groupe}
-              onChange={handleInputChange}
-              required
-              className="w-full p-2 border rounded"
-            />
-          </div>
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full mx-auto my-8">
+            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-t-xl sticky top-0">
+              <h3 className="text-lg font-semibold">{currentGroupe ? "Modifier le groupe" : "Ajouter un groupe"}</h3>
+              <button onClick={() => setIsModalOpen(false)} className="text-white hover:text-gray-200 transition-colors">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
 
-          <div>
-            <label htmlFor="id_niveau" className="block text-sm font-medium text-gray-700">
-              ID Niveau
-            </label>
-            <input
-              type="number"
-              id="id_niveau"
-              name="id_niveau"
-              value={formData.id_niveau}
-              onChange={handleInputChange}
-              required
-              className="w-full p-2 border rounded"
-            />
-          </div>
+            <form onSubmit={handleSubmit} className="p-6 max-h-[70vh] overflow-y-auto">
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="nom_groupe" className="block text-sm font-medium text-gray-700 mb-1">
+                    Nom du groupe
+                  </label>
+                  <input
+                    type="text"
+                    id="nom_groupe"
+                    name="nom_groupe"
+                    value={formData.nom_groupe}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
 
-          <div className="flex justify-end space-x-2 pt-4">
-            <button
-              type="button"
-              onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300"
-            >
-              Annuler
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 rounded bg-blue-500 text-white hover:bg-blue-600"
-            >
-              {currentGroupe ? 'Modifier' : 'Ajouter'}
-            </button>
+                <div>
+                  <label htmlFor="id_creneau" className="block text-sm font-medium text-gray-700 mb-1">
+                    Créneau
+                  </label>
+                  <select
+                    id="id_creneau"
+                    name="id_creneau"
+                    value={formData.id_creneau}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">Sélectionner un créneau</option>
+                    {creneaux.map(creneau => (
+                      <option key={creneau.id} value={creneau.id}>
+                        {creneau.jour_semaine?.join(', ')} - {creneau.heure_debut?.substring(0,5)} à {creneau.heure_fin?.substring(0,5)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label htmlFor="id_professeur" className="block text-sm font-medium text-gray-700 mb-1">
+                    Professeur
+                  </label>
+                  <select
+                    id="id_professeur"
+                    name="id_professeur"
+                    value={formData.id_professeur}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">Sélectionner un professeur</option>
+                    {professeurs.map(prof => (
+                      <option key={prof.id} value={prof.id}>
+                        {prof.nom} {prof.prenom}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-3 mt-6 pt-4 border-t sticky bottom-0 bg-white">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">Annuler</button>
+                <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">{currentGroupe ? 'Modifier' : 'Ajouter'}</button>
+              </div>
+            </form>
           </div>
-        </form>
-      </Modal>
+        </div>
+      )}
+
+      {/* Confirmation Modal for Delete */}
+      {deleteConfirmation && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full mx-auto my-8">
+            <div className="p-6">
+              <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 rounded-full bg-red-100">
+                <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-center mb-2">Confirmer la suppression</h3>
+              <p className="text-gray-600 text-center mb-6">Êtes-vous sûr de vouloir supprimer ce groupe ?</p>
+              <div className="flex space-x-3">
+                <button onClick={() => setDeleteConfirmation(null)} className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">Annuler</button>
+                <button onClick={confirmDelete} className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">Supprimer</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

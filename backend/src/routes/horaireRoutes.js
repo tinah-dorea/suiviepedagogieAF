@@ -1,17 +1,17 @@
 import express from 'express';
-import { 
-    getAllHorairesCours, 
-    getHoraireCoursById, 
-    createHoraireCours, 
-    updateHoraireCours, 
+import {
+    getAllHorairesCours,
+    getHoraireCoursById,
+    createHoraireCours,
+    updateHoraireCours,
     deleteHoraireCours,
-    getHorairesCoursBySession
+    getHorairesCoursByTypeCours
 } from '../controllers/horaireController.js';
 
 const router = express.Router();
 
 router.get('/', getAllHorairesCours);
-router.get('/session/:id_session', getHorairesCoursBySession); // Nouvelle route
+router.get('/type-cours/:typeCoursId', getHorairesCoursByTypeCours);
 router.get('/:id', getHoraireCoursById);
 router.post('/', createHoraireCours);
 router.put('/:id', updateHoraireCours);

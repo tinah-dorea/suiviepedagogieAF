@@ -10,18 +10,27 @@ import {
   IdentificationIcon,
   XMarkIcon,
   UserCircleIcon,
-  UserGroupIcon
+  UserGroupIcon,
+  CalendarIcon
 } from '@heroicons/react/24/outline';
 import logoAFM from '../../assets/images/logo AFM.png';
 import { createEmploye, deleteEmploye, getEmployes, toggleStatus, updateEmploye } from '../../services/employeService';
 
 const ROLES = ['Admin', 'Pédagogie', 'Professeurs', 'Accueil'];
 const MENU = ['Dashboard', 'Gestion employer', 'Etablissement'];
+// Modern Pastel Palette - matching ConsultationCours & HomePage
 const COLORS = {
-  bg: '#EFEFD7',
-  primary: '#1F3FC3',
+  bg: '#F8F9FA',
   card: '#FFFFFF',
-  soft: '#E5EAFD'
+  primary: '#6B9080',
+  secondary: '#A4C3B2',
+  accent: '#EAF4F4',
+  highlight: '#F6FFF8',
+  text: '#2D3436',
+  textLight: '#636E72',
+  border: '#E8E8E8',
+  gradient: 'linear-gradient(135deg, #6B9080 0%, #A4C3B2 100%)',
+  soft: '#B5EAD7'
 };
 
 const EMPTY_EMPLOYE = {
@@ -46,18 +55,46 @@ const getAuthHeaders = () => {
 };
 
 const StatCard = ({ title, value, icon: Icon }) => (
-  <div className="rounded-2xl p-4 shadow-sm border" style={{ backgroundColor: COLORS.card, borderColor: '#dbe2ff' }}>
+  <div className="rounded-3xl p-6 shadow-sm hover:shadow-xl transition-all duration-300 border border-opacity-50" style={{ backgroundColor: COLORS.card, borderColor: COLORS.border }}>
     <div className="flex items-center justify-between">
       <div>
-        <p className="text-sm text-slate-600">{title}</p>
-        <p className="text-3xl font-bold mt-1" style={{ color: COLORS.primary }}>{value}</p>
+        <p className="text-sm font-medium mb-1" style={{ color: COLORS.textLight }}>{title}</p>
+        <p className="text-3xl font-bold" style={{ color: COLORS.text }}>{value}</p>
       </div>
-      <div className="rounded-xl p-3" style={{ backgroundColor: COLORS.soft }}>
-        <Icon className="h-6 w-6" style={{ color: COLORS.primary }} />
+      <div className="rounded-2xl p-4" style={{ background: COLORS.gradient }}>
+        <Icon className="h-6 w-6 text-white" />
       </div>
     </div>
   </div>
 );
+
+const SessionCard = ({ session, type }) => {
+  const statusColors = {
+    'en-cours': { bg: '#B5EAD7', text: '#2D7A5F' },
+    'passe': { bg: '#E2E2E2', text: '#6B6B6B' },
+    'avenir': { bg: '#C7CEEA', text: '#5A5F8C' }
+  };
+  const color = statusColors[type] || statusColors['avenir'];
+  
+  return (
+    <div className="rounded-2xl p-4 border transition-all duration-200 hover:shadow-md" style={{ backgroundColor: COLORS.card, borderColor: COLORS.border }}>
+      <div className="flex items-start justify-between mb-2">
+        <div className="flex-1">
+          <h4 className="font-semibold text-sm mb-1" style={{ color: COLORS.text }}>
+            {session.nom_session || `${session.mois} ${session.annee}`}
+          </h4>
+          <p className="text-xs" style={{ color: COLORS.textLight }}>{session.nom_type_cours || '—'}</p>
+        </div>
+        <span className="px-2 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: color.bg, color: color.text }}>
+          {type === 'en-cours' ? 'En cours' : type === 'passe' ? 'Terminée' : 'À venir'}
+        </span>
+      </div>
+      <div className="flex items-center gap-2 text-xs" style={{ color: COLORS.textLight }}>
+        <span>Début: {new Date(session.date_debut).toLocaleDateString('fr-FR')}</span>
+      </div>
+    </div>
+  );
+};
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -74,6 +111,10 @@ export default function Dashboard() {
     tauxReussite: 0,
     coursDuJour: 0
   });
+  const [sessions, setSessions] = useState([]);
+  const [sessionsEnCours, setSessionsEnCours] = useState([]);
+  const [dernieresSessions, setDernieresSessions] = useState([]);
+  const [prochainesSessions, setProchainesSessions] = useState([]);
   const [employes, setEmployes] = useState([]);
   const [search, setSearch] = useState('');
   const [openActionId, setOpenActionId] = useState(null);
@@ -125,16 +166,42 @@ export default function Dashboard() {
     setLoading(true);
     setError('');
     try {
-      const [employesData, statsData, aproposRes] = await Promise.all([
+      const [employesData, statsData, aproposRes, sessionsRes] = await Promise.all([
         getEmployes(),
         loadStatsWithFallback(),
-        axios.get('http://localhost:5000/api/a-propos').catch(() => ({ data: null }))
+        axios.get('http://localhost:5000/api/a-propos').catch(() => ({ data: null })),
+        axios.get('http://localhost:5000/api/consultation/sessions').catch(() => ({ data: [] }))
       ]);
 
       setEmployes(employesData || []);
       setStats(statsData || {});
       setAPropos(aproposRes.data || null);
       setEtabForm(aproposRes.data || {});
+      
+      // Process sessions
+      const allSessions = sessionsRes.data || [];
+      setSessions(allSessions);
+      
+      const today = new Date();
+      const sessionsEnCours = allSessions.filter(s => {
+        const debut = new Date(s.date_debut);
+        const fin = new Date(s.date_fin);
+        return debut <= today && fin >= today;
+      });
+      
+      const dernieresSessions = allSessions
+        .filter(s => new Date(s.date_fin) < today)
+        .sort((a, b) => new Date(b.date_fin) - new Date(a.date_fin))
+        .slice(0, 5);
+      
+      const prochainesSessions = allSessions
+        .filter(s => new Date(s.date_debut) > today)
+        .sort((a, b) => new Date(a.date_debut) - new Date(b.date_debut))
+        .slice(0, 5);
+      
+      setSessionsEnCours(sessionsEnCours);
+      setDernieresSessions(dernieresSessions);
+      setProchainesSessions(prochainesSessions);
     } catch (e) {
       setError(e?.response?.data?.message || e?.message || 'Erreur de chargement');
     } finally {
@@ -245,53 +312,66 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen lg:flex" style={{ backgroundColor: COLORS.bg }}>
-      <aside className="hidden lg:block lg:w-72 border-r p-6" style={{ backgroundColor: COLORS.card, borderColor: '#d9e0ff' }}>
-        <div className="flex items-center gap-3 mb-6">
-          <img src={logoAFM} alt="Logo AFM" className="h-12 w-12 rounded-lg object-cover" />
+      {/* Sidebar */}
+      <aside className="hidden lg:block lg:w-72 border-r p-6 shadow-sm fixed top-0 left-0 h-full overflow-y-auto" style={{ backgroundColor: COLORS.card, borderColor: COLORS.border }}>
+        <div className="flex items-center gap-3 mb-8 pb-6 border-b" style={{ borderColor: COLORS.border }}>
+          <img src={logoAFM} alt="Logo AFM" className="h-14 w-14 rounded-2xl object-cover shadow-md" />
           <div>
-            <p className="font-bold text-lg" style={{ color: COLORS.primary }}>Alliance Française</p>
-            <p className="text-sm text-slate-600">Mahajanga</p>
+            <p className="font-bold text-lg" style={{ color: COLORS.text }}>Alliance Française</p>
+            <p className="text-sm" style={{ color: COLORS.textLight }}>Mahajanga</p>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-1 gap-2">
+        <nav className="space-y-2">
           {MENU.map((item) => (
             <button
               key={item}
               onClick={() => setActiveView(item)}
-              className="text-left px-4 py-3 rounded-xl font-medium transition-all"
+              className="w-full text-left px-4 py-3.5 rounded-xl font-medium transition-all duration-200 hover:shadow-md"
               style={{
-                backgroundColor: activeView === item ? COLORS.primary : 'transparent',
-                color: activeView === item ? '#fff' : '#334155'
+                backgroundColor: activeView === item ? COLORS.primary : COLORS.bg,
+                color: activeView === item ? '#FFFFFF' : COLORS.textLight,
+                fontWeight: activeView === item ? '600' : '500'
+              }}
+              onMouseEnter={(e) => {
+                if (activeView !== item) {
+                  e.target.style.backgroundColor = COLORS.accent;
+                  e.target.style.color = COLORS.primary;
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (activeView !== item) {
+                  e.target.style.backgroundColor = COLORS.bg;
+                  e.target.style.color = COLORS.textLight;
+                }
               }}
             >
               {item}
             </button>
           ))}
-        </div>
-
+        </nav>
       </aside>
 
-      <main className="flex-1 p-4 lg:p-8 pt-28">
+      <main className="flex-1 p-4 lg:p-8 lg:ml-72">
         <header
-          className="fixed top-0 right-0 left-0 z-30 border-b px-4 lg:px-8 py-4"
-          style={{ backgroundColor: COLORS.card, borderColor: '#d9e0ff' }}
+          className="sticky top-0 mb-6 shadow-sm border-b rounded-3xl px-6 py-5 z-20"
+          style={{ backgroundColor: COLORS.card, borderColor: COLORS.border }}
         >
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl lg:text-3xl font-bold" style={{ color: COLORS.primary }}>
+              <h1 className="text-2xl lg:text-3xl font-bold" style={{ color: COLORS.text }}>
                 Dashboard Admin
               </h1>
-              <p className="text-slate-600">Bienvenue {user.nom} {user.prenom}</p>
+              <p className="text-sm" style={{ color: COLORS.textLight }}>Bienvenue {user.nom} {user.prenom}</p>
             </div>
-            <div className="relative flex items-center gap-2">
+            <div className="relative flex items-center gap-3">
               <button
                 onClick={() => {
                   setMobileMenuOpen((v) => !v);
                   setUserMenuOpen(false);
                 }}
-                className="h-10 w-10 rounded-lg border flex items-center justify-center"
-                style={{ borderColor: '#c9d6ff', color: COLORS.primary }}
+                className="h-10 w-10 rounded-xl border-2 flex items-center justify-center transition-all duration-200 hover:scale-105"
+                style={{ borderColor: COLORS.border, color: COLORS.text, backgroundColor: COLORS.bg }}
               >
                 {mobileMenuOpen ? <XMarkIcon className="h-5 w-5" /> : <Bars3Icon className="h-5 w-5" />}
               </button>
@@ -300,8 +380,8 @@ export default function Dashboard() {
                   setUserMenuOpen((v) => !v);
                   setMobileMenuOpen(false);
                 }}
-                className="h-10 w-10 rounded-full flex items-center justify-center text-white"
-                style={{ backgroundColor: COLORS.primary }}
+                className="h-10 w-10 rounded-full flex items-center justify-center text-white shadow-md transition-all duration-200 hover:shadow-lg hover:scale-105"
+                style={{ background: COLORS.gradient }}
               >
                 <UserCircleIcon className="h-6 w-6" />
               </button>
@@ -310,15 +390,16 @@ export default function Dashboard() {
         </header>
 
         {mobileMenuOpen && (
-          <div className="mb-4 bg-white border rounded-xl p-2" style={{ borderColor: '#d9e0ff' }}>
+          <div className="mb-4 bg-white border rounded-2xl p-2 shadow-sm" style={{ borderColor: COLORS.border }}>
             {MENU.map((item) => (
               <button
                 key={item}
                 onClick={() => { setActiveView(item); setMobileMenuOpen(false); }}
-                className="w-full text-left px-3 py-2 rounded-lg text-sm font-medium"
+                className="w-full text-left px-3 py-2.5 rounded-xl text-sm font-medium transition-colors"
                 style={{
-                  backgroundColor: activeView === item ? COLORS.primary : 'transparent',
-                  color: activeView === item ? '#fff' : '#334155'
+                  backgroundColor: activeView === item ? COLORS.gradient : 'transparent',
+                  color: activeView === item ? '#FFFFFF' : COLORS.textLight,
+                  fontWeight: activeView === item ? '600' : '500'
                 }}
               >
                 {item}
@@ -328,88 +409,168 @@ export default function Dashboard() {
         )}
 
         {userMenuOpen && (
-          <div className="mb-4 bg-white border rounded-xl p-2" style={{ borderColor: '#d9e0ff' }}>
-            <button onClick={() => { setShowProfileModal(true); setUserMenuOpen(false); }} className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-slate-50">Profil</button>
-            <button onClick={logout} className="w-full text-left px-3 py-2 rounded-lg text-sm text-red-600 hover:bg-red-50">Déconnexion</button>
+          <div className="mb-4 bg-white border rounded-2xl p-2 shadow-sm" style={{ borderColor: COLORS.border }}>
+            <button onClick={() => { setShowProfileModal(true); setUserMenuOpen(false); }} className="w-full text-left px-3 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors" style={{ color: COLORS.text }}>Profil</button>
+            <button onClick={logout} className="w-full text-left px-3 py-2.5 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">Déconnexion</button>
           </div>
         )}
 
-        {error && <div className="mb-4 p-3 rounded-lg bg-red-100 text-red-700">{error}</div>}
+        {error && <div className="mb-6 p-4 rounded-2xl bg-red-50 text-red-700 border border-red-100">{error}</div>}
 
         {loading ? (
           <div className="p-6 bg-white rounded-xl shadow-sm">Chargement...</div>
         ) : (
           <>
             {activeView === 'Dashboard' && (
-              <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-                <StatCard title="Nombre d’inscriptions" value={stats.totalInscriptions || 0} icon={IdentificationIcon} />
-                <StatCard title="Sessions à venir" value={stats.sessionsAVenir || 0} icon={CalendarDaysIcon} />
-                <StatCard title="Taux de réussite" value={`${stats.tauxReussite || 0}%`} icon={CheckBadgeIcon} />
-                <StatCard title="Cours du jour" value={stats.coursDuJour || 0} icon={UserGroupIcon} />
+              <section className="space-y-8">
+                {/* Stat Cards */}
+                <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+                  <StatCard title="Nombre d'inscriptions" value={stats.totalInscriptions || 0} icon={IdentificationIcon} />
+                  <StatCard title="Sessions à venir" value={stats.sessionsAVenir || 0} icon={CalendarDaysIcon} />
+                  <StatCard title="Taux de réussite" value={`${stats.tauxReussite || 0}%`} icon={CheckBadgeIcon} />
+                  <StatCard title="Cours du jour" value={stats.coursDuJour || 0} icon={UserGroupIcon} />
+                </section>
+
+                {/* Sessions Section */}
+                <section className="space-y-6">
+                  {/* Sessions en cours */}
+                  <div>
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: '#B5EAD7' }}>
+                        <CalendarIcon className="h-5 w-5" style={{ color: '#2D7A5F' }} />
+                      </div>
+                      <div>
+                        <h2 className="text-lg font-bold" style={{ color: COLORS.text }}>Sessions en cours</h2>
+                        <p className="text-xs" style={{ color: COLORS.textLight }}>{sessionsEnCours.length} session{sessionsEnCours.length > 1 ? 's' : ''}</p>
+                      </div>
+                    </div>
+                    {sessionsEnCours.length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {sessionsEnCours.map((session) => (
+                          <SessionCard key={session.id} session={session} type="en-cours" />
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="p-6 rounded-2xl text-center" style={{ backgroundColor: COLORS.bg }}>
+                        <p className="text-sm" style={{ color: COLORS.textLight }}>Aucune session en cours</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Dernières sessions */}
+                  <div>
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: '#E2E2E2' }}>
+                        <CalendarIcon className="h-5 w-5" style={{ color: '#6B6B6B' }} />
+                      </div>
+                      <div>
+                        <h2 className="text-lg font-bold" style={{ color: COLORS.text }}>Dernières sessions terminées</h2>
+                        <p className="text-xs" style={{ color: COLORS.textLight }}>{dernieresSessions.length} session{dernieresSessions.length > 1 ? 's' : ''}</p>
+                      </div>
+                    </div>
+                    {dernieresSessions.length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {dernieresSessions.map((session) => (
+                          <SessionCard key={session.id} session={session} type="passe" />
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="p-6 rounded-2xl text-center" style={{ backgroundColor: COLORS.bg }}>
+                        <p className="text-sm" style={{ color: COLORS.textLight }}>Aucune session terminée</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Prochaines sessions */}
+                  <div>
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: '#C7CEEA' }}>
+                        <CalendarIcon className="h-5 w-5" style={{ color: '#5A5F8C' }} />
+                      </div>
+                      <div>
+                        <h2 className="text-lg font-bold" style={{ color: COLORS.text }}>Prochaines sessions</h2>
+                        <p className="text-xs" style={{ color: COLORS.textLight }}>{prochainesSessions.length} session{prochainesSessions.length > 1 ? 's' : ''}</p>
+                      </div>
+                    </div>
+                    {prochainesSessions.length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {prochainesSessions.map((session) => (
+                          <SessionCard key={session.id} session={session} type="avenir" />
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="p-6 rounded-2xl text-center" style={{ backgroundColor: COLORS.bg }}>
+                        <p className="text-sm" style={{ color: COLORS.textLight }}>Aucune session à venir</p>
+                      </div>
+                    )}
+                  </div>
+                </section>
               </section>
             )}
 
             {activeView === 'Gestion employer' && (
-              <section className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-bold" style={{ color: COLORS.primary }}>Gestion employer</h2>
-                  <div className="flex items-center gap-2">
+              <section className="space-y-6">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <h2 className="text-xl font-bold" style={{ color: COLORS.text }}>Gestion employer</h2>
+                  <div className="flex items-center gap-3 w-full sm:w-auto">
                     <input
                       value={search}
                       onChange={(e) => setSearch(e.target.value)}
                       placeholder="Rechercher..."
-                      className="w-56 p-2 rounded-lg border"
-                      style={{ borderColor: '#c9d6ff' }}
+                      className="w-full sm:w-56 px-4 py-2.5 rounded-xl border-2 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all"
+                      style={{ borderColor: COLORS.border, backgroundColor: COLORS.card, color: COLORS.text }}
                     />
                     <button
                       onClick={() => openEmployeForm('add')}
-                      className="px-4 py-2 rounded-xl text-white font-medium"
-                      style={{ backgroundColor: COLORS.primary }}
+                      className="px-5 py-2.5 rounded-xl text-white font-semibold whitespace-nowrap shadow-md hover:shadow-lg transition-all"
+                      style={{ background: COLORS.gradient }}
                     >
                       + Nouvel Employé
                     </button>
                   </div>
                 </div>
 
-                <div className="hidden md:block bg-white rounded-xl shadow-sm overflow-auto">
+                <div className="hidden md:block bg-white rounded-2xl shadow-sm overflow-auto border" style={{ borderColor: COLORS.border }}>
                   <table className="w-full min-w-[980px]">
-                    <thead style={{ backgroundColor: COLORS.soft }}>
+                    <thead style={{ backgroundColor: COLORS.accent }}>
                       <tr>
-                        {['N°', 'Nom', 'Prénom', 'Âge', 'Téléphone', 'Email', 'Adresse', 'Rôle', 'Statut', 'Créé le', 'Désactivé le', 'Désactivé par', 'Actions'].map((h) => (
-                          <th key={h} className="text-left py-3 px-3 text-sm font-semibold text-slate-700">{h}</th>
+                        {['N°', 'Nom', 'Prénom', 'Âge', 'Téléphone', 'Email', 'Adresse', 'Rôle', 'Statut', 'Créé le', 'Actions'].map((h) => (
+                          <th key={h} className="text-left py-4 px-4 text-sm font-semibold" style={{ color: COLORS.text }}>{h}</th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
                       {filteredEmployes.map((emp, index) => (
-                        <tr key={emp.id} className="border-t">
-                          <td className="px-3 py-3">{index + 1}</td>
-                          <td className="px-3 py-3">{emp.nom}</td>
-                          <td className="px-3 py-3">{emp.prenom}</td>
-                          <td className="px-3 py-3">{emp.age ?? '-'}</td>
-                          <td className="px-3 py-3">{emp.tel || '-'}</td>
-                          <td className="px-3 py-3">{emp.email}</td>
-                          <td className="px-3 py-3">{emp.adresse || '-'}</td>
-                          <td className="px-3 py-3">{emp.role || '-'}</td>
-                          <td className="px-3 py-3">
-                            <span className={`px-2 py-1 rounded-full text-xs ${emp.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-700'}`}>
+                        <tr key={emp.id} className="border-b hover:bg-gray-50 transition-colors" style={{ borderColor: COLORS.border }}>
+                          <td className="px-4 py-4 text-sm">{index + 1}</td>
+                          <td className="px-4 py-4 text-sm font-medium" style={{ color: COLORS.text }}>{emp.nom}</td>
+                          <td className="px-4 py-4 text-sm" style={{ color: COLORS.textLight }}>{emp.prenom}</td>
+                          <td className="px-4 py-4 text-sm" style={{ color: COLORS.textLight }}>{emp.age ?? '-'}</td>
+                          <td className="px-4 py-4 text-sm" style={{ color: COLORS.textLight }}>{emp.tel || '-'}</td>
+                          <td className="px-4 py-4 text-sm" style={{ color: COLORS.textLight }}>{emp.email}</td>
+                          <td className="px-4 py-4 text-sm" style={{ color: COLORS.textLight }}>{emp.adresse || '-'}</td>
+                          <td className="px-4 py-4 text-sm">
+                            <span className="px-3 py-1.5 rounded-full text-xs font-medium" style={{ backgroundColor: COLORS.accent, color: COLORS.primary }}>
+                              {emp.role || '-'}
+                            </span>
+                          </td>
+                          <td className="px-4 py-4 text-sm">
+                            <span className={`px-3 py-1.5 rounded-full text-xs font-medium ${emp.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-700'}`}>
                               {emp.is_active ? 'Actif' : 'Inactif'}
                             </span>
                           </td>
-                          <td className="px-3 py-3">{formatDate(emp.date_creation)}</td>
-                          <td className="px-3 py-3">{formatDate(emp.deactivated_at)}</td>
-                          <td className="px-3 py-3">{emp.deactivated_by ?? '-'}</td>
-                          <td className="px-3 py-3 relative">
-                            <button onClick={() => setOpenActionId(openActionId === emp.id ? null : emp.id)} className="p-1 rounded hover:bg-slate-100">
-                              <EllipsisHorizontalIcon className="h-5 w-5 text-slate-600" />
+                          <td className="px-4 py-4 text-sm" style={{ color: COLORS.textLight }}>{formatDate(emp.date_creation)}</td>
+                          <td className="px-4 py-4 relative">
+                            <button onClick={() => setOpenActionId(openActionId === emp.id ? null : emp.id)} className="p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                              <EllipsisHorizontalIcon className="h-5 w-5" style={{ color: COLORS.textLight }} />
                             </button>
                             {openActionId === emp.id && (
-                              <div className="absolute right-3 mt-1 z-20 bg-white border rounded-lg shadow-lg min-w-[130px]">
-                                <button onClick={() => onAction('modifier', emp)} className="w-full px-3 py-2 text-left hover:bg-slate-50 text-sm">Modifier</button>
-                                <button onClick={() => onAction('desactiver', emp)} className="w-full px-3 py-2 text-left hover:bg-slate-50 text-sm">
+                              <div className="absolute right-4 mt-2 z-20 bg-white border rounded-xl shadow-lg min-w-[140px]" style={{ borderColor: COLORS.border }}>
+                                <button onClick={() => onAction('modifier', emp)} className="w-full px-4 py-2.5 text-left hover:bg-gray-50 text-sm font-medium transition-colors" style={{ color: COLORS.text }}>Modifier</button>
+                                <button onClick={() => onAction('desactiver', emp)} className="w-full px-4 py-2.5 text-left hover:bg-gray-50 text-sm font-medium transition-colors" style={{ color: COLORS.text }}>
                                   {emp.is_active ? 'Désactiver' : 'Activer'}
                                 </button>
-                                <button onClick={() => onAction('supprimer', emp)} className="w-full px-3 py-2 text-left hover:bg-red-50 text-sm text-red-600">Supprimer</button>
+                                <button onClick={() => onAction('supprimer', emp)} className="w-full px-4 py-2.5 text-left hover:bg-red-50 text-sm font-medium transition-colors text-red-600">Supprimer</button>
                               </div>
                             )}
                           </td>
@@ -421,30 +582,36 @@ export default function Dashboard() {
 
                 <div className="md:hidden space-y-3">
                   {filteredEmployes.map((emp) => (
-                    <div key={emp.id} className="bg-white rounded-xl p-4 shadow-sm border relative">
+                    <div key={emp.id} className="bg-white rounded-2xl p-4 shadow-sm border relative" style={{ borderColor: COLORS.border }}>
                       <div className="absolute right-3 top-3">
-                        <button onClick={() => setOpenActionId(openActionId === emp.id ? null : emp.id)} className="p-1 rounded hover:bg-slate-100">
-                          <EllipsisHorizontalIcon className="h-5 w-5 text-slate-600" />
+                        <button onClick={() => setOpenActionId(openActionId === emp.id ? null : emp.id)} className="p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                          <EllipsisHorizontalIcon className="h-5 w-5" style={{ color: COLORS.textLight }} />
                         </button>
                         {openActionId === emp.id && (
-                          <div className="absolute right-0 mt-1 z-20 bg-white border rounded-lg shadow-lg min-w-[130px]">
-                            <button onClick={() => onAction('modifier', emp)} className="w-full px-3 py-2 text-left hover:bg-slate-50 text-sm">Modifier</button>
-                            <button onClick={() => onAction('desactiver', emp)} className="w-full px-3 py-2 text-left hover:bg-slate-50 text-sm">
+                          <div className="absolute right-0 mt-2 z-20 bg-white border rounded-xl shadow-lg min-w-[140px]" style={{ borderColor: COLORS.border }}>
+                            <button onClick={() => onAction('modifier', emp)} className="w-full px-4 py-2.5 text-left hover:bg-gray-50 text-sm font-medium transition-colors" style={{ color: COLORS.text }}>Modifier</button>
+                            <button onClick={() => onAction('desactiver', emp)} className="w-full px-4 py-2.5 text-left hover:bg-gray-50 text-sm font-medium transition-colors" style={{ color: COLORS.text }}>
                               {emp.is_active ? 'Désactiver' : 'Activer'}
                             </button>
-                            <button onClick={() => onAction('supprimer', emp)} className="w-full px-3 py-2 text-left hover:bg-red-50 text-sm text-red-600">Supprimer</button>
+                            <button onClick={() => onAction('supprimer', emp)} className="w-full px-4 py-2.5 text-left hover:bg-red-50 text-sm font-medium transition-colors text-red-600">Supprimer</button>
                           </div>
                         )}
                       </div>
-                      <p className="font-semibold">{emp.nom} {emp.prenom}</p>
-                      <p className="text-sm text-slate-600">{emp.email}</p>
-                      <p className="text-sm">Tél: {emp.tel || '-'}</p>
-                      <p className="text-sm">Adresse: {emp.adresse || '-'}</p>
-                      <p className="text-sm">Rôle: {emp.role || '-'}</p>
-                      <p className="text-sm">Âge: {emp.age ?? '-'}</p>
-                      <p className="text-sm">Créé le: {formatDate(emp.date_creation)}</p>
-                      <p className="text-sm">Désactivé le: {formatDate(emp.deactivated_at)}</p>
-                      <p className="text-sm">Désactivé par: {emp.deactivated_by ?? '-'}</p>
+                      <p className="font-semibold text-lg" style={{ color: COLORS.text }}>{emp.nom} {emp.prenom}</p>
+                      <p className="text-sm" style={{ color: COLORS.textLight }}>{emp.email}</p>
+                      <div className="mt-3 space-y-2 text-sm">
+                        <p style={{ color: COLORS.textLight }}>Tél: {emp.tel || '-'}</p>
+                        <p style={{ color: COLORS.textLight }}>Adresse: {emp.adresse || '-'}</p>
+                        <div className="flex items-center gap-2">
+                          <span className="px-3 py-1.5 rounded-full text-xs font-medium" style={{ backgroundColor: COLORS.accent, color: COLORS.primary }}>
+                            {emp.role || '-'}
+                          </span>
+                          <span className={`px-3 py-1.5 rounded-full text-xs font-medium ${emp.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-700'}`}>
+                            {emp.is_active ? 'Actif' : 'Inactif'}
+                          </span>
+                        </div>
+                        <p style={{ color: COLORS.textLight }}>Créé le: {formatDate(emp.date_creation)}</p>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -452,44 +619,65 @@ export default function Dashboard() {
             )}
 
             {activeView === 'Etablissement' && (
-              <section className="bg-white rounded-2xl p-5 shadow-sm border">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-bold flex items-center gap-2" style={{ color: COLORS.primary }}>
-                    <BuildingOffice2Icon className="h-6 w-6" /> Informations établissement
+              <section className="bg-white rounded-3xl p-6 shadow-sm border" style={{ borderColor: COLORS.border }}>
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-bold flex items-center gap-2" style={{ color: COLORS.text }}>
+                    <BuildingOffice2Icon className="h-6 w-6" style={{ color: COLORS.primary }} /> Informations établissement
                   </h2>
                   <button
                     onClick={() => setEditEtablissement((v) => !v)}
-                    className="px-3 py-2 rounded-lg text-white"
-                    style={{ backgroundColor: COLORS.primary }}
+                    className="px-4 py-2.5 rounded-xl text-white font-semibold shadow-md hover:shadow-lg transition-all"
+                    style={{ background: COLORS.gradient }}
                   >
                     {editEtablissement ? 'Annuler' : 'Modifier'}
                   </button>
                 </div>
 
                 {!editEtablissement ? (
-                  <div className="grid sm:grid-cols-2 gap-4 text-sm">
-                    <p><strong>Nom:</strong> {aPropos?.nom_etablissement || '-'}</p>
-                    <p><strong>Téléphone:</strong> {aPropos?.tel || '-'}</p>
-                    <p><strong>Email:</strong> {aPropos?.email || '-'}</p>
-                    <p><strong>Adresse:</strong> {aPropos?.adresse || '-'}</p>
-                    <p><strong>Jours ouverture:</strong> {aPropos?.jours_ouverture || '-'}</p>
-                    <p><strong>Heures:</strong> {aPropos?.heure_ouverture?.substring?.(0, 5)} - {aPropos?.heure_fermeture?.substring?.(0, 5)}</p>
-                    <p className="sm:col-span-2"><strong>Description:</strong> {aPropos?.description || '-'}</p>
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div className="p-4 rounded-2xl" style={{ backgroundColor: COLORS.bg }}>
+                      <p className="text-xs font-semibold mb-1" style={{ color: COLORS.textLight }}>Nom</p>
+                      <p className="font-medium" style={{ color: COLORS.text }}>{aPropos?.nom_etablissement || '-'}</p>
+                    </div>
+                    <div className="p-4 rounded-2xl" style={{ backgroundColor: COLORS.bg }}>
+                      <p className="text-xs font-semibold mb-1" style={{ color: COLORS.textLight }}>Téléphone</p>
+                      <p className="font-medium" style={{ color: COLORS.text }}>{aPropos?.tel || '-'}</p>
+                    </div>
+                    <div className="p-4 rounded-2xl" style={{ backgroundColor: COLORS.bg }}>
+                      <p className="text-xs font-semibold mb-1" style={{ color: COLORS.textLight }}>Email</p>
+                      <p className="font-medium" style={{ color: COLORS.text }}>{aPropos?.email || '-'}</p>
+                    </div>
+                    <div className="p-4 rounded-2xl" style={{ backgroundColor: COLORS.bg }}>
+                      <p className="text-xs font-semibold mb-1" style={{ color: COLORS.textLight }}>Adresse</p>
+                      <p className="font-medium" style={{ color: COLORS.text }}>{aPropos?.adresse || '-'}</p>
+                    </div>
+                    <div className="p-4 rounded-2xl" style={{ backgroundColor: COLORS.bg }}>
+                      <p className="text-xs font-semibold mb-1" style={{ color: COLORS.textLight }}>Jours ouverture</p>
+                      <p className="font-medium" style={{ color: COLORS.text }}>{aPropos?.jours_ouverture || '-'}</p>
+                    </div>
+                    <div className="p-4 rounded-2xl" style={{ backgroundColor: COLORS.bg }}>
+                      <p className="text-xs font-semibold mb-1" style={{ color: COLORS.textLight }}>Horaires</p>
+                      <p className="font-medium" style={{ color: COLORS.text }}>{aPropos?.heure_ouverture?.substring?.(0, 5)} - {aPropos?.heure_fermeture?.substring?.(0, 5)}</p>
+                    </div>
+                    <div className="sm:col-span-2 p-4 rounded-2xl" style={{ backgroundColor: COLORS.bg }}>
+                      <p className="text-xs font-semibold mb-1" style={{ color: COLORS.textLight }}>Description</p>
+                      <p className="font-medium" style={{ color: COLORS.text }}>{aPropos?.description || '-'}</p>
+                    </div>
                   </div>
                 ) : (
-                  <form onSubmit={saveEtablissement} className="grid sm:grid-cols-2 gap-3">
-                    <input className="border rounded-lg p-2" placeholder="Nom établissement" value={etabForm.nom_etablissement || ''} onChange={(e) => setEtabForm({ ...etabForm, nom_etablissement: e.target.value })} />
-                    <input className="border rounded-lg p-2" placeholder="Téléphone" value={etabForm.tel || ''} onChange={(e) => setEtabForm({ ...etabForm, tel: e.target.value })} />
-                    <input className="border rounded-lg p-2" placeholder="Email" value={etabForm.email || ''} onChange={(e) => setEtabForm({ ...etabForm, email: e.target.value })} />
-                    <input className="border rounded-lg p-2" placeholder="Adresse" value={etabForm.adresse || ''} onChange={(e) => setEtabForm({ ...etabForm, adresse: e.target.value })} />
-                    <input className="border rounded-lg p-2" placeholder="Jours ouverture" value={etabForm.jours_ouverture || ''} onChange={(e) => setEtabForm({ ...etabForm, jours_ouverture: e.target.value })} />
-                    <div className="grid grid-cols-2 gap-2">
-                      <input type="time" className="border rounded-lg p-2" value={etabForm.heure_ouverture?.substring?.(0, 5) || ''} onChange={(e) => setEtabForm({ ...etabForm, heure_ouverture: e.target.value })} />
-                      <input type="time" className="border rounded-lg p-2" value={etabForm.heure_fermeture?.substring?.(0, 5) || ''} onChange={(e) => setEtabForm({ ...etabForm, heure_fermeture: e.target.value })} />
+                  <form onSubmit={saveEtablissement} className="grid sm:grid-cols-2 gap-4">
+                    <input className="border-2 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all" style={{ borderColor: COLORS.border }} placeholder="Nom établissement" value={etabForm.nom_etablissement || ''} onChange={(e) => setEtabForm({ ...etabForm, nom_etablissement: e.target.value })} />
+                    <input className="border-2 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all" style={{ borderColor: COLORS.border }} placeholder="Téléphone" value={etabForm.tel || ''} onChange={(e) => setEtabForm({ ...etabForm, tel: e.target.value })} />
+                    <input className="border-2 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all" style={{ borderColor: COLORS.border }} placeholder="Email" value={etabForm.email || ''} onChange={(e) => setEtabForm({ ...etabForm, email: e.target.value })} />
+                    <input className="border-2 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all" style={{ borderColor: COLORS.border }} placeholder="Adresse" value={etabForm.adresse || ''} onChange={(e) => setEtabForm({ ...etabForm, adresse: e.target.value })} />
+                    <input className="border-2 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all" style={{ borderColor: COLORS.border }} placeholder="Jours ouverture" value={etabForm.jours_ouverture || ''} onChange={(e) => setEtabForm({ ...etabForm, jours_ouverture: e.target.value })} />
+                    <div className="grid grid-cols-2 gap-4">
+                      <input type="time" className="border-2 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all" style={{ borderColor: COLORS.border }} value={etabForm.heure_ouverture?.substring?.(0, 5) || ''} onChange={(e) => setEtabForm({ ...etabForm, heure_ouverture: e.target.value })} />
+                      <input type="time" className="border-2 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all" style={{ borderColor: COLORS.border }} value={etabForm.heure_fermeture?.substring?.(0, 5) || ''} onChange={(e) => setEtabForm({ ...etabForm, heure_fermeture: e.target.value })} />
                     </div>
-                    <textarea className="border rounded-lg p-2 sm:col-span-2" rows={4} placeholder="Description" value={etabForm.description || ''} onChange={(e) => setEtabForm({ ...etabForm, description: e.target.value })} />
+                    <textarea className="border-2 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all sm:col-span-2" style={{ borderColor: COLORS.border }} rows={4} placeholder="Description" value={etabForm.description || ''} onChange={(e) => setEtabForm({ ...etabForm, description: e.target.value })} />
                     <div className="sm:col-span-2 flex justify-end">
-                      <button type="submit" className="px-4 py-2 rounded-lg text-white" style={{ backgroundColor: COLORS.primary }}>Enregistrer</button>
+                      <button type="submit" className="px-5 py-3 rounded-xl text-white font-semibold shadow-md hover:shadow-lg transition-all" style={{ background: COLORS.gradient }}>Enregistrer</button>
                     </div>
                   </form>
                 )}
@@ -500,35 +688,38 @@ export default function Dashboard() {
       </main>
 
       {showEmployeModal && (
-        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-          <div className="w-full max-w-2xl bg-white rounded-2xl shadow-xl">
-            <div className="p-4 border-b flex items-center justify-between">
-              <h3 className="font-bold text-lg" style={{ color: COLORS.primary }}>
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden">
+            <div className="p-5 border-b flex items-center justify-between" style={{ borderColor: COLORS.border }}>
+              <h3 className="font-bold text-xl" style={{ color: COLORS.text }}>
                 {employeMode === 'add' ? 'Ajouter un employé' : 'Modifier un employé'}
               </h3>
-              <button onClick={() => setShowEmployeModal(false)} className="text-slate-500 hover:text-slate-700">✕</button>
+              <button onClick={() => setShowEmployeModal(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                <XMarkIcon className="h-6 w-6" />
+              </button>
             </div>
-            <form onSubmit={submitEmploye} className="p-4 grid sm:grid-cols-2 gap-3">
-              <input className="border rounded-lg p-2" placeholder="Nom *" value={employeForm.nom} onChange={(e) => setEmployeForm({ ...employeForm, nom: e.target.value })} required />
-              <input className="border rounded-lg p-2" placeholder="Prénom *" value={employeForm.prenom} onChange={(e) => setEmployeForm({ ...employeForm, prenom: e.target.value })} required />
-              <input className="border rounded-lg p-2" type="number" placeholder="Âge" value={employeForm.age} onChange={(e) => setEmployeForm({ ...employeForm, age: e.target.value })} />
-              <input className="border rounded-lg p-2" placeholder="Téléphone" value={employeForm.tel} onChange={(e) => setEmployeForm({ ...employeForm, tel: e.target.value })} />
-              <input className="border rounded-lg p-2 sm:col-span-2" placeholder="Adresse" value={employeForm.adresse} onChange={(e) => setEmployeForm({ ...employeForm, adresse: e.target.value })} />
-              <input className="border rounded-lg p-2 sm:col-span-2" type="email" placeholder="Email *" value={employeForm.email} onChange={(e) => setEmployeForm({ ...employeForm, email: e.target.value })} required />
-              <select className="border rounded-lg p-2" value={employeForm.role} onChange={(e) => setEmployeForm({ ...employeForm, role: e.target.value })} required>
+            <form onSubmit={submitEmploye} className="p-6 grid sm:grid-cols-2 gap-4">
+              <input className="border-2 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all" style={{ borderColor: COLORS.border }} placeholder="Nom *" value={employeForm.nom} onChange={(e) => setEmployeForm({ ...employeForm, nom: e.target.value })} required />
+              <input className="border-2 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all" style={{ borderColor: COLORS.border }} placeholder="Prénom *" value={employeForm.prenom} onChange={(e) => setEmployeForm({ ...employeForm, prenom: e.target.value })} required />
+              <input className="border-2 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all" style={{ borderColor: COLORS.border }} type="number" placeholder="Âge" value={employeForm.age} onChange={(e) => setEmployeForm({ ...employeForm, age: e.target.value })} />
+              <input className="border-2 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all" style={{ borderColor: COLORS.border }} placeholder="Téléphone" value={employeForm.tel} onChange={(e) => setEmployeForm({ ...employeForm, tel: e.target.value })} />
+              <input className="border-2 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all sm:col-span-2" style={{ borderColor: COLORS.border }} placeholder="Adresse" value={employeForm.adresse} onChange={(e) => setEmployeForm({ ...employeForm, adresse: e.target.value })} />
+              <input className="border-2 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all sm:col-span-2" style={{ borderColor: COLORS.border }} type="email" placeholder="Email *" value={employeForm.email} onChange={(e) => setEmployeForm({ ...employeForm, email: e.target.value })} required />
+              <select className="border-2 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all" style={{ borderColor: COLORS.border }} value={employeForm.role} onChange={(e) => setEmployeForm({ ...employeForm, role: e.target.value })} required>
                 {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
               </select>
               <input
-                className="border rounded-lg p-2"
+                className="border-2 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all"
+                style={{ borderColor: COLORS.border }}
                 type="password"
                 placeholder={employeMode === 'add' ? 'Mot de passe *' : 'Nouveau mot de passe (optionnel)'}
                 value={employeForm.mot_passe}
                 onChange={(e) => setEmployeForm({ ...employeForm, mot_passe: e.target.value })}
                 required={employeMode === 'add'}
               />
-              <div className="sm:col-span-2 flex justify-end gap-2 pt-2">
-                <button type="button" onClick={() => setShowEmployeModal(false)} className="px-4 py-2 rounded-lg border">Annuler</button>
-                <button type="submit" className="px-4 py-2 rounded-lg text-white" style={{ backgroundColor: COLORS.primary }}>Enregistrer</button>
+              <div className="sm:col-span-2 flex justify-end gap-3 pt-4">
+                <button type="button" onClick={() => setShowEmployeModal(false)} className="px-5 py-2.5 rounded-xl font-medium border-2 transition-colors hover:bg-gray-50" style={{ borderColor: COLORS.border, color: COLORS.text }}>Annuler</button>
+                <button type="submit" className="px-5 py-2.5 rounded-xl text-white font-semibold shadow-md hover:shadow-lg transition-all" style={{ background: COLORS.gradient }}>Enregistrer</button>
               </div>
             </form>
           </div>
@@ -536,26 +727,28 @@ export default function Dashboard() {
       )}
 
       {showProfileModal && (
-        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-          <div className="w-full max-w-xl bg-white rounded-2xl shadow-xl">
-            <div className="p-4 border-b flex items-center justify-between">
-              <h3 className="font-bold text-lg flex items-center gap-2" style={{ color: COLORS.primary }}>
-                <UserCircleIcon className="h-6 w-6" /> Profil
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-xl bg-white rounded-3xl shadow-2xl overflow-hidden">
+            <div className="p-5 border-b flex items-center justify-between" style={{ borderColor: COLORS.border }}>
+              <h3 className="font-bold text-lg flex items-center gap-2" style={{ color: COLORS.text }}>
+                <UserCircleIcon className="h-6 w-6" style={{ color: COLORS.primary }} /> Profil
               </h3>
-              <button onClick={() => setShowProfileModal(false)} className="text-slate-500 hover:text-slate-700">✕</button>
+              <button onClick={() => setShowProfileModal(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                <XMarkIcon className="h-6 w-6" />
+              </button>
             </div>
-            <form onSubmit={saveProfile} className="p-4 grid sm:grid-cols-2 gap-3">
-              <input className="border rounded-lg p-2" placeholder="Nom" value={profileForm.nom} onChange={(e) => setProfileForm({ ...profileForm, nom: e.target.value })} />
-              <input className="border rounded-lg p-2" placeholder="Prénom" value={profileForm.prenom} onChange={(e) => setProfileForm({ ...profileForm, prenom: e.target.value })} />
-              <input className="border rounded-lg p-2" placeholder="Téléphone" value={profileForm.tel} onChange={(e) => setProfileForm({ ...profileForm, tel: e.target.value })} />
-              <input className="border rounded-lg p-2" type="number" placeholder="Âge" value={profileForm.age} onChange={(e) => setProfileForm({ ...profileForm, age: e.target.value })} />
-              <input className="border rounded-lg p-2 sm:col-span-2" type="email" placeholder="Email" value={profileForm.email} onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })} />
-              <input className="border rounded-lg p-2 sm:col-span-2" placeholder="Adresse" value={profileForm.adresse} onChange={(e) => setProfileForm({ ...profileForm, adresse: e.target.value })} />
-              <input className="border rounded-lg p-2 bg-slate-100" value={profileForm.role} readOnly />
-              <input className="border rounded-lg p-2" type="password" placeholder="Nouveau mot de passe (optionnel)" value={profileForm.mot_passe} onChange={(e) => setProfileForm({ ...profileForm, mot_passe: e.target.value })} />
-              <div className="sm:col-span-2 flex justify-end gap-2 pt-2">
-                <button type="button" onClick={() => setShowProfileModal(false)} className="px-4 py-2 rounded-lg border">Annuler</button>
-                <button type="submit" className="px-4 py-2 rounded-lg text-white" style={{ backgroundColor: COLORS.primary }}>Mettre à jour</button>
+            <form onSubmit={saveProfile} className="p-6 grid sm:grid-cols-2 gap-4">
+              <input className="border-2 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all" style={{ borderColor: COLORS.border }} placeholder="Nom" value={profileForm.nom} onChange={(e) => setProfileForm({ ...profileForm, nom: e.target.value })} />
+              <input className="border-2 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all" style={{ borderColor: COLORS.border }} placeholder="Prénom" value={profileForm.prenom} onChange={(e) => setProfileForm({ ...profileForm, prenom: e.target.value })} />
+              <input className="border-2 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all" style={{ borderColor: COLORS.border }} placeholder="Téléphone" value={profileForm.tel} onChange={(e) => setProfileForm({ ...profileForm, tel: e.target.value })} />
+              <input className="border-2 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all" style={{ borderColor: COLORS.border }} type="number" placeholder="Âge" value={profileForm.age} onChange={(e) => setProfileForm({ ...profileForm, age: e.target.value })} />
+              <input className="border-2 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all sm:col-span-2" style={{ borderColor: COLORS.border }} type="email" placeholder="Email" value={profileForm.email} onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })} />
+              <input className="border-2 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all sm:col-span-2" style={{ borderColor: COLORS.border }} placeholder="Adresse" value={profileForm.adresse} onChange={(e) => setProfileForm({ ...profileForm, adresse: e.target.value })} />
+              <input className="border-2 rounded-xl px-4 py-3 bg-gray-50" style={{ borderColor: COLORS.border }} value={profileForm.role} readOnly />
+              <input className="border-2 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all" style={{ borderColor: COLORS.border }} type="password" placeholder="Nouveau mot de passe (optionnel)" value={profileForm.mot_passe} onChange={(e) => setProfileForm({ ...profileForm, mot_passe: e.target.value })} />
+              <div className="sm:col-span-2 flex justify-end gap-3 pt-4">
+                <button type="button" onClick={() => setShowProfileModal(false)} className="px-5 py-2.5 rounded-xl font-medium border-2 transition-colors hover:bg-gray-50" style={{ borderColor: COLORS.border, color: COLORS.text }}>Annuler</button>
+                <button type="submit" className="px-5 py-2.5 rounded-xl text-white font-semibold shadow-md hover:shadow-lg transition-all" style={{ background: COLORS.gradient }}>Mettre à jour</button>
               </div>
             </form>
           </div>

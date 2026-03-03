@@ -56,7 +56,9 @@ const sessionService = {
   get,
   create,
   update,
-  remove
+  remove,
+  // Alias for compatibility
+  getAllSessions: getSessions
 };
 
 export default sessionService;

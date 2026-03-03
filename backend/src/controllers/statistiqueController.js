@@ -3,76 +3,46 @@ import { pool } from '../config/db.js';
 // GET: Statistiques pédagogiques
 export const getStatistiquesPedagogiques = async (req, res) => {
   try {
-    // Total des étudiants (inscriptions)
+    // Total des apprenants (distincts)
     const totalEtudiantsResult = await pool.query(
-      'SELECT COUNT(*) as count FROM inscription'
+      'SELECT COUNT(DISTINCT id_apprenant)::int as count FROM inscription'
     );
-    const totalEtudiants = parseInt(totalEtudiantsResult.rows[0].count);
+    const totalEtudiants = totalEtudiantsResult.rows[0]?.count || 0;
 
-    // Apprenants inscrits aux cours (id_type_service = 1)
+    // Nombre d'apprenants en cours (inscriptions actives)
     const totalApprenantsCoursResult = await pool.query(`
-      SELECT COUNT(DISTINCT i.id) as count 
+      SELECT COUNT(DISTINCT i.id_apprenant)::int as count 
       FROM inscription i
-      JOIN creneau c ON i.id_creneau = c.id
-      JOIN session_cours sc ON c.id_session_cours = sc.id
-      JOIN type_cours tc ON sc.id_type_cours = tc.id
-      WHERE tc.id_type_service = 1
+      JOIN session s ON i.id_session = s.id
+      WHERE s.date_debut <= CURRENT_DATE AND s.date_fin >= CURRENT_DATE
+      AND i.etat_inscription IN ('inscription', 'réinscription', 'actif')
     `);
-    const totalApprenantsCours = parseInt(totalApprenantsCoursResult.rows[0].count);
+    const totalApprenantsCours = totalApprenantsCoursResult.rows[0]?.count || 0;
 
-    // Apprenants inscrits au DALF (id_type_service = 2)
+    // Nombre d'apprenants DALF (ceux qui ont validation_examen = true)
     const totalApprenantsDALFResult = await pool.query(`
-      SELECT COUNT(DISTINCT i.id) as count 
-      FROM inscription i
-      JOIN creneau c ON i.id_creneau = c.id
-      JOIN session_cours sc ON c.id_session_cours = sc.id
-      JOIN type_cours tc ON sc.id_type_cours = tc.id
-      WHERE tc.id_type_service = 2
+      SELECT COUNT(DISTINCT id_apprenant)::int as count 
+      FROM inscription 
+      WHERE validation_examen = true
     `);
-    const totalApprenantsDALF = parseInt(totalApprenantsDALFResult.rows[0].count);
+    const totalApprenantsDALF = totalApprenantsDALFResult.rows[0]?.count || 0;
 
-    // Total des enseignants
+    // Total des professeurs/employés avec role 'professeur' ou 'Professeur'
     const totalEnseignantsResult = await pool.query(
-      "SELECT COUNT(*) as count FROM employe WHERE service = 'Professeurs'"
+      "SELECT COUNT(*)::int as count FROM employe WHERE LOWER(role) LIKE '%professeur%'"
     );
-    const totalEnseignants = parseInt(totalEnseignantsResult.rows[0].count);
-
-    // Cours du jour
-    const coursDuJourResult = await pool.query(`
-      SELECT 
-        c.jour_semaine,
-        c.heure_debut,
-        c.heure_fin,
-        tc.nom_type_cours,
-        n.nom_niveau,
-        g.numero_groupe,
-        e.nom,
-        e.prenom,
-        s.nom_salle
-      FROM creneau c
-      JOIN session_cours sc ON c.id_session_cours = sc.id
-      JOIN type_cours tc ON sc.id_type_cours = tc.id
-      JOIN niveau n ON sc.id_niveau = n.id
-      JOIN groupe g ON g.id_creneau = c.id
-      JOIN employe e ON g.id_employe_prof = e.id
-      JOIN affectation_salle as_a ON as_a.id_groupe = g.id
-      JOIN salle s ON as_a.id_salle = s.id
-      WHERE as_a.date_cours = CURRENT_DATE
-      ORDER BY c.heure_debut
-    `);
-    const coursDuJour = coursDuJourResult.rows;
+    const totalEnseignants = totalEnseignantsResult.rows[0]?.count || 0;
 
     res.status(200).json({
       totalEtudiants,
       totalApprenantsCours,
       totalApprenantsDALF,
-      totalEnseignants,
-      coursDuJour
+      totalEnseignants
     });
 
   } catch (error) {
     console.error("Erreur lors de la récupération des statistiques pédagogiques:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       message: "Erreur lors de la récupération des statistiques pédagogiques",
       error: error.message
     });
@@ -85,58 +55,43 @@ export const getStatistiquesProfesseur = async (req, res) => {
     // Récupérer l'ID de l'utilisateur connecté à partir du token
     const userId = req.user.id;
 
-    // Mes cours (nombre de groupes assignés)
+    // Mes groupes assignés
     const mesCoursResult = await pool.query(`
-      SELECT COUNT(DISTINCT g.id) as count
+      SELECT COUNT(*)::int as count
       FROM groupe g
-      WHERE g.id_employe_prof = $1
+      WHERE g.id_professeur = $1
     `, [userId]);
-    const mesCours = parseInt(mesCoursResult.rows[0].count);
+    const mesCours = mesCoursResult.rows[0]?.count || 0;
 
-    // Mes étudiants (nombre d'étudiants dans mes groupes)
+    // Mes étudiants (nombre d'inscriptions dans mes groupes)
     const mesEtudiantsResult = await pool.query(`
-      SELECT COUNT(DISTINCT i.id) as count
+      SELECT COUNT(DISTINCT i.id)::int as count
       FROM inscription i
-      JOIN creneau c ON i.id_creneau = c.id
-      JOIN groupe g ON c.id = g.id_creneau
-      WHERE g.id_employe_prof = $1
+      JOIN groupe g ON i.id_groupe = g.id
+      WHERE g.id_professeur = $1
     `, [userId]);
-    const mesEtudiants = parseInt(mesEtudiantsResult.rows[0].count);
+    const mesEtudiants = mesEtudiantsResult.rows[0]?.count || 0;
 
-    // Mes examens (nombre d'examens liés à mes groupes)
-    const mesExamensResult = await pool.query(`
-      SELECT COUNT(DISTINCT e.id) as count
-      FROM examen e
-      JOIN inscription i ON e.id_inscription = i.id
-      JOIN creneau c ON i.id_creneau = c.id
-      JOIN groupe g ON c.id = g.id_creneau
-      WHERE g.id_employe_prof = $1
-    `, [userId]);
-    const mesExamens = parseInt(mesExamensResult.rows[0].count);
-
-    // Taux de présence moyen - calculating based on the ratio of present records to total records
+    // Taux de présence moyen
     const tauxPresenceResult = await pool.query(`
       SELECT 
         CASE 
           WHEN COUNT(p.id) = 0 THEN 0
           ELSE ROUND(
-            (SUM(CASE WHEN p.est_present = true THEN 1 ELSE 0 END) * 100.0) / COUNT(p.id), 
+            (SUM(CASE WHEN p.est_present = true THEN 1 ELSE 0 END)::numeric * 100.0) / COUNT(p.id), 
             2
           )
         END as taux_presence
       FROM presence p
-      JOIN inscription i ON p.id_inscription = i.id
-      JOIN creneau c ON i.id_creneau = c.id
-      JOIN groupe g ON c.id = g.id_creneau
-      WHERE g.id_employe_prof = $1
+      JOIN groupe g ON p.id_groupe = g.id
+      WHERE g.id_professeur = $1
     `, [userId]);
     
-    const tauxPresence = parseFloat(tauxPresenceResult.rows[0].taux_presence) || 0;
+    const tauxPresence = parseFloat(tauxPresenceResult.rows[0]?.taux_presence || 0);
 
     res.status(200).json({
       mesCours,
       mesEtudiants,
-      mesExamens,
       tauxPresence: `${tauxPresence}%`
     });
 
@@ -184,10 +139,11 @@ export const getStatistiquesAdmin = async (req, res) => {
     const today = dayMap[new Date().getDay()];
 
     const coursDuJourResult = await pool.query(
-      `SELECT COUNT(*)::int AS count
+      `SELECT COUNT(DISTINCT c.id)::int AS count
        FROM creneau c
-       INNER JOIN horaire_cours hc ON hc.id = c.id_horaire_cours
-       INNER JOIN session s ON s.id = hc.id_session
+       INNER JOIN groupe g ON g.id_creneau = c.id
+       INNER JOIN inscription i ON i.id_groupe = g.id
+       INNER JOIN session s ON s.id = i.id_session
        WHERE c.jour_semaine @> ARRAY[$1]::varchar[]
          AND s.date_debut <= CURRENT_DATE
          AND s.date_fin >= CURRENT_DATE`,

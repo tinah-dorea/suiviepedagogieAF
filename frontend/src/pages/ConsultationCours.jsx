@@ -1,15 +1,65 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { MagnifyingGlassIcon, CalendarIcon, ClockIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { MagnifyingGlassIcon, CalendarIcon, ClockIcon, XMarkIcon, AcademicCapIcon, BookOpenIcon } from '@heroicons/react/24/outline';
 import consultationService from '../services/consultationService';
 
-// Palette: #F5F1E6 majorité, #DFF6FF accompagnement, #758695 titres/hover
+// Modern Pastel Palette
 const COLORS = {
-  bg: '#F5F1E6',
-  accent: '#DFF6FF',
-  primary: '#758695',
-  white: '#FFFFFF',
+  bg: '#F8F9FA',
+  card: '#FFFFFF',
+  primary: '#6B9080',
+  secondary: '#A4C3B2',
+  accent: '#EAF4F4',
+  highlight: '#F6FFF8',
+  text: '#2D3436',
+  textLight: '#636E72',
+  border: '#E8E8E8',
+  statusEnCours: '#B5EAD7',
+  statusEnCoursText: '#2D7A5F',
+  statusAVenir: '#C7CEEA',
+  statusAVenirText: '#5A5F8C',
+  statusTermine: '#E2E2E2',
+  statusTermineText: '#6B6B6B',
 };
+
+const STATUS_SECTIONS = [
+  { 
+    key: 'En cours', 
+    title: 'Sessions en cours', 
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    ),
+    bgColor: '#B5EAD7',
+    textColor: '#2D7A5F',
+    gradient: 'from-emerald-50 to-teal-50'
+  },
+  { 
+    key: 'À venir', 
+    title: 'Sessions à venir', 
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+      </svg>
+    ),
+    bgColor: '#C7CEEA',
+    textColor: '#5A5F8C',
+    gradient: 'from-indigo-50 to-purple-50'
+  },
+  { 
+    key: 'Terminée', 
+    title: 'Sessions terminées', 
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    ),
+    bgColor: '#E2E2E2',
+    textColor: '#6B6B6B',
+    gradient: 'from-gray-50 to-slate-50'
+  },
+];
 
 const ConsultationCours = () => {
   const [sessions, setSessions] = useState([]);
@@ -71,6 +121,20 @@ const ConsultationCours = () => {
     return { label: 'En cours', color: 'bg-green-100', textColor: 'text-green-800' };
   };
 
+  // Group sessions by status
+  const groupedSessions = {
+    'En cours': [],
+    'À venir': [],
+    'Terminée': [],
+  };
+
+  filteredSessions.forEach((session) => {
+    const status = getStatusInfo(session);
+    if (groupedSessions[status.label]) {
+      groupedSessions[status.label].push(session);
+    }
+  });
+
   const handleVoirPlus = async (session) => {
     setDetailLoading(true);
     setSelectedSession(null);
@@ -78,7 +142,8 @@ const ConsultationCours = () => {
       const data = await consultationService.getSessionDetail(session.id);
       setSelectedSession(data);
     } catch (err) {
-      setError(err.message || 'Impossible de charger les détails');
+      console.error('Erreur lors du chargement des détails:', err);
+      setError(err.response?.data?.message || err.message || 'Impossible de charger les détails de la session');
     } finally {
       setDetailLoading(false);
     }
@@ -100,8 +165,11 @@ const ConsultationCours = () => {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: COLORS.bg }}>
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-2 border-t-transparent mx-auto mb-4" style={{ borderColor: COLORS.primary }} />
-          <p style={{ color: COLORS.text }}>Chargement des sessions...</p>
+          <div className="relative">
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-opacity-30 mx-auto mb-6" style={{ borderColor: COLORS.primary, borderTopColor: 'transparent' }} />
+            <AcademicCapIcon className="w-8 h-8 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" style={{ color: COLORS.primary }} />
+          </div>
+          <p className="text-lg font-medium" style={{ color: COLORS.text }}>Chargement des sessions...</p>
         </div>
       </div>
     );
@@ -111,40 +179,57 @@ const ConsultationCours = () => {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: COLORS.bg }}>
-      {/* Header */}
-      <header className="sticky top-0 z-40 shadow-md" style={{ backgroundColor: COLORS.white }}>
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <Link to="/" className="font-bold text-xl" style={{ color: COLORS.primary }}>
-            ← Retour
+      {/* Header with gradient */}
+      <header className="sticky top-0 z-40 shadow-sm" style={{ background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.secondary})` }}>
+        <div className="container mx-auto px-4 py-5 flex justify-between items-center">
+          <Link to="/" className="flex items-center gap-2 font-semibold text-white hover:opacity-90 transition-opacity">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Retour
           </Link>
-          <h1 className="text-xl font-bold" style={{ color: COLORS.primary }}>Consulter les cours</h1>
-          <Link to="/login" className="px-4 py-2 rounded-lg font-medium" style={{ backgroundColor: COLORS.primary, color: COLORS.white }}>
+          <div className="flex items-center gap-3">
+            <AcademicCapIcon className="w-8 h-8 text-white opacity-90" />
+            <h1 className="text-xl font-bold text-white">Consulter les cours</h1>
+          </div>
+          <Link to="/login" className="px-5 py-2.5 rounded-xl font-semibold bg-white text-opacity-90 hover:text-opacity-100 transition-all shadow-md hover:shadow-lg" style={{ color: COLORS.primary }}>
             Se connecter
           </Link>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-10">
+        {/* Page title and subtitle */}
+        <div className="text-center mb-10">
+          <h2 className="text-3xl font-bold mb-3" style={{ color: COLORS.text }}>Nos Sessions de Formation</h2>
+          <p className="text-lg" style={{ color: COLORS.textLight }}>Trouvez la session qui vous convient</p>
+        </div>
+
         {/* Recherche et Filtre par type de cours */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-8">
+        <div className="flex flex-col lg:flex-row gap-4 mb-10">
           <div className="relative flex-1">
-            <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
+              <MagnifyingGlassIcon className="w-5 h-5" style={{ color: COLORS.textLight }} />
+            </div>
             <input
               type="text"
-              placeholder="Rechercher une session..."
+              placeholder="Rechercher une session par nom, type, mois..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-2 focus:ring-opacity-50"
-              style={{ borderColor: '#ddd', backgroundColor: COLORS.white }}
+              className="w-full pl-12 pr-4 py-4 rounded-2xl border-0 shadow-sm focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all"
+              style={{ backgroundColor: COLORS.card, color: COLORS.text, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}
             />
           </div>
-          <div className="sm:w-64">
-            <label className="block text-sm font-medium mb-2" style={{ color: COLORS.primary }}>Type de cours</label>
+          <div className="lg:w-72">
+            <label className="block text-sm font-semibold mb-2 flex items-center gap-2" style={{ color: COLORS.text }}>
+              <BookOpenIcon className="w-4 h-4" />
+              Type de cours
+            </label>
             <select
               value={filterTypeCours}
               onChange={(e) => setFilterTypeCours(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-2"
-              style={{ borderColor: '#ddd', backgroundColor: COLORS.white }}
+              className="w-full px-4 py-4 rounded-2xl border-0 shadow-sm focus:outline-none focus:ring-2 transition-all cursor-pointer"
+              style={{ backgroundColor: COLORS.card, color: COLORS.text, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}
             >
               <option value="">Tous les types</option>
               {typeCoursList.map((tc) => (
@@ -155,117 +240,213 @@ const ConsultationCours = () => {
         </div>
 
         {error && (
-          <div className="mb-6 p-4 rounded-xl bg-red-100 text-red-800 flex justify-between items-center">
-            <span>{error}</span>
-            <button onClick={clearError} className="text-red-600 hover:text-red-800 font-medium">Fermer</button>
+          <div className="mb-8 p-5 rounded-2xl flex justify-between items-center gap-4 shadow-sm" style={{ backgroundColor: '#FEE2E2', color: '#991B1B' }}>
+            <span className="font-medium">{error}</span>
+            <button onClick={clearError} className="px-4 py-2 rounded-xl font-semibold hover:bg-red-200 transition-colors">Fermer</button>
           </div>
         )}
 
-        {/* Cartes sessions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {filteredSessions.map((session, idx) => {
-            const status = getStatusInfo(session);
-            const borderColor = status.label === 'En cours' ? '#22c55e' : status.label === 'À venir' ? '#3b82f6' : '#9ca3af';
+        {/* Session sections by status */}
+        <div className="space-y-12">
+          {STATUS_SECTIONS.map((section) => {
+            const sessionsInSection = groupedSessions[section.key];
+            const hasSessions = sessionsInSection && sessionsInSection.length > 0;
+
             return (
-              <div
-                key={session.id}
-                className="rounded-xl shadow-lg overflow-hidden transition-shadow hover:shadow-xl"
-                style={{ backgroundColor: COLORS.white }}
-              >
-                <div className="h-2" style={{ backgroundColor: borderColor }} />
-                <div className="p-6">
-                  <h3 className="text-lg font-bold mb-1" style={{ color: COLORS.primary }}>
-                    {session.nom_session || `${session.mois} ${session.annee}`}
-                  </h3>
-                  <p className="text-sm mb-4 text-gray-600">{session.nom_type_cours || '—'}</p>
-                  <span className={`inline-flex px-3 py-1 rounded-full text-sm font-medium ${status.color} ${status.textColor}`}>
-                    {status.label}
-                  </span>
-                  <div className="mt-4 space-y-2">
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <CalendarIcon className="w-4 h-4 flex-shrink-0" />
-                      {formatDate(session.date_debut)}
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <ClockIcon className="w-4 h-4 flex-shrink-0" />
-                      {formatDate(session.date_fin)}
-                    </div>
+              <section key={section.key}>
+                {/* Section header */}
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: section.bgColor }}>
+                    <div style={{ color: section.textColor }}>{section.icon}</div>
                   </div>
-                  <button
-                    onClick={() => handleVoirPlus(session)}
-                    className="mt-6 w-full py-2 rounded-lg font-medium"
-                    style={{ backgroundColor: COLORS.primary, color: COLORS.white }}
-                  >
-                    Voir plus
-                  </button>
+                  <div>
+                    <h2 className="text-xl font-bold" style={{ color: COLORS.text }}>{section.title}</h2>
+                    <p className="text-sm" style={{ color: COLORS.textLight }}>
+                      {hasSessions ? `${sessionsInSection.length} session${sessionsInSection.length > 1 ? 's' : ''}` : 'Aucune session'}
+                    </p>
+                  </div>
+                  {hasSessions && (
+                    <span className="ml-auto px-3 py-1 rounded-full text-sm font-bold" style={{ backgroundColor: section.bgColor, color: section.textColor }}>
+                      {sessionsInSection.length}
+                    </span>
+                  )}
                 </div>
-              </div>
+
+                {/* Session cards grid */}
+                {hasSessions ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {sessionsInSection.map((session, idx) => {
+                      const statusColor = { bg: section.bgColor, text: section.textColor };
+                      return (
+                        <div
+                          key={`${section.key}-${session.id}`}
+                          className="group rounded-3xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-opacity-50 hover:-translate-y-1"
+                          style={{ backgroundColor: COLORS.card, borderColor: COLORS.border }}
+                        >
+                          {/* Top accent bar */}
+                          <div className="h-1.5" style={{ backgroundColor: statusColor.text }} />
+                          <div className="p-6">
+                            {/* Session header */}
+                            <div className="flex items-start justify-between mb-3">
+                              <div className="flex-1">
+                                <h3 className="text-lg font-bold mb-1 line-clamp-1" style={{ color: COLORS.text }}>
+                                  {session.nom_session || `${session.mois} ${session.annee}`}
+                                </h3>
+                                <p className="text-sm" style={{ color: COLORS.textLight }}>{session.nom_type_cours || '—'}</p>
+                              </div>
+                              <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ml-3" style={{ backgroundColor: COLORS.accent }}>
+                                <AcademicCapIcon className="w-5 h-5" style={{ color: COLORS.primary }} />
+                              </div>
+                            </div>
+
+                            {/* Status badge */}
+                            <span className="inline-flex px-3 py-1.5 rounded-full text-xs font-bold mb-4" style={{ backgroundColor: statusColor.bg, color: statusColor.text }}>
+                              {section.title}
+                            </span>
+
+                            {/* Info section */}
+                            <div className="space-y-3 mb-5">
+                              <div className="flex items-center gap-3 text-sm p-3 rounded-xl" style={{ backgroundColor: COLORS.highlight }}>
+                                <CalendarIcon className="w-5 h-5 flex-shrink-0" style={{ color: COLORS.primary }} />
+                                <span style={{ color: COLORS.text }}>Début: {formatDate(session.date_debut)}</span>
+                              </div>
+                              <div className="flex items-center gap-3 text-sm p-3 rounded-xl" style={{ backgroundColor: COLORS.highlight }}>
+                                <ClockIcon className="w-5 h-5 flex-shrink-0" style={{ color: COLORS.primary }} />
+                                <span style={{ color: COLORS.text }}>Fin: {formatDate(session.date_fin)}</span>
+                              </div>
+                            </div>
+
+                            {/* Action button */}
+                            <button
+                              onClick={() => handleVoirPlus(session)}
+                              className="w-full py-3.5 rounded-xl font-semibold transition-all duration-300 hover:shadow-md group-hover:brightness-95"
+                              style={{ backgroundColor: COLORS.primary, color: '#FFFFFF' }}
+                            >
+                              Voir les détails
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="py-12 px-6 rounded-3xl border-2 border-dashed text-center" style={{ borderColor: COLORS.border, backgroundColor: COLORS.bg }}>
+                    <div className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center opacity-40" style={{ backgroundColor: section.bgColor }}>
+                      <div style={{ color: section.textColor }}>{section.icon}</div>
+                    </div>
+                    <p className="text-lg font-medium" style={{ color: COLORS.text }}>Aucune session {section.key.toLowerCase()}</p>
+                    <p className="text-sm mt-1" style={{ color: COLORS.textLight }}>Les sessions dans cette catégorie apparaîtront ici</p>
+                  </div>
+                )}
+              </section>
             );
           })}
         </div>
-
-        {filteredSessions.length === 0 && !loading && (
-          <p className="text-center py-12 text-gray-600">Aucune session trouvée</p>
-        )}
       </main>
 
       {/* Modal Détail session */}
       {(selectedSession || detailLoading) && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={() => !detailLoading && setSelectedSession(null)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm" style={{ backgroundColor: 'rgba(45, 52, 54, 0.5)' }} onClick={() => !detailLoading && setSelectedSession(null)}>
           <div
-            className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            className="rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto bg-white"
             onClick={e => e.stopPropagation()}
           >
             {detailLoading ? (
-              <div className="p-12 text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-2 border-t-transparent mx-auto mb-4" style={{ borderColor: COLORS.primary }} />
-                <p className="text-gray-600">Chargement...</p>
+              <div className="p-16 text-center">
+                <div className="relative inline-block">
+                  <div className="animate-spin rounded-full h-16 w-16 border-4 border-opacity-30" style={{ borderColor: COLORS.primary, borderTopColor: 'transparent' }} />
+                  <AcademicCapIcon className="w-8 h-8 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" style={{ color: COLORS.primary }} />
+                </div>
+                <p className="mt-6 text-lg font-medium" style={{ color: COLORS.text }}>Chargement des détails...</p>
               </div>
             ) : selectedSession ? (
               <>
-                <div className="flex justify-between items-start p-6 border-b">
-                  <h2 className="text-xl font-bold" style={{ color: COLORS.primary }}>
-                    {selectedSession.session?.nom_session || `${selectedSession.session?.mois} ${selectedSession.session?.annee}`}
-                  </h2>
-                  <button onClick={() => setSelectedSession(null)} className="p-1 rounded-full hover:bg-gray-100">
-                    <XMarkIcon className="w-6 h-6 text-gray-500" />
+                <div className="sticky top-0 flex justify-between items-center p-6 border-b bg-white rounded-t-3xl z-10" style={{ borderColor: COLORS.border }}>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: COLORS.accent }}>
+                      <AcademicCapIcon className="w-6 h-6" style={{ color: COLORS.primary }} />
+                    </div>
+                    <h2 className="text-xl font-bold" style={{ color: COLORS.text }}>
+                      {selectedSession.session?.nom_session || `${selectedSession.session?.mois} ${selectedSession.session?.annee}`}
+                    </h2>
+                  </div>
+                  <button onClick={() => setSelectedSession(null)} className="p-2 rounded-full hover:bg-gray-100 transition-colors">
+                    <XMarkIcon className="w-6 h-6" style={{ color: COLORS.textLight }} />
                   </button>
                 </div>
                 <div className="p-6 space-y-6">
-                  <section>
-                    <h3 className="font-bold mb-3" style={{ color: COLORS.primary }}>Session</h3>
-                    <ul className="space-y-2 text-sm text-gray-700">
-                      <li><strong>Type de cours:</strong> {selectedSession.session?.nom_type_cours}</li>
-                      <li><strong>Date début:</strong> {formatDate(selectedSession.session?.date_debut)}</li>
-                      <li><strong>Date fin:</strong> {formatDate(selectedSession.session?.date_fin)}</li>
-                      <li><strong>Date fin inscription:</strong> {formatDate(selectedSession.session?.date_fin_inscription)}</li>
-                      <li><strong>Date examen:</strong> {formatDate(selectedSession.session?.date_exam) || '—'}</li>
-                      <li><strong>Durée cours (h):</strong> {selectedSession.session?.duree_cours ?? '—'}</li>
-                    </ul>
+                  {/* Session Info Card */}
+                  <section className="p-5 rounded-2xl" style={{ backgroundColor: COLORS.accent }}>
+                    <h3 className="font-bold mb-4 flex items-center gap-2" style={{ color: COLORS.text }}>
+                      <BookOpenIcon className="w-5 h-5" />
+                      Informations sur la session
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                      <div className="flex flex-col gap-1">
+                        <span className="font-semibold" style={{ color: COLORS.textLight }}>Type de cours</span>
+                        <span style={{ color: COLORS.text }}>{selectedSession.session?.nom_type_cours}</span>
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <span className="font-semibold" style={{ color: COLORS.textLight }}>Date de début</span>
+                        <span style={{ color: COLORS.text }}>{formatDate(selectedSession.session?.date_debut)}</span>
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <span className="font-semibold" style={{ color: COLORS.textLight }}>Date de fin</span>
+                        <span style={{ color: COLORS.text }}>{formatDate(selectedSession.session?.date_fin)}</span>
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <span className="font-semibold" style={{ color: COLORS.textLight }}>Fin inscription</span>
+                        <span style={{ color: COLORS.text }}>{formatDate(selectedSession.session?.date_fin_inscription)}</span>
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <span className="font-semibold" style={{ color: COLORS.textLight }}>Date d'examen</span>
+                        <span style={{ color: COLORS.text }}>{formatDate(selectedSession.session?.date_exam) || '—'}</span>
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <span className="font-semibold" style={{ color: COLORS.textLight }}>Durée (heures)</span>
+                        <span style={{ color: COLORS.text }}>{selectedSession.session?.duree_cours ?? '—'}</span>
+                      </div>
+                    </div>
                   </section>
 
                   {selectedSession.horaires_cours?.length > 0 && (
                     <section>
-                      <h3 className="font-bold mb-3" style={{ color: COLORS.primary }}>Horaires de cours</h3>
-                      {selectedSession.horaires_cours.map((hc) => (
-                        <div key={hc.id} className="mb-4 p-4 rounded-xl border" style={{ borderColor: '#e5e7eb' }}>
-                          <p><strong>Catégorie:</strong> {hc.nom_categorie || '—'}</p>
-                          <p><strong>Durée (heures):</strong> {hc.duree_heures ?? '—'}</p>
-                          <p><strong>Durée (semaines):</strong> {hc.duree_semaines ?? '—'}</p>
-                          {hc.creneaux?.length > 0 && (
-                            <div className="mt-3">
-                              <p className="font-medium mb-2">Créneaux:</p>
-                              <ul className="space-y-2">
-                                {hc.creneaux.map((c) => (
-                                  <li key={c.id} className="text-sm pl-4">
-                                    {formatJourSemaine(c.jour_semaine)} — {formatTime(c.heure_debut)} - {formatTime(c.heure_fin)}
-                                  </li>
-                                ))}
-                              </ul>
+                      <h3 className="font-bold mb-4" style={{ color: COLORS.text }}>Horaires de cours</h3>
+                      <div className="space-y-4">
+                        {selectedSession.horaires_cours.map((hc) => (
+                          <div key={hc.id} className="p-5 rounded-2xl border-2 transition-shadow hover:shadow-md" style={{ borderColor: COLORS.border }}>
+                            <div className="flex items-center gap-2 mb-3">
+                              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS.primary }} />
+                              <p className="font-semibold" style={{ color: COLORS.text }}>{hc.nom_categorie || 'Catégorie'}</p>
                             </div>
-                          )}
-                        </div>
-                      ))}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm mb-3">
+                              <div className="flex justify-between p-2 rounded-lg" style={{ backgroundColor: COLORS.highlight }}>
+                                <span style={{ color: COLORS.textLight }}>Durée (heures):</span>
+                                <span className="font-medium" style={{ color: COLORS.text }}>{hc.duree_heures ?? '—'}</span>
+                              </div>
+                              <div className="flex justify-between p-2 rounded-lg" style={{ backgroundColor: COLORS.highlight }}>
+                                <span style={{ color: COLORS.textLight }}>Durée (semaines):</span>
+                                <span className="font-medium" style={{ color: COLORS.text }}>{hc.duree_semaines ?? '—'}</span>
+                              </div>
+                            </div>
+                            {hc.creneaux?.length > 0 && (
+                              <div className="mt-4">
+                                <p className="font-semibold mb-3 text-sm" style={{ color: COLORS.textLight }}>Créneaux horaires:</p>
+                                <div className="space-y-2">
+                                  {hc.creneaux.map((c) => (
+                                    <div key={c.id} className="flex items-center gap-3 p-3 rounded-xl" style={{ backgroundColor: COLORS.accent }}>
+                                      <CalendarIcon className="w-4 h-4 flex-shrink-0" style={{ color: COLORS.primary }} />
+                                      <span className="text-sm font-medium" style={{ color: COLORS.text }}>
+                                        {formatJourSemaine(c.jour_semaine)} — {formatTime(c.heure_debut)} - {formatTime(c.heure_fin)}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
                     </section>
                   )}
                 </div>

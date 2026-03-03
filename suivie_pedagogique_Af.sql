@@ -2,12 +2,10 @@
 -- PostgreSQL database dump
 --
 
-\restrict dThwCWxYIVwYXyetwNO9Lcct5K1im6Rrzm5d6ZQ3VLtqO3gG8WnXXXDXS9BuHyh
+-- Dumped from database version 17.5
+-- Dumped by pg_dump version 17.5
 
--- Dumped from database version 18.1
--- Dumped by pg_dump version 18.1
-
--- Started on 2026-02-19 16:41:52
+-- Started on 2026-03-02 06:11:46
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -26,7 +24,7 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
--- TOC entry 256 (class 1259 OID 24987)
+-- TOC entry 217 (class 1259 OID 16388)
 -- Name: a_propos; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -49,7 +47,7 @@ CREATE TABLE public.a_propos (
 ALTER TABLE public.a_propos OWNER TO postgres;
 
 --
--- TOC entry 255 (class 1259 OID 24986)
+-- TOC entry 218 (class 1259 OID 16397)
 -- Name: a_propos_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -65,8 +63,8 @@ CREATE SEQUENCE public.a_propos_id_seq
 ALTER SEQUENCE public.a_propos_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5214 (class 0 OID 0)
--- Dependencies: 255
+-- TOC entry 5045 (class 0 OID 0)
+-- Dependencies: 218
 -- Name: a_propos_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
@@ -74,7 +72,7 @@ ALTER SEQUENCE public.a_propos_id_seq OWNED BY public.a_propos.id;
 
 
 --
--- TOC entry 238 (class 1259 OID 24582)
+-- TOC entry 219 (class 1259 OID 16398)
 -- Name: apprenant; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -93,14 +91,24 @@ CREATE TABLE public.apprenant (
     niveau_scolaire character varying(50),
     date_premiere_inscription date DEFAULT CURRENT_DATE,
     statut character varying(20) DEFAULT 'actif'::character varying,
-    CONSTRAINT apprenant_statut_check CHECK (((statut)::text = ANY ((ARRAY['actif'::character varying, 'abandon'::character varying])::text[])))
+    mot_passe character varying(255) NOT NULL,
+    CONSTRAINT apprenant_statut_check CHECK (((statut)::text = ANY (ARRAY[('actif'::character varying)::text, ('abandon'::character varying)::text])))
 );
 
 
 ALTER TABLE public.apprenant OWNER TO postgres;
 
 --
--- TOC entry 237 (class 1259 OID 24581)
+-- TOC entry 5046 (class 0 OID 0)
+-- Dependencies: 219
+-- Name: COLUMN apprenant.mot_passe; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON COLUMN public.apprenant.mot_passe IS 'Mot de passe hashé avec bcrypt pour l''authentification';
+
+
+--
+-- TOC entry 220 (class 1259 OID 16406)
 -- Name: apprenant_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -116,8 +124,8 @@ CREATE SEQUENCE public.apprenant_id_seq
 ALTER SEQUENCE public.apprenant_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5215 (class 0 OID 0)
--- Dependencies: 237
+-- TOC entry 5047 (class 0 OID 0)
+-- Dependencies: 220
 -- Name: apprenant_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
@@ -125,7 +133,7 @@ ALTER SEQUENCE public.apprenant_id_seq OWNED BY public.apprenant.id;
 
 
 --
--- TOC entry 248 (class 1259 OID 24830)
+-- TOC entry 221 (class 1259 OID 16407)
 -- Name: attribution_salle; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -140,7 +148,7 @@ CREATE TABLE public.attribution_salle (
 ALTER TABLE public.attribution_salle OWNER TO postgres;
 
 --
--- TOC entry 247 (class 1259 OID 24829)
+-- TOC entry 222 (class 1259 OID 16410)
 -- Name: attribution_salle_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -156,8 +164,8 @@ CREATE SEQUENCE public.attribution_salle_id_seq
 ALTER SEQUENCE public.attribution_salle_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5216 (class 0 OID 0)
--- Dependencies: 247
+-- TOC entry 5048 (class 0 OID 0)
+-- Dependencies: 222
 -- Name: attribution_salle_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
@@ -165,7 +173,7 @@ ALTER SEQUENCE public.attribution_salle_id_seq OWNED BY public.attribution_salle
 
 
 --
--- TOC entry 254 (class 1259 OID 24949)
+-- TOC entry 223 (class 1259 OID 16411)
 -- Name: categorie; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -180,7 +188,7 @@ CREATE TABLE public.categorie (
 ALTER TABLE public.categorie OWNER TO postgres;
 
 --
--- TOC entry 253 (class 1259 OID 24948)
+-- TOC entry 224 (class 1259 OID 16414)
 -- Name: categorie_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -196,8 +204,8 @@ CREATE SEQUENCE public.categorie_id_seq
 ALTER SEQUENCE public.categorie_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5217 (class 0 OID 0)
--- Dependencies: 253
+-- TOC entry 5049 (class 0 OID 0)
+-- Dependencies: 224
 -- Name: categorie_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
@@ -205,7 +213,7 @@ ALTER SEQUENCE public.categorie_id_seq OWNED BY public.categorie.id;
 
 
 --
--- TOC entry 242 (class 1259 OID 24717)
+-- TOC entry 225 (class 1259 OID 16415)
 -- Name: creneau; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -223,7 +231,7 @@ CREATE TABLE public.creneau (
 ALTER TABLE public.creneau OWNER TO postgres;
 
 --
--- TOC entry 241 (class 1259 OID 24716)
+-- TOC entry 226 (class 1259 OID 16422)
 -- Name: creneau_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -239,8 +247,8 @@ CREATE SEQUENCE public.creneau_id_seq
 ALTER SEQUENCE public.creneau_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5218 (class 0 OID 0)
--- Dependencies: 241
+-- TOC entry 5050 (class 0 OID 0)
+-- Dependencies: 226
 -- Name: creneau_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
@@ -248,7 +256,7 @@ ALTER SEQUENCE public.creneau_id_seq OWNED BY public.creneau.id;
 
 
 --
--- TOC entry 219 (class 1259 OID 16414)
+-- TOC entry 227 (class 1259 OID 16423)
 -- Name: employe; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -272,7 +280,7 @@ CREATE TABLE public.employe (
 ALTER TABLE public.employe OWNER TO postgres;
 
 --
--- TOC entry 220 (class 1259 OID 16425)
+-- TOC entry 228 (class 1259 OID 16430)
 -- Name: employe_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -288,8 +296,8 @@ CREATE SEQUENCE public.employe_id_seq
 ALTER SEQUENCE public.employe_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5219 (class 0 OID 0)
--- Dependencies: 220
+-- TOC entry 5051 (class 0 OID 0)
+-- Dependencies: 228
 -- Name: employe_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
@@ -297,7 +305,7 @@ ALTER SEQUENCE public.employe_id_seq OWNED BY public.employe.id;
 
 
 --
--- TOC entry 221 (class 1259 OID 16426)
+-- TOC entry 229 (class 1259 OID 16431)
 -- Name: examen; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -313,7 +321,7 @@ CREATE TABLE public.examen (
 ALTER TABLE public.examen OWNER TO postgres;
 
 --
--- TOC entry 222 (class 1259 OID 16430)
+-- TOC entry 230 (class 1259 OID 16434)
 -- Name: examen_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -329,8 +337,8 @@ CREATE SEQUENCE public.examen_id_seq
 ALTER SEQUENCE public.examen_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5220 (class 0 OID 0)
--- Dependencies: 222
+-- TOC entry 5052 (class 0 OID 0)
+-- Dependencies: 230
 -- Name: examen_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
@@ -338,7 +346,7 @@ ALTER SEQUENCE public.examen_id_seq OWNED BY public.examen.id;
 
 
 --
--- TOC entry 246 (class 1259 OID 24805)
+-- TOC entry 231 (class 1259 OID 16435)
 -- Name: groupe; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -354,7 +362,7 @@ CREATE TABLE public.groupe (
 ALTER TABLE public.groupe OWNER TO postgres;
 
 --
--- TOC entry 245 (class 1259 OID 24804)
+-- TOC entry 232 (class 1259 OID 16439)
 -- Name: groupe_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -370,8 +378,8 @@ CREATE SEQUENCE public.groupe_id_seq
 ALTER SEQUENCE public.groupe_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5221 (class 0 OID 0)
--- Dependencies: 245
+-- TOC entry 5053 (class 0 OID 0)
+-- Dependencies: 232
 -- Name: groupe_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
@@ -379,17 +387,17 @@ ALTER SEQUENCE public.groupe_id_seq OWNED BY public.groupe.id;
 
 
 --
--- TOC entry 240 (class 1259 OID 24604)
+-- TOC entry 233 (class 1259 OID 16440)
 -- Name: horaire_cours; Type: TABLE; Schema: public; Owner: postgres
 --
 
 CREATE TABLE public.horaire_cours (
     id integer NOT NULL,
-    id_session integer NOT NULL,
     id_niveau integer[],
     id_categorie integer,
     duree_heures integer DEFAULT 30,
     duree_semaines integer DEFAULT 5,
+    id_type_cours integer,
     CONSTRAINT horaire_cours_duree_heures_check CHECK ((duree_heures > 0)),
     CONSTRAINT horaire_cours_duree_semaines_check CHECK ((duree_semaines > 0))
 );
@@ -398,8 +406,8 @@ CREATE TABLE public.horaire_cours (
 ALTER TABLE public.horaire_cours OWNER TO postgres;
 
 --
--- TOC entry 5222 (class 0 OID 0)
--- Dependencies: 240
+-- TOC entry 5054 (class 0 OID 0)
+-- Dependencies: 233
 -- Name: TABLE horaire_cours; Type: COMMENT; Schema: public; Owner: postgres
 --
 
@@ -407,7 +415,7 @@ COMMENT ON TABLE public.horaire_cours IS 'Définit les paramètres pédagogiques
 
 
 --
--- TOC entry 239 (class 1259 OID 24603)
+-- TOC entry 234 (class 1259 OID 16449)
 -- Name: horaire_cours_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -423,8 +431,8 @@ CREATE SEQUENCE public.horaire_cours_id_seq
 ALTER SEQUENCE public.horaire_cours_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5223 (class 0 OID 0)
--- Dependencies: 239
+-- TOC entry 5055 (class 0 OID 0)
+-- Dependencies: 234
 -- Name: horaire_cours_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
@@ -432,7 +440,7 @@ ALTER SEQUENCE public.horaire_cours_id_seq OWNED BY public.horaire_cours.id;
 
 
 --
--- TOC entry 250 (class 1259 OID 24853)
+-- TOC entry 235 (class 1259 OID 16450)
 -- Name: inscription; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -460,7 +468,7 @@ CREATE TABLE public.inscription (
 ALTER TABLE public.inscription OWNER TO postgres;
 
 --
--- TOC entry 249 (class 1259 OID 24852)
+-- TOC entry 236 (class 1259 OID 16459)
 -- Name: inscription_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -476,8 +484,8 @@ CREATE SEQUENCE public.inscription_id_seq
 ALTER SEQUENCE public.inscription_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5224 (class 0 OID 0)
--- Dependencies: 249
+-- TOC entry 5056 (class 0 OID 0)
+-- Dependencies: 236
 -- Name: inscription_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
@@ -485,7 +493,7 @@ ALTER SEQUENCE public.inscription_id_seq OWNED BY public.inscription.id;
 
 
 --
--- TOC entry 223 (class 1259 OID 16454)
+-- TOC entry 237 (class 1259 OID 16460)
 -- Name: motivation; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -498,7 +506,7 @@ CREATE TABLE public.motivation (
 ALTER TABLE public.motivation OWNER TO postgres;
 
 --
--- TOC entry 224 (class 1259 OID 16458)
+-- TOC entry 238 (class 1259 OID 16463)
 -- Name: motivation_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -514,8 +522,8 @@ CREATE SEQUENCE public.motivation_id_seq
 ALTER SEQUENCE public.motivation_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5225 (class 0 OID 0)
--- Dependencies: 224
+-- TOC entry 5057 (class 0 OID 0)
+-- Dependencies: 238
 -- Name: motivation_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
@@ -523,7 +531,7 @@ ALTER SEQUENCE public.motivation_id_seq OWNED BY public.motivation.id;
 
 
 --
--- TOC entry 225 (class 1259 OID 16459)
+-- TOC entry 239 (class 1259 OID 16464)
 -- Name: niveau; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -542,7 +550,7 @@ END) STORED
 ALTER TABLE public.niveau OWNER TO postgres;
 
 --
--- TOC entry 226 (class 1259 OID 16464)
+-- TOC entry 240 (class 1259 OID 16468)
 -- Name: niveau_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -558,8 +566,8 @@ CREATE SEQUENCE public.niveau_id_seq
 ALTER SEQUENCE public.niveau_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5226 (class 0 OID 0)
--- Dependencies: 226
+-- TOC entry 5058 (class 0 OID 0)
+-- Dependencies: 240
 -- Name: niveau_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
@@ -567,7 +575,7 @@ ALTER SEQUENCE public.niveau_id_seq OWNED BY public.niveau.id;
 
 
 --
--- TOC entry 252 (class 1259 OID 24908)
+-- TOC entry 241 (class 1259 OID 16469)
 -- Name: presence; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -586,7 +594,7 @@ CREATE TABLE public.presence (
 ALTER TABLE public.presence OWNER TO postgres;
 
 --
--- TOC entry 251 (class 1259 OID 24907)
+-- TOC entry 242 (class 1259 OID 16476)
 -- Name: presence_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -602,8 +610,8 @@ CREATE SEQUENCE public.presence_id_seq
 ALTER SEQUENCE public.presence_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5227 (class 0 OID 0)
--- Dependencies: 251
+-- TOC entry 5059 (class 0 OID 0)
+-- Dependencies: 242
 -- Name: presence_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
@@ -611,7 +619,7 @@ ALTER SEQUENCE public.presence_id_seq OWNED BY public.presence.id;
 
 
 --
--- TOC entry 244 (class 1259 OID 24786)
+-- TOC entry 243 (class 1259 OID 16477)
 -- Name: professeur; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -625,7 +633,7 @@ CREATE TABLE public.professeur (
 ALTER TABLE public.professeur OWNER TO postgres;
 
 --
--- TOC entry 243 (class 1259 OID 24785)
+-- TOC entry 244 (class 1259 OID 16483)
 -- Name: professeur_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -641,8 +649,8 @@ CREATE SEQUENCE public.professeur_id_seq
 ALTER SEQUENCE public.professeur_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5228 (class 0 OID 0)
--- Dependencies: 243
+-- TOC entry 5060 (class 0 OID 0)
+-- Dependencies: 244
 -- Name: professeur_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
@@ -650,7 +658,7 @@ ALTER SEQUENCE public.professeur_id_seq OWNED BY public.professeur.id;
 
 
 --
--- TOC entry 227 (class 1259 OID 16484)
+-- TOC entry 245 (class 1259 OID 16484)
 -- Name: salle; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -664,7 +672,7 @@ CREATE TABLE public.salle (
 ALTER TABLE public.salle OWNER TO postgres;
 
 --
--- TOC entry 228 (class 1259 OID 16489)
+-- TOC entry 246 (class 1259 OID 16487)
 -- Name: salle_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -680,8 +688,8 @@ CREATE SEQUENCE public.salle_id_seq
 ALTER SEQUENCE public.salle_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5229 (class 0 OID 0)
--- Dependencies: 228
+-- TOC entry 5061 (class 0 OID 0)
+-- Dependencies: 246
 -- Name: salle_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
@@ -689,7 +697,7 @@ ALTER SEQUENCE public.salle_id_seq OWNED BY public.salle.id;
 
 
 --
--- TOC entry 229 (class 1259 OID 16490)
+-- TOC entry 247 (class 1259 OID 16488)
 -- Name: session; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -710,7 +718,7 @@ CREATE TABLE public.session (
 ALTER TABLE public.session OWNER TO postgres;
 
 --
--- TOC entry 230 (class 1259 OID 16501)
+-- TOC entry 248 (class 1259 OID 16492)
 -- Name: session_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -726,8 +734,8 @@ CREATE SEQUENCE public.session_id_seq
 ALTER SEQUENCE public.session_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5230 (class 0 OID 0)
--- Dependencies: 230
+-- TOC entry 5062 (class 0 OID 0)
+-- Dependencies: 248
 -- Name: session_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
@@ -735,7 +743,7 @@ ALTER SEQUENCE public.session_id_seq OWNED BY public.session.id;
 
 
 --
--- TOC entry 231 (class 1259 OID 16502)
+-- TOC entry 249 (class 1259 OID 16493)
 -- Name: test_niveau; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -756,7 +764,7 @@ CREATE TABLE public.test_niveau (
 ALTER TABLE public.test_niveau OWNER TO postgres;
 
 --
--- TOC entry 232 (class 1259 OID 16510)
+-- TOC entry 250 (class 1259 OID 16498)
 -- Name: test_niveau_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -772,8 +780,8 @@ CREATE SEQUENCE public.test_niveau_id_seq
 ALTER SEQUENCE public.test_niveau_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5231 (class 0 OID 0)
--- Dependencies: 232
+-- TOC entry 5063 (class 0 OID 0)
+-- Dependencies: 250
 -- Name: test_niveau_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
@@ -781,7 +789,7 @@ ALTER SEQUENCE public.test_niveau_id_seq OWNED BY public.test_niveau.id;
 
 
 --
--- TOC entry 233 (class 1259 OID 16511)
+-- TOC entry 251 (class 1259 OID 16499)
 -- Name: type_cours; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -795,7 +803,7 @@ CREATE TABLE public.type_cours (
 ALTER TABLE public.type_cours OWNER TO postgres;
 
 --
--- TOC entry 234 (class 1259 OID 16516)
+-- TOC entry 252 (class 1259 OID 16502)
 -- Name: type_cours_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -811,8 +819,8 @@ CREATE SEQUENCE public.type_cours_id_seq
 ALTER SEQUENCE public.type_cours_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5232 (class 0 OID 0)
--- Dependencies: 234
+-- TOC entry 5064 (class 0 OID 0)
+-- Dependencies: 252
 -- Name: type_cours_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
@@ -820,7 +828,7 @@ ALTER SEQUENCE public.type_cours_id_seq OWNED BY public.type_cours.id;
 
 
 --
--- TOC entry 235 (class 1259 OID 16517)
+-- TOC entry 253 (class 1259 OID 16503)
 -- Name: type_service; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -834,7 +842,7 @@ CREATE TABLE public.type_service (
 ALTER TABLE public.type_service OWNER TO postgres;
 
 --
--- TOC entry 236 (class 1259 OID 16522)
+-- TOC entry 254 (class 1259 OID 16508)
 -- Name: type_service_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -850,8 +858,8 @@ CREATE SEQUENCE public.type_service_id_seq
 ALTER SEQUENCE public.type_service_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5233 (class 0 OID 0)
--- Dependencies: 236
+-- TOC entry 5065 (class 0 OID 0)
+-- Dependencies: 254
 -- Name: type_service_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
@@ -859,7 +867,7 @@ ALTER SEQUENCE public.type_service_id_seq OWNED BY public.type_service.id;
 
 
 --
--- TOC entry 4931 (class 2604 OID 24990)
+-- TOC entry 4731 (class 2604 OID 16509)
 -- Name: a_propos id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -867,7 +875,7 @@ ALTER TABLE ONLY public.a_propos ALTER COLUMN id SET DEFAULT nextval('public.a_p
 
 
 --
--- TOC entry 4912 (class 2604 OID 24585)
+-- TOC entry 4735 (class 2604 OID 16510)
 -- Name: apprenant id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -875,7 +883,7 @@ ALTER TABLE ONLY public.apprenant ALTER COLUMN id SET DEFAULT nextval('public.ap
 
 
 --
--- TOC entry 4923 (class 2604 OID 24833)
+-- TOC entry 4738 (class 2604 OID 16511)
 -- Name: attribution_salle id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -883,7 +891,7 @@ ALTER TABLE ONLY public.attribution_salle ALTER COLUMN id SET DEFAULT nextval('p
 
 
 --
--- TOC entry 4930 (class 2604 OID 24952)
+-- TOC entry 4739 (class 2604 OID 16512)
 -- Name: categorie id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -891,7 +899,7 @@ ALTER TABLE ONLY public.categorie ALTER COLUMN id SET DEFAULT nextval('public.ca
 
 
 --
--- TOC entry 4918 (class 2604 OID 24720)
+-- TOC entry 4740 (class 2604 OID 16513)
 -- Name: creneau id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -899,7 +907,7 @@ ALTER TABLE ONLY public.creneau ALTER COLUMN id SET DEFAULT nextval('public.cren
 
 
 --
--- TOC entry 4899 (class 2604 OID 16526)
+-- TOC entry 4741 (class 2604 OID 16514)
 -- Name: employe id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -907,7 +915,7 @@ ALTER TABLE ONLY public.employe ALTER COLUMN id SET DEFAULT nextval('public.empl
 
 
 --
--- TOC entry 4902 (class 2604 OID 16527)
+-- TOC entry 4744 (class 2604 OID 16515)
 -- Name: examen id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -915,7 +923,7 @@ ALTER TABLE ONLY public.examen ALTER COLUMN id SET DEFAULT nextval('public.exame
 
 
 --
--- TOC entry 4921 (class 2604 OID 24808)
+-- TOC entry 4745 (class 2604 OID 16516)
 -- Name: groupe id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -923,7 +931,7 @@ ALTER TABLE ONLY public.groupe ALTER COLUMN id SET DEFAULT nextval('public.group
 
 
 --
--- TOC entry 4915 (class 2604 OID 24607)
+-- TOC entry 4747 (class 2604 OID 16517)
 -- Name: horaire_cours id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -931,7 +939,7 @@ ALTER TABLE ONLY public.horaire_cours ALTER COLUMN id SET DEFAULT nextval('publi
 
 
 --
--- TOC entry 4924 (class 2604 OID 24856)
+-- TOC entry 4750 (class 2604 OID 16518)
 -- Name: inscription id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -939,7 +947,7 @@ ALTER TABLE ONLY public.inscription ALTER COLUMN id SET DEFAULT nextval('public.
 
 
 --
--- TOC entry 4903 (class 2604 OID 16531)
+-- TOC entry 4753 (class 2604 OID 16519)
 -- Name: motivation id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -947,7 +955,7 @@ ALTER TABLE ONLY public.motivation ALTER COLUMN id SET DEFAULT nextval('public.m
 
 
 --
--- TOC entry 4904 (class 2604 OID 16532)
+-- TOC entry 4754 (class 2604 OID 16520)
 -- Name: niveau id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -955,7 +963,7 @@ ALTER TABLE ONLY public.niveau ALTER COLUMN id SET DEFAULT nextval('public.nivea
 
 
 --
--- TOC entry 4927 (class 2604 OID 24911)
+-- TOC entry 4756 (class 2604 OID 16521)
 -- Name: presence id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -963,7 +971,7 @@ ALTER TABLE ONLY public.presence ALTER COLUMN id SET DEFAULT nextval('public.pre
 
 
 --
--- TOC entry 4919 (class 2604 OID 24789)
+-- TOC entry 4759 (class 2604 OID 16522)
 -- Name: professeur id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -971,7 +979,7 @@ ALTER TABLE ONLY public.professeur ALTER COLUMN id SET DEFAULT nextval('public.p
 
 
 --
--- TOC entry 4906 (class 2604 OID 16535)
+-- TOC entry 4761 (class 2604 OID 16523)
 -- Name: salle id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -979,7 +987,7 @@ ALTER TABLE ONLY public.salle ALTER COLUMN id SET DEFAULT nextval('public.salle_
 
 
 --
--- TOC entry 4907 (class 2604 OID 16536)
+-- TOC entry 4762 (class 2604 OID 16524)
 -- Name: session id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -987,7 +995,7 @@ ALTER TABLE ONLY public.session ALTER COLUMN id SET DEFAULT nextval('public.sess
 
 
 --
--- TOC entry 4909 (class 2604 OID 16538)
+-- TOC entry 4764 (class 2604 OID 16525)
 -- Name: test_niveau id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -995,7 +1003,7 @@ ALTER TABLE ONLY public.test_niveau ALTER COLUMN id SET DEFAULT nextval('public.
 
 
 --
--- TOC entry 4910 (class 2604 OID 16539)
+-- TOC entry 4765 (class 2604 OID 16526)
 -- Name: type_cours id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -1003,7 +1011,7 @@ ALTER TABLE ONLY public.type_cours ALTER COLUMN id SET DEFAULT nextval('public.t
 
 
 --
--- TOC entry 4911 (class 2604 OID 16540)
+-- TOC entry 4766 (class 2604 OID 16527)
 -- Name: type_service id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -1011,32 +1019,32 @@ ALTER TABLE ONLY public.type_service ALTER COLUMN id SET DEFAULT nextval('public
 
 
 --
--- TOC entry 5208 (class 0 OID 24987)
--- Dependencies: 256
+-- TOC entry 5002 (class 0 OID 16388)
+-- Dependencies: 217
 -- Data for Name: a_propos; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
 COPY public.a_propos (id, nom_etablissement, tel, email, adresse, heure_ouverture, heure_fermeture, jours_ouverture, description, logo_url, date_mise_a_jour) FROM stdin;
-1	Alliance Française Mahajanga	032 05 119 84	afmsec3@gmail.com	Rue Edouard VII - BP 236 - 401 Majunga	08:00:00	18:00:00	Lundi au Samedi	L'Alliance Française Mahajanga est un établissement culturel et linguistique dédié à la promotion de la langue française et des cultures francophones. Fondée en 1950, notre institution propose des cours de français pour tous niveaux, des préparations aux examens DELF/DALF, ainsi que des activités culturelles régulières. Notre équipe de professeurs qualifiés et passionnés s'engage à offrir un enseignement de qualité dans un environnement chaleureux et multiculturel.	\N	2026-02-17 13:59:45.027597
+1	Alliance Française Mahajanga	032 05 119 84	afmsec3@gmail.com	Rue Edouard VII - BP 236 - 401 Majunga	08:00:00	18:00:00	Lundi au Samedi	L'Alliance Française Mahajanga est un établissement culturel et linguistique dédié à la promotion de la langue française et des cultures francophones. Fondée en 1950, notre institution propose des cours de français pour tous niveaux, des préparations aux examens DELF/DALF, ainsi que des activités culturelles régulières. Notre équipe de professeurs qualifiés et passionnés s'engage à offrir un enseignement de qualité dans un environnement chaleureux et multiculturel.	\N	2026-03-02 03:51:46.902862
 \.
 
 
 --
--- TOC entry 5190 (class 0 OID 24582)
--- Dependencies: 238
+-- TOC entry 5004 (class 0 OID 16398)
+-- Dependencies: 219
 -- Data for Name: apprenant; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.apprenant (id, nom, prenom, date_n, sexe, adresse, tel, email, nationalite, lieu_n, etablissement, niveau_scolaire, date_premiere_inscription, statut) FROM stdin;
-1	tinah	dorea	2004-10-05	F	Sotema	0325896471	dorea@gmail.com	Malagasy	Mahajanga	Saint Gabriel	L3	2026-02-17	actif
-2	MIARILAZA	Juditch	2003-05-02	F	Antanimasatsa	0324442269	\N	Malagasy	Mahajanga	Saint Gabriel	L3	2026-02-17	actif
-3	tinah	dorea	2004-05-02	F	Sotema	0325896471	\N	\N	\N	Saint Gabriel	L3	2026-02-17	actif
+COPY public.apprenant (id, nom, prenom, date_n, sexe, adresse, tel, email, nationalite, lieu_n, etablissement, niveau_scolaire, date_premiere_inscription, statut, mot_passe) FROM stdin;
+1	tinah	dorea	2004-10-05	F	Sotema	0325896471	dorea@gmail.com	Malagasy	Mahajanga	Saint Gabriel	L3	2026-02-17	actif	$2b$10$LtSGA842bjqnSQ9MyIexc.n24M19kZ5lq3905WiVxJ91JtGE4aJEC
+2	MIARILAZA	Juditch	2003-05-02	F	Antanimasatsa	0324442269	\N	Malagasy	Mahajanga	Saint Gabriel	L3	2026-02-17	actif	$2b$10$LtSGA842bjqnSQ9MyIexc.n24M19kZ5lq3905WiVxJ91JtGE4aJEC
+3	tinah	dorea	2004-05-02	F	Sotema	0325896471	\N	\N	\N	Saint Gabriel	L3	2026-02-17	actif	$2b$10$LtSGA842bjqnSQ9MyIexc.n24M19kZ5lq3905WiVxJ91JtGE4aJEC
 \.
 
 
 --
--- TOC entry 5200 (class 0 OID 24830)
--- Dependencies: 248
+-- TOC entry 5006 (class 0 OID 16407)
+-- Dependencies: 221
 -- Data for Name: attribution_salle; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -1045,8 +1053,8 @@ COPY public.attribution_salle (id, id_groupe, date_cours, id_salle) FROM stdin;
 
 
 --
--- TOC entry 5206 (class 0 OID 24949)
--- Dependencies: 254
+-- TOC entry 5008 (class 0 OID 16411)
+-- Dependencies: 223
 -- Data for Name: categorie; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -1059,8 +1067,8 @@ COPY public.categorie (id, nom_categorie, min_age, max_age) FROM stdin;
 
 
 --
--- TOC entry 5194 (class 0 OID 24717)
--- Dependencies: 242
+-- TOC entry 5010 (class 0 OID 16415)
+-- Dependencies: 225
 -- Data for Name: creneau; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -1071,23 +1079,24 @@ COPY public.creneau (id, id_horaire_cours, jour_semaine, heure_debut, heure_fin)
 
 
 --
--- TOC entry 5171 (class 0 OID 16414)
--- Dependencies: 219
+-- TOC entry 5012 (class 0 OID 16423)
+-- Dependencies: 227
 -- Data for Name: employe; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
 COPY public.employe (id, nom, prenom, age, adresse, tel, mot_passe, date_creation, email, is_active, deactivated_at, deactivated_by, role) FROM stdin;
-1	tinah	dorea	21	Sotema	0324442269	$2b$10$/lVcr/.ubV73Q4AacknKgOxu7q7HHFDCNrR1GL1YSWWmg4a7xdrFu	2025-10-24 17:36:44.301241	tdorea@gmail.com	t	\N	\N	Coordinateur adjoint
-3	tina	dorea	30	Sotema	0341234567	$2b$10$hVpnsRl4Tg9dRA4f4uMKnO5IuVJEMEq2jxfK69x.lHtl0wtK1NrNm	2025-11-04 17:32:55.930466	tinahdorea@gmail.com	t	\N	\N	Admin
-4	toky	jerrys	23	sotema	0325689741	$2b$10$/aIoB.DBY/gOXIwaK1LD3euW14dDhEq81dtEbyVTX5Fh42cijo11u	2025-12-12 16:41:52.876033	jerrys@gmail.com	t	\N	\N	professeurs
-2	Tokys	jerrys	25	Sotema	0325896471	$2b$10$nf9xsh7oU5h6Igm/nUwyyuMFiPUV10HOu0bKv.NGzyclvlxwKiedW	2025-10-25 16:44:31.615915	toky@gmail.com	t	\N	\N	Admin
-5	Shania	Amara	21	Mahabibo	0325869855	$2b$10$4533PoTfC.EIPfjqwAxbee2x7cyNN47aMA4/7bst4MgJITRu9IdpO	2026-01-10 01:54:58.034594	shania@gmail.com	t	\N	\N	professeurs
+3	tina	dorea	30	Sotema	0341234567	$2b$10$04NbXg9BoiTBAs7HGhlqoui7onox9BMakWrjyJpTFQRVfpkiWzBAa	2025-11-04 17:32:55.930466	tinahdorea@gmail.com	t	\N	\N	Admin
+2	Tokys	jerrys	25	Sotema	0325896471	$2b$10$04NbXg9BoiTBAs7HGhlqoui7onox9BMakWrjyJpTFQRVfpkiWzBAa	2025-10-25 16:44:31.615915	toky@gmail.com	t	\N	\N	Admin
+5	Shania	Amara	21	Mahabibo	0325869855	$2b$10$6JTwrgNE0H4KK3zIBIFhVeNDlAYYSVqC2bapc035rWi4ofsQrqetC	2026-01-10 01:54:58.034594	shania@gmail.com	t	\N	\N	Professeurs
+6	IRATA	Andry Nandrandraiana	25	Sotema	0321654987	$2b$10$6JTwrgNE0H4KK3zIBIFhVeNDlAYYSVqC2bapc035rWi4ofsQrqetC	2026-02-28 10:34:46.792388	irata@gmail.com	t	\N	\N	Professeurs
+1	tinah	dorea	21	Sotema	0324442269	$2b$10$yvkY1oRfuxVNvrGz10tEP.YCaL5vHThrVhBfqsF3/ad9tA/dfIu6a	2025-10-24 17:36:44.301241	tdorea@gmail.com	t	\N	\N	Pédagogie
+4	toky	jerrys	23	sotema	0325689741	$2b$10$6JTwrgNE0H4KK3zIBIFhVeNDlAYYSVqC2bapc035rWi4ofsQrqetC	2025-12-12 16:41:52.876033	jerrys@gmail.com	t	\N	\N	Professeurs
 \.
 
 
 --
--- TOC entry 5173 (class 0 OID 16426)
--- Dependencies: 221
+-- TOC entry 5014 (class 0 OID 16431)
+-- Dependencies: 229
 -- Data for Name: examen; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -1098,8 +1107,8 @@ COPY public.examen (id, id_inscription, etat_inscription, auto_inscription, veri
 
 
 --
--- TOC entry 5198 (class 0 OID 24805)
--- Dependencies: 246
+-- TOC entry 5016 (class 0 OID 16435)
+-- Dependencies: 231
 -- Data for Name: groupe; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -1108,20 +1117,20 @@ COPY public.groupe (id, nom_groupe, id_professeur, date_creation, id_creneau) FR
 
 
 --
--- TOC entry 5192 (class 0 OID 24604)
--- Dependencies: 240
+-- TOC entry 5018 (class 0 OID 16440)
+-- Dependencies: 233
 -- Data for Name: horaire_cours; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.horaire_cours (id, id_session, id_niveau, id_categorie, duree_heures, duree_semaines) FROM stdin;
-3	13	{1}	4	30	2
-4	13	{6,7,8,9,10}	4	30	2
+COPY public.horaire_cours (id, id_niveau, id_categorie, duree_heures, duree_semaines, id_type_cours) FROM stdin;
+4	{6,7,8,9,10}	4	30	2	2
+3	{1}	4	30	2	2
 \.
 
 
 --
--- TOC entry 5202 (class 0 OID 24853)
--- Dependencies: 250
+-- TOC entry 5020 (class 0 OID 16450)
+-- Dependencies: 235
 -- Data for Name: inscription; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -1130,8 +1139,8 @@ COPY public.inscription (id, id_apprenant, id_employe, id_session, id_motivation
 
 
 --
--- TOC entry 5175 (class 0 OID 16454)
--- Dependencies: 223
+-- TOC entry 5022 (class 0 OID 16460)
+-- Dependencies: 237
 -- Data for Name: motivation; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -1150,8 +1159,8 @@ COPY public.motivation (id, nom_motivation) FROM stdin;
 
 
 --
--- TOC entry 5177 (class 0 OID 16459)
--- Dependencies: 225
+-- TOC entry 5024 (class 0 OID 16464)
+-- Dependencies: 239
 -- Data for Name: niveau; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -1169,14 +1178,13 @@ COPY public.niveau (id, nom_niveau, sous_niveau) FROM stdin;
 11	A2	1
 12	A2	2
 13	A2	3
-14	C1	1
 15	C2	2
 \.
 
 
 --
--- TOC entry 5204 (class 0 OID 24908)
--- Dependencies: 252
+-- TOC entry 5026 (class 0 OID 16469)
+-- Dependencies: 241
 -- Data for Name: presence; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -1185,8 +1193,8 @@ COPY public.presence (id, id_inscription, id_groupe, date_cours, est_present, re
 
 
 --
--- TOC entry 5196 (class 0 OID 24786)
--- Dependencies: 244
+-- TOC entry 5028 (class 0 OID 16477)
+-- Dependencies: 243
 -- Data for Name: professeur; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -1197,8 +1205,8 @@ COPY public.professeur (id, id_employe, specialite_niveaux) FROM stdin;
 
 
 --
--- TOC entry 5179 (class 0 OID 16484)
--- Dependencies: 227
+-- TOC entry 5030 (class 0 OID 16484)
+-- Dependencies: 245
 -- Data for Name: salle; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -1209,8 +1217,8 @@ COPY public.salle (id, nom_salle, capacite_max) FROM stdin;
 
 
 --
--- TOC entry 5181 (class 0 OID 16490)
--- Dependencies: 229
+-- TOC entry 5032 (class 0 OID 16488)
+-- Dependencies: 247
 -- Data for Name: session; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -1231,8 +1239,8 @@ COPY public.session (id, mois, annee, id_type_cours, date_fin_inscription, date_
 
 
 --
--- TOC entry 5183 (class 0 OID 16502)
--- Dependencies: 231
+-- TOC entry 5034 (class 0 OID 16493)
+-- Dependencies: 249
 -- Data for Name: test_niveau; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -1241,8 +1249,8 @@ COPY public.test_niveau (id, date_test, nom, prenom, id_type_cours, po, pe, nive
 
 
 --
--- TOC entry 5185 (class 0 OID 16511)
--- Dependencies: 233
+-- TOC entry 5036 (class 0 OID 16499)
+-- Dependencies: 251
 -- Data for Name: type_cours; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -1256,21 +1264,21 @@ COPY public.type_cours (id, id_type_service, nom_type_cours) FROM stdin;
 
 
 --
--- TOC entry 5187 (class 0 OID 16517)
--- Dependencies: 235
+-- TOC entry 5038 (class 0 OID 16503)
+-- Dependencies: 253
 -- Data for Name: type_service; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
 COPY public.type_service (id, nom_service, libelle) FROM stdin;
 2	Prepa	Préparation aux examens DELF/DALF
 1	Renforcements	Cours de renforcement linguistique pour tous niveaux
-3	Vacances	Cours intensifs pendant les vacances scolaires
+9	test	\N
 \.
 
 
 --
--- TOC entry 5234 (class 0 OID 0)
--- Dependencies: 255
+-- TOC entry 5066 (class 0 OID 0)
+-- Dependencies: 218
 -- Name: a_propos_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
@@ -1278,8 +1286,8 @@ SELECT pg_catalog.setval('public.a_propos_id_seq', 1, true);
 
 
 --
--- TOC entry 5235 (class 0 OID 0)
--- Dependencies: 237
+-- TOC entry 5067 (class 0 OID 0)
+-- Dependencies: 220
 -- Name: apprenant_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
@@ -1287,8 +1295,8 @@ SELECT pg_catalog.setval('public.apprenant_id_seq', 3, true);
 
 
 --
--- TOC entry 5236 (class 0 OID 0)
--- Dependencies: 247
+-- TOC entry 5068 (class 0 OID 0)
+-- Dependencies: 222
 -- Name: attribution_salle_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
@@ -1296,8 +1304,8 @@ SELECT pg_catalog.setval('public.attribution_salle_id_seq', 1, false);
 
 
 --
--- TOC entry 5237 (class 0 OID 0)
--- Dependencies: 253
+-- TOC entry 5069 (class 0 OID 0)
+-- Dependencies: 224
 -- Name: categorie_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
@@ -1305,8 +1313,8 @@ SELECT pg_catalog.setval('public.categorie_id_seq', 4, true);
 
 
 --
--- TOC entry 5238 (class 0 OID 0)
--- Dependencies: 241
+-- TOC entry 5070 (class 0 OID 0)
+-- Dependencies: 226
 -- Name: creneau_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
@@ -1314,17 +1322,17 @@ SELECT pg_catalog.setval('public.creneau_id_seq', 2, true);
 
 
 --
--- TOC entry 5239 (class 0 OID 0)
--- Dependencies: 220
+-- TOC entry 5071 (class 0 OID 0)
+-- Dependencies: 228
 -- Name: employe_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.employe_id_seq', 5, true);
+SELECT pg_catalog.setval('public.employe_id_seq', 6, true);
 
 
 --
--- TOC entry 5240 (class 0 OID 0)
--- Dependencies: 222
+-- TOC entry 5072 (class 0 OID 0)
+-- Dependencies: 230
 -- Name: examen_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
@@ -1332,8 +1340,8 @@ SELECT pg_catalog.setval('public.examen_id_seq', 2, true);
 
 
 --
--- TOC entry 5241 (class 0 OID 0)
--- Dependencies: 245
+-- TOC entry 5073 (class 0 OID 0)
+-- Dependencies: 232
 -- Name: groupe_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
@@ -1341,8 +1349,8 @@ SELECT pg_catalog.setval('public.groupe_id_seq', 1, false);
 
 
 --
--- TOC entry 5242 (class 0 OID 0)
--- Dependencies: 239
+-- TOC entry 5074 (class 0 OID 0)
+-- Dependencies: 234
 -- Name: horaire_cours_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
@@ -1350,8 +1358,8 @@ SELECT pg_catalog.setval('public.horaire_cours_id_seq', 4, true);
 
 
 --
--- TOC entry 5243 (class 0 OID 0)
--- Dependencies: 249
+-- TOC entry 5075 (class 0 OID 0)
+-- Dependencies: 236
 -- Name: inscription_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
@@ -1359,8 +1367,8 @@ SELECT pg_catalog.setval('public.inscription_id_seq', 1, false);
 
 
 --
--- TOC entry 5244 (class 0 OID 0)
--- Dependencies: 224
+-- TOC entry 5076 (class 0 OID 0)
+-- Dependencies: 238
 -- Name: motivation_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
@@ -1368,8 +1376,8 @@ SELECT pg_catalog.setval('public.motivation_id_seq', 10, true);
 
 
 --
--- TOC entry 5245 (class 0 OID 0)
--- Dependencies: 226
+-- TOC entry 5077 (class 0 OID 0)
+-- Dependencies: 240
 -- Name: niveau_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
@@ -1377,8 +1385,8 @@ SELECT pg_catalog.setval('public.niveau_id_seq', 17, true);
 
 
 --
--- TOC entry 5246 (class 0 OID 0)
--- Dependencies: 251
+-- TOC entry 5078 (class 0 OID 0)
+-- Dependencies: 242
 -- Name: presence_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
@@ -1386,8 +1394,8 @@ SELECT pg_catalog.setval('public.presence_id_seq', 1, false);
 
 
 --
--- TOC entry 5247 (class 0 OID 0)
--- Dependencies: 243
+-- TOC entry 5079 (class 0 OID 0)
+-- Dependencies: 244
 -- Name: professeur_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
@@ -1395,8 +1403,8 @@ SELECT pg_catalog.setval('public.professeur_id_seq', 2, true);
 
 
 --
--- TOC entry 5248 (class 0 OID 0)
--- Dependencies: 228
+-- TOC entry 5080 (class 0 OID 0)
+-- Dependencies: 246
 -- Name: salle_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
@@ -1404,8 +1412,8 @@ SELECT pg_catalog.setval('public.salle_id_seq', 3, true);
 
 
 --
--- TOC entry 5249 (class 0 OID 0)
--- Dependencies: 230
+-- TOC entry 5081 (class 0 OID 0)
+-- Dependencies: 248
 -- Name: session_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
@@ -1413,8 +1421,8 @@ SELECT pg_catalog.setval('public.session_id_seq', 13, true);
 
 
 --
--- TOC entry 5250 (class 0 OID 0)
--- Dependencies: 232
+-- TOC entry 5082 (class 0 OID 0)
+-- Dependencies: 250
 -- Name: test_niveau_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
@@ -1422,8 +1430,8 @@ SELECT pg_catalog.setval('public.test_niveau_id_seq', 1, false);
 
 
 --
--- TOC entry 5251 (class 0 OID 0)
--- Dependencies: 234
+-- TOC entry 5083 (class 0 OID 0)
+-- Dependencies: 252
 -- Name: type_cours_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
@@ -1431,16 +1439,16 @@ SELECT pg_catalog.setval('public.type_cours_id_seq', 5, true);
 
 
 --
--- TOC entry 5252 (class 0 OID 0)
--- Dependencies: 236
+-- TOC entry 5084 (class 0 OID 0)
+-- Dependencies: 254
 -- Name: type_service_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.type_service_id_seq', 7, true);
+SELECT pg_catalog.setval('public.type_service_id_seq', 9, true);
 
 
 --
--- TOC entry 4999 (class 2606 OID 25006)
+-- TOC entry 4776 (class 2606 OID 16529)
 -- Name: a_propos a_propos_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1449,7 +1457,7 @@ ALTER TABLE ONLY public.a_propos
 
 
 --
--- TOC entry 4965 (class 2606 OID 24597)
+-- TOC entry 4780 (class 2606 OID 16531)
 -- Name: apprenant apprenant_email_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1458,7 +1466,7 @@ ALTER TABLE ONLY public.apprenant
 
 
 --
--- TOC entry 4967 (class 2606 OID 24595)
+-- TOC entry 4782 (class 2606 OID 16533)
 -- Name: apprenant apprenant_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1467,7 +1475,7 @@ ALTER TABLE ONLY public.apprenant
 
 
 --
--- TOC entry 4981 (class 2606 OID 24841)
+-- TOC entry 4787 (class 2606 OID 16535)
 -- Name: attribution_salle attribution_salle_id_groupe_date_cours_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1476,7 +1484,7 @@ ALTER TABLE ONLY public.attribution_salle
 
 
 --
--- TOC entry 4983 (class 2606 OID 24839)
+-- TOC entry 4789 (class 2606 OID 16537)
 -- Name: attribution_salle attribution_salle_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1485,7 +1493,7 @@ ALTER TABLE ONLY public.attribution_salle
 
 
 --
--- TOC entry 4997 (class 2606 OID 24958)
+-- TOC entry 4792 (class 2606 OID 16539)
 -- Name: categorie categorie_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1494,7 +1502,7 @@ ALTER TABLE ONLY public.categorie
 
 
 --
--- TOC entry 4973 (class 2606 OID 24729)
+-- TOC entry 4794 (class 2606 OID 16541)
 -- Name: creneau creneau_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1503,7 +1511,7 @@ ALTER TABLE ONLY public.creneau
 
 
 --
--- TOC entry 4944 (class 2606 OID 16550)
+-- TOC entry 4796 (class 2606 OID 16543)
 -- Name: employe employe_email_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1512,7 +1520,7 @@ ALTER TABLE ONLY public.employe
 
 
 --
--- TOC entry 4946 (class 2606 OID 16552)
+-- TOC entry 4798 (class 2606 OID 16545)
 -- Name: employe employe_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1521,7 +1529,7 @@ ALTER TABLE ONLY public.employe
 
 
 --
--- TOC entry 4949 (class 2606 OID 16554)
+-- TOC entry 4801 (class 2606 OID 16547)
 -- Name: examen examen_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1530,7 +1538,7 @@ ALTER TABLE ONLY public.examen
 
 
 --
--- TOC entry 4979 (class 2606 OID 24815)
+-- TOC entry 4803 (class 2606 OID 16549)
 -- Name: groupe groupe_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1539,7 +1547,7 @@ ALTER TABLE ONLY public.groupe
 
 
 --
--- TOC entry 4969 (class 2606 OID 24620)
+-- TOC entry 4805 (class 2606 OID 16551)
 -- Name: horaire_cours horaire_cours_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1548,16 +1556,7 @@ ALTER TABLE ONLY public.horaire_cours
 
 
 --
--- TOC entry 4971 (class 2606 OID 24974)
--- Name: horaire_cours horaire_cours_unique; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.horaire_cours
-    ADD CONSTRAINT horaire_cours_unique UNIQUE (id_session, id_niveau, id_categorie);
-
-
---
--- TOC entry 4990 (class 2606 OID 24866)
+-- TOC entry 4811 (class 2606 OID 16553)
 -- Name: inscription inscription_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1566,7 +1565,7 @@ ALTER TABLE ONLY public.inscription
 
 
 --
--- TOC entry 4951 (class 2606 OID 16564)
+-- TOC entry 4813 (class 2606 OID 16555)
 -- Name: motivation motivation_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1575,7 +1574,7 @@ ALTER TABLE ONLY public.motivation
 
 
 --
--- TOC entry 4953 (class 2606 OID 16566)
+-- TOC entry 4815 (class 2606 OID 16557)
 -- Name: niveau niveau_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1584,7 +1583,7 @@ ALTER TABLE ONLY public.niveau
 
 
 --
--- TOC entry 4993 (class 2606 OID 24923)
+-- TOC entry 4818 (class 2606 OID 16559)
 -- Name: presence presence_id_inscription_date_cours_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1593,7 +1592,7 @@ ALTER TABLE ONLY public.presence
 
 
 --
--- TOC entry 4995 (class 2606 OID 24921)
+-- TOC entry 4820 (class 2606 OID 16561)
 -- Name: presence presence_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1602,7 +1601,7 @@ ALTER TABLE ONLY public.presence
 
 
 --
--- TOC entry 4975 (class 2606 OID 24798)
+-- TOC entry 4822 (class 2606 OID 16563)
 -- Name: professeur professeur_id_employe_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1611,7 +1610,7 @@ ALTER TABLE ONLY public.professeur
 
 
 --
--- TOC entry 4977 (class 2606 OID 24796)
+-- TOC entry 4824 (class 2606 OID 16565)
 -- Name: professeur professeur_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1620,7 +1619,7 @@ ALTER TABLE ONLY public.professeur
 
 
 --
--- TOC entry 4955 (class 2606 OID 16572)
+-- TOC entry 4826 (class 2606 OID 16567)
 -- Name: salle salle_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1629,7 +1628,7 @@ ALTER TABLE ONLY public.salle
 
 
 --
--- TOC entry 4957 (class 2606 OID 16578)
+-- TOC entry 4828 (class 2606 OID 16569)
 -- Name: session session_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1638,7 +1637,7 @@ ALTER TABLE ONLY public.session
 
 
 --
--- TOC entry 4959 (class 2606 OID 16580)
+-- TOC entry 4830 (class 2606 OID 16571)
 -- Name: test_niveau test_niveau_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1647,7 +1646,7 @@ ALTER TABLE ONLY public.test_niveau
 
 
 --
--- TOC entry 4961 (class 2606 OID 16582)
+-- TOC entry 4832 (class 2606 OID 16573)
 -- Name: type_cours type_cours_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1656,7 +1655,7 @@ ALTER TABLE ONLY public.type_cours
 
 
 --
--- TOC entry 4963 (class 2606 OID 16584)
+-- TOC entry 4834 (class 2606 OID 16575)
 -- Name: type_service type_service_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1665,7 +1664,7 @@ ALTER TABLE ONLY public.type_service
 
 
 --
--- TOC entry 5000 (class 1259 OID 25007)
+-- TOC entry 4777 (class 1259 OID 16576)
 -- Name: idx_a_propos_email; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -1673,7 +1672,7 @@ CREATE INDEX idx_a_propos_email ON public.a_propos USING btree (email);
 
 
 --
--- TOC entry 5001 (class 1259 OID 25008)
+-- TOC entry 4778 (class 1259 OID 16577)
 -- Name: idx_a_propos_tel; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -1681,7 +1680,31 @@ CREATE INDEX idx_a_propos_tel ON public.a_propos USING btree (tel);
 
 
 --
--- TOC entry 4984 (class 1259 OID 24945)
+-- TOC entry 4783 (class 1259 OID 16696)
+-- Name: idx_apprenant_email; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_apprenant_email ON public.apprenant USING btree (email);
+
+
+--
+-- TOC entry 4784 (class 1259 OID 16698)
+-- Name: idx_apprenant_statut; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_apprenant_statut ON public.apprenant USING btree (statut);
+
+
+--
+-- TOC entry 4785 (class 1259 OID 16697)
+-- Name: idx_apprenant_tel; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_apprenant_tel ON public.apprenant USING btree (tel);
+
+
+--
+-- TOC entry 4790 (class 1259 OID 16578)
 -- Name: idx_attribution_salle_groupe; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -1689,7 +1712,7 @@ CREATE INDEX idx_attribution_salle_groupe ON public.attribution_salle USING btre
 
 
 --
--- TOC entry 4947 (class 1259 OID 16587)
+-- TOC entry 4799 (class 1259 OID 16579)
 -- Name: idx_employe_is_active; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -1697,7 +1720,7 @@ CREATE INDEX idx_employe_is_active ON public.employe USING btree (is_active);
 
 
 --
--- TOC entry 4985 (class 1259 OID 24939)
+-- TOC entry 4806 (class 1259 OID 16580)
 -- Name: idx_inscription_apprenant; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -1705,7 +1728,7 @@ CREATE INDEX idx_inscription_apprenant ON public.inscription USING btree (id_app
 
 
 --
--- TOC entry 4986 (class 1259 OID 24942)
+-- TOC entry 4807 (class 1259 OID 16581)
 -- Name: idx_inscription_creneau; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -1713,7 +1736,7 @@ CREATE INDEX idx_inscription_creneau ON public.inscription USING btree (id_crene
 
 
 --
--- TOC entry 4987 (class 1259 OID 24940)
+-- TOC entry 4808 (class 1259 OID 16582)
 -- Name: idx_inscription_groupe; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -1721,7 +1744,7 @@ CREATE INDEX idx_inscription_groupe ON public.inscription USING btree (id_groupe
 
 
 --
--- TOC entry 4988 (class 1259 OID 24941)
+-- TOC entry 4809 (class 1259 OID 16583)
 -- Name: idx_inscription_session; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -1729,7 +1752,7 @@ CREATE INDEX idx_inscription_session ON public.inscription USING btree (id_sessi
 
 
 --
--- TOC entry 4991 (class 1259 OID 24944)
+-- TOC entry 4816 (class 1259 OID 16584)
 -- Name: idx_presence_groupe_date; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -1737,7 +1760,7 @@ CREATE INDEX idx_presence_groupe_date ON public.presence USING btree (id_groupe,
 
 
 --
--- TOC entry 5012 (class 2606 OID 24842)
+-- TOC entry 4835 (class 2606 OID 16585)
 -- Name: attribution_salle attribution_salle_id_groupe_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1746,7 +1769,7 @@ ALTER TABLE ONLY public.attribution_salle
 
 
 --
--- TOC entry 5013 (class 2606 OID 24847)
+-- TOC entry 4836 (class 2606 OID 16590)
 -- Name: attribution_salle attribution_salle_id_salle_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1755,7 +1778,7 @@ ALTER TABLE ONLY public.attribution_salle
 
 
 --
--- TOC entry 5008 (class 2606 OID 24730)
+-- TOC entry 4837 (class 2606 OID 16595)
 -- Name: creneau creneau_id_horaire_cours_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1764,7 +1787,7 @@ ALTER TABLE ONLY public.creneau
 
 
 --
--- TOC entry 5002 (class 2606 OID 16613)
+-- TOC entry 4838 (class 2606 OID 16600)
 -- Name: employe fk_deactivated_by; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1773,7 +1796,7 @@ ALTER TABLE ONLY public.employe
 
 
 --
--- TOC entry 5010 (class 2606 OID 25009)
+-- TOC entry 4839 (class 2606 OID 16605)
 -- Name: groupe groupe_id_creneau_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1782,7 +1805,7 @@ ALTER TABLE ONLY public.groupe
 
 
 --
--- TOC entry 5011 (class 2606 OID 24823)
+-- TOC entry 4840 (class 2606 OID 16610)
 -- Name: groupe groupe_id_professeur_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1791,16 +1814,16 @@ ALTER TABLE ONLY public.groupe
 
 
 --
--- TOC entry 5007 (class 2606 OID 24623)
--- Name: horaire_cours horaire_cours_id_session_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- TOC entry 4841 (class 2606 OID 16615)
+-- Name: horaire_cours horaire_cours_id_type_cours_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public.horaire_cours
-    ADD CONSTRAINT horaire_cours_id_session_fkey FOREIGN KEY (id_session) REFERENCES public.session(id) ON DELETE CASCADE;
+    ADD CONSTRAINT horaire_cours_id_type_cours_fkey FOREIGN KEY (id_type_cours) REFERENCES public.type_cours(id) ON UPDATE CASCADE ON DELETE RESTRICT;
 
 
 --
--- TOC entry 5014 (class 2606 OID 24867)
+-- TOC entry 4842 (class 2606 OID 16620)
 -- Name: inscription inscription_id_apprenant_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1809,7 +1832,7 @@ ALTER TABLE ONLY public.inscription
 
 
 --
--- TOC entry 5015 (class 2606 OID 24897)
+-- TOC entry 4843 (class 2606 OID 16625)
 -- Name: inscription inscription_id_creneau_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1818,7 +1841,7 @@ ALTER TABLE ONLY public.inscription
 
 
 --
--- TOC entry 5016 (class 2606 OID 24872)
+-- TOC entry 4844 (class 2606 OID 16630)
 -- Name: inscription inscription_id_employe_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1827,7 +1850,7 @@ ALTER TABLE ONLY public.inscription
 
 
 --
--- TOC entry 5017 (class 2606 OID 24902)
+-- TOC entry 4845 (class 2606 OID 16635)
 -- Name: inscription inscription_id_groupe_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1836,7 +1859,7 @@ ALTER TABLE ONLY public.inscription
 
 
 --
--- TOC entry 5018 (class 2606 OID 24882)
+-- TOC entry 4846 (class 2606 OID 16640)
 -- Name: inscription inscription_id_motivation_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1845,7 +1868,7 @@ ALTER TABLE ONLY public.inscription
 
 
 --
--- TOC entry 5019 (class 2606 OID 24887)
+-- TOC entry 4847 (class 2606 OID 16645)
 -- Name: inscription inscription_id_niveau_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1854,7 +1877,7 @@ ALTER TABLE ONLY public.inscription
 
 
 --
--- TOC entry 5020 (class 2606 OID 24877)
+-- TOC entry 4848 (class 2606 OID 16650)
 -- Name: inscription inscription_id_session_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1863,7 +1886,7 @@ ALTER TABLE ONLY public.inscription
 
 
 --
--- TOC entry 5021 (class 2606 OID 24934)
+-- TOC entry 4849 (class 2606 OID 16655)
 -- Name: presence presence_id_employe_saisie_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1872,7 +1895,7 @@ ALTER TABLE ONLY public.presence
 
 
 --
--- TOC entry 5022 (class 2606 OID 24929)
+-- TOC entry 4850 (class 2606 OID 16660)
 -- Name: presence presence_id_groupe_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1881,7 +1904,7 @@ ALTER TABLE ONLY public.presence
 
 
 --
--- TOC entry 5023 (class 2606 OID 24924)
+-- TOC entry 4851 (class 2606 OID 16665)
 -- Name: presence presence_id_inscription_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1890,7 +1913,7 @@ ALTER TABLE ONLY public.presence
 
 
 --
--- TOC entry 5009 (class 2606 OID 24799)
+-- TOC entry 4852 (class 2606 OID 16670)
 -- Name: professeur professeur_id_employe_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1899,7 +1922,7 @@ ALTER TABLE ONLY public.professeur
 
 
 --
--- TOC entry 5003 (class 2606 OID 16708)
+-- TOC entry 4853 (class 2606 OID 16675)
 -- Name: session session_id_type_cours_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1908,7 +1931,7 @@ ALTER TABLE ONLY public.session
 
 
 --
--- TOC entry 5004 (class 2606 OID 16713)
+-- TOC entry 4854 (class 2606 OID 16680)
 -- Name: test_niveau test_niveau_id_employe_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1917,7 +1940,7 @@ ALTER TABLE ONLY public.test_niveau
 
 
 --
--- TOC entry 5005 (class 2606 OID 16718)
+-- TOC entry 4855 (class 2606 OID 16685)
 -- Name: test_niveau test_niveau_id_type_cours_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1926,7 +1949,7 @@ ALTER TABLE ONLY public.test_niveau
 
 
 --
--- TOC entry 5006 (class 2606 OID 16723)
+-- TOC entry 4856 (class 2606 OID 16690)
 -- Name: type_cours type_cours_id_type_service_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1934,11 +1957,9 @@ ALTER TABLE ONLY public.type_cours
     ADD CONSTRAINT type_cours_id_type_service_fkey FOREIGN KEY (id_type_service) REFERENCES public.type_service(id) ON UPDATE CASCADE ON DELETE RESTRICT;
 
 
--- Completed on 2026-02-19 16:41:53
+-- Completed on 2026-03-02 06:11:46
 
 --
 -- PostgreSQL database dump complete
 --
-
-\unrestrict dThwCWxYIVwYXyetwNO9Lcct5K1im6Rrzm5d6ZQ3VLtqO3gG8WnXXXDXS9BuHyh
 

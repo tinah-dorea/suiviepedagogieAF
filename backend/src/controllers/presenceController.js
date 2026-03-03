@@ -192,10 +192,64 @@ const deletePresence = async (req, res) => {
     }
 };
 
+// Obtenir les présences par groupe
+const getPresencesByGroupe = async (req, res) => {
+    const { groupeId } = req.params;
+    try {
+        const result = await pool.query(`
+            SELECT p.*,
+                   i.id_apprenant,
+                   a.nom AS nom_apprenant,
+                   a.prenom AS prenom_apprenant,
+                   g.nom_groupe,
+                   e.nom AS nom_employe,
+                   e.prenom AS prenom_employe
+            FROM presence p
+            LEFT JOIN inscription i ON p.id_inscription = i.id
+            LEFT JOIN apprenant a ON i.id_apprenant = a.id
+            LEFT JOIN groupe g ON p.id_groupe = g.id
+            LEFT JOIN employe e ON p.id_employe_saisie = e.id
+            WHERE p.id_groupe = $1
+            ORDER BY p.date_saisie DESC
+        `, [groupeId]);
+        res.json(result.rows);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// Obtenir les présences par apprenant
+const getPresencesByApprenant = async (req, res) => {
+    const { apprenantId } = req.params;
+    try {
+        const result = await pool.query(`
+            SELECT p.*,
+                   i.id_apprenant,
+                   a.nom AS nom_apprenant,
+                   a.prenom AS prenom_apprenant,
+                   g.nom_groupe,
+                   e.nom AS nom_employe,
+                   e.prenom AS prenom_employe
+            FROM presence p
+            LEFT JOIN inscription i ON p.id_inscription = i.id
+            LEFT JOIN apprenant a ON i.id_apprenant = a.id
+            LEFT JOIN groupe g ON p.id_groupe = g.id
+            LEFT JOIN employe e ON p.id_employe_saisie = e.id
+            WHERE i.id_apprenant = $1
+            ORDER BY p.date_saisie DESC
+        `, [apprenantId]);
+        res.json(result.rows);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 export { 
     getAllPresences, 
     getPresenceById, 
     createPresence, 
     updatePresence, 
-    deletePresence
+    deletePresence,
+    getPresencesByGroupe,
+    getPresencesByApprenant
 };

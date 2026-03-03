@@ -26,33 +26,51 @@ const getTypeServiceById = async (req, res) => {
 
 // Créer un nouveau type de service
 const createTypeService = async (req, res) => {
-    const { nom_service } = req.body;
+    const { nom_service, libelle } = req.body;
+    
+    if (!nom_service || nom_service.trim() === '') {
+        return res.status(400).json({ message: 'Le nom du service est requis' });
+    }
+    
     try {
         const result = await pool.query(
-            'INSERT INTO type_service (nom_service) VALUES ($1) RETURNING *',
-            [nom_service]
+            'INSERT INTO type_service (nom_service, libelle) VALUES ($1, $2) RETURNING *',
+            [nom_service.trim(), libelle?.trim() || null]
         );
         res.status(201).json(result.rows[0]);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        if (error.code === '23505') { // Unique violation
+            res.status(400).json({ message: 'Un type de service avec ce nom existe déjà' });
+        } else {
+            res.status(500).json({ message: error.message });
+        }
     }
 };
 
 // Mettre à jour un type de service
 const updateTypeService = async (req, res) => {
     const { id } = req.params;
-    const { nom_service } = req.body;
+    const { nom_service, libelle } = req.body;
+    
+    if (!nom_service || nom_service.trim() === '') {
+        return res.status(400).json({ message: 'Le nom du service est requis' });
+    }
+    
     try {
         const result = await pool.query(
-            'UPDATE type_service SET nom_service = $1 WHERE id = $2 RETURNING *',
-            [nom_service, id]
+            'UPDATE type_service SET nom_service = $1, libelle = $2 WHERE id = $3 RETURNING *',
+            [nom_service.trim(), libelle?.trim() || null, id]
         );
         if (result.rows.length === 0) {
             return res.status(404).json({ message: 'Type de service non trouvé' });
         }
         res.json(result.rows[0]);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        if (error.code === '23505') { // Unique violation
+            res.status(400).json({ message: 'Un type de service avec ce nom existe déjà' });
+        } else {
+            res.status(500).json({ message: error.message });
+        }
     }
 };
 

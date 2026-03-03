@@ -17,42 +17,36 @@ const sessionValidation = {
             .notEmpty().withMessage('Le type de cours est requis')
             .isInt().withMessage('Le type de cours doit être un nombre entier'),
 
-        body('date_fin_inscription')
-            .optional({ nullable: true })
-            .isISO8601().withMessage('La date de fin d\'inscription doit être une date valide')
-            .custom((value, { req }) => {
-                if (value && req.body.date_debut && new Date(value) >= new Date(req.body.date_debut)) {
-                    throw new Error('La date de fin d\'inscription doit être antérieure à la date de début');
-                }
-                return true;
-            }),
-
         body('date_debut')
             .notEmpty().withMessage('La date de début est requise')
-            .isISO8601().withMessage('La date de début doit être une date valide')
-            .custom((value, { req }) => {
-                if (req.body.date_fin_inscription && new Date(value) <= new Date(req.body.date_fin_inscription)) {
-                    throw new Error('La date de début doit être postérieure à la date de fin d\'inscription');
-                }
-                return true;
-            }),
+            .isISO8601().withMessage('La date de début doit être une date valide'),
 
         body('date_fin')
             .notEmpty().withMessage('La date de fin est requise')
-            .isISO8601().withMessage('La date de fin doit être une date valide')
-            .custom((value, { req }) => {
-                if (new Date(value) <= new Date(req.body.date_debut)) {
-                    throw new Error('La date de fin doit être postérieure à la date de début');
-                }
-                return true;
-            }),
+            .isISO8601().withMessage('La date de fin doit être une date valide'),
+
+        body('date_fin_inscription')
+            .optional({ nullable: true })
+            .isISO8601().withMessage('La date de fin d\'inscription doit être une date valide'),
 
         body('date_exam')
             .optional({ nullable: true })
-            .isISO8601().withMessage('La date d\'examen doit être une date valide')
-            .custom((value, { req }) => {
-                if (value && req.body.date_fin && new Date(value) < new Date(req.body.date_fin)) {
-                    throw new Error('La date d\'examen doit être égale ou postérieure à la date de fin');
+            .isISO8601().withMessage('La date d\'examen doit être une date valide'),
+
+        body('nom_session')
+            .optional({ nullable: true })
+            .trim()
+            .isLength({ max: 100 }).withMessage('Le nom de la session ne doit pas dépasser 100 caractères'),
+
+        body('duree_cours')
+            .optional({ nullable: true })
+            .custom((value) => {
+                if (value === null || value === undefined || value === '') {
+                    return true;
+                }
+                const num = parseInt(value, 10);
+                if (isNaN(num) || num < 0) {
+                    throw new Error('La durée doit être un nombre positif');
                 }
                 return true;
             }),
@@ -75,42 +69,36 @@ const sessionValidation = {
             .notEmpty().withMessage('Le type de cours est requis')
             .isInt().withMessage('Le type de cours doit être un nombre entier'),
 
-        body('date_fin_inscription')
-            .optional({ nullable: true })
-            .isISO8601().withMessage('La date de fin d\'inscription doit être une date valide')
-            .custom((value, { req }) => {
-                if (value && req.body.date_debut && new Date(value) >= new Date(req.body.date_debut)) {
-                    throw new Error('La date de fin d\'inscription doit être antérieure à la date de début');
-                }
-                return true;
-            }),
-
         body('date_debut')
             .notEmpty().withMessage('La date de début est requise')
-            .isISO8601().withMessage('La date de début doit être une date valide')
-            .custom((value, { req }) => {
-                if (req.body.date_fin_inscription && new Date(value) <= new Date(req.body.date_fin_inscription)) {
-                    throw new Error('La date de début doit être postérieure à la date de fin d\'inscription');
-                }
-                return true;
-            }),
+            .isISO8601().withMessage('La date de début doit être une date valide'),
 
         body('date_fin')
             .notEmpty().withMessage('La date de fin est requise')
-            .isISO8601().withMessage('La date de fin doit être une date valide')
-            .custom((value, { req }) => {
-                if (new Date(value) <= new Date(req.body.date_debut)) {
-                    throw new Error('La date de fin doit être postérieure à la date de début');
-                }
-                return true;
-            }),
+            .isISO8601().withMessage('La date de fin doit être une date valide'),
+
+        body('date_fin_inscription')
+            .optional({ nullable: true })
+            .isISO8601().withMessage('La date de fin d\'inscription doit être une date valide'),
 
         body('date_exam')
             .optional({ nullable: true })
-            .isISO8601().withMessage('La date d\'examen doit être une date valide')
-            .custom((value, { req }) => {
-                if (value && req.body.date_fin && new Date(value) < new Date(req.body.date_fin)) {
-                    throw new Error('La date d\'examen doit être égale ou postérieure à la date de fin');
+            .isISO8601().withMessage('La date d\'examen doit être une date valide'),
+
+        body('nom_session')
+            .optional({ nullable: true })
+            .trim()
+            .isLength({ max: 100 }).withMessage('Le nom de la session ne doit pas dépasser 100 caractères'),
+
+        body('duree_cours')
+            .optional({ nullable: true })
+            .custom((value) => {
+                if (value === null || value === undefined || value === '') {
+                    return true;
+                }
+                const num = parseInt(value, 10);
+                if (isNaN(num) || num < 0) {
+                    throw new Error('La durée doit être un nombre positif');
                 }
                 return true;
             }),

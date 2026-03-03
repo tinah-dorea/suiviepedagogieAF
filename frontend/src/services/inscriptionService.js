@@ -55,6 +55,11 @@ const inscriptionService = {
       throw error;
     }
   },
+
+  // Alias for delete method
+  remove: async (id) => {
+    return this.delete(id);
+  },
   
   // Récupérer les inscriptions par email (pour les apprenants)
   getByEmail: async (email) => {
@@ -63,6 +68,17 @@ const inscriptionService = {
       return response.data;
     } catch (error) {
       console.error('Erreur lors de la récupération des inscriptions par email:', error);
+      throw error;
+    }
+  },
+
+  // Récupérer les apprenants d'un groupe
+  getApprenantsByGroupe: async (groupeId) => {
+    try {
+      const response = await api.get(`/inscriptions/groupe/${groupeId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Erreur lors de la récupération des apprenants du groupe:', error);
       throw error;
     }
   }

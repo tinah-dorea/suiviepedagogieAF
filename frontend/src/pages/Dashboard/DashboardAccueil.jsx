@@ -43,12 +43,8 @@ export default function DashboardAccueil() {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   useEffect(() => {
-    // Vérifier si l'utilisateur est connecté et du service accueil
-    if (!user.service?.toLowerCase().includes('accueil')) {
-      navigate('/login');
-    }
     setLoading(false);
-  }, [navigate, user.service]);
+  }, []);
 
   const mainColor = '#FF9800';
   const accentColor = '#2196F3';

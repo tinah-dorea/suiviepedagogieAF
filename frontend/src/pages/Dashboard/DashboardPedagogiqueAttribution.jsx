@@ -204,7 +204,7 @@ const DashboardPedagogiqueAttribution = () => {
 
   return (
     <div className="px-4 py-6">
-      <h1 className="text-2xl font-bold mb-6">Attribution Professeur/Salle</h1>
+      <h1 className="text-2xl font-bold mb-6">Attribution Salle</h1>
       
       {/* Filters */}
       <div className="bg-white p-4 rounded-lg shadow mb-6">

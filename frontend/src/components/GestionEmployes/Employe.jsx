@@ -168,7 +168,8 @@ const Employe = () => {
                 <p className="text-red-500 bg-red-100 p-3 rounded mb-4">{error}</p>
             ) : (
                 <div className="bg-white rounded-xl shadow-md overflow-hidden">
-                    <table className="w-full">
+                    <div className="overflow-x-auto">
+                        <table className="w-full">
                         <thead className="bg-gray-50">
                             <tr>
                                 <th className="text-left py-3 px-4">Utilisateur</th>
@@ -206,6 +207,7 @@ const Employe = () => {
                             ))}
                         </tbody>
                     </table>
+                    </div>
                 </div>
             )}
 
