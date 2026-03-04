@@ -37,6 +37,8 @@ import VoirCours from '../pages/Dashboard/VoirCours';
 import ConsulterAttributs from '../pages/Dashboard/ConsulterAttributs';
 import Presence from '../pages/Dashboard/Presence';
 import ConsultationCours from '../pages/ConsultationCours';
+import MesCours from '../pages/Dashboard/MesCours';
+import Absence from '../pages/Dashboard/Absence';
 import { isServiceAllowed, getServiceRoute } from '../utils/auth';
 import HomePage from '../pages/HomePage';
 
@@ -384,6 +386,22 @@ const router = createBrowserRouter([
         ),
       },
     ],
+  },
+  {
+    path: "/mes-cours",
+    element: (
+      <ProtectedRoute allowedServices={['apprenants']}>
+        <MesCours />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/ma-presence",
+    element: (
+      <ProtectedRoute allowedServices={['apprenants']}>
+        <Absence />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/dashboard-accueil",

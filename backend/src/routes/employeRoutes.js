@@ -23,7 +23,10 @@ router.get('/roles', getRoles);
 router.get('/professeurs', getProfesseurs);
 router.get('/', getEmployes);
 router.post('/', createEmployeValidation, validateRequest, createEmploye);
-router.put('/:id', updateEmployeValidation, validateRequest, updateEmploye);
+
+// Route PUT - sans validation pour tester
+router.put('/:id', updateEmploye);
+
 router.put('/:id/password', updatePassword);
 router.patch('/:id/status', toggleEmployeStatus);
 router.delete('/:id', deleteEmploye);

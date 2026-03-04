@@ -40,14 +40,14 @@ const getSessionDetailPublic = async (req, res) => {
 
         const session = sessionResult.rows[0];
 
-        // Get horaires_cours by id_session (direct link to session)
+        // Get horaires_cours by matching id_type_cours
         const horairesResult = await pool.query(`
             SELECT hc.*, c.nom_categorie
             FROM horaire_cours hc
             LEFT JOIN categorie c ON hc.id_categorie = c.id
-            WHERE hc.id_session = $1
+            WHERE hc.id_type_cours = $1
             ORDER BY hc.id ASC
-        `, [id]);
+        `, [session.id_type_cours]);
 
         const horaires = horairesResult.rows;
 

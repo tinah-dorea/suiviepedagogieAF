@@ -16,16 +16,12 @@ const getRoles = async () => {
 };
 
 const createEmploye = async (data) => {
-    console.log('[professeurService] createEmploye - Données:', data);
     const response = await api.post('/employes', data);
-    console.log('[professeurService] createEmploye - Réponse:', response);
     return response;
 };
 
 const updateEmploye = async (id, data) => {
-    console.log('[professeurService] updateEmploye - ID:', id, 'Données:', data);
     const response = await api.put(`/employes/${id}`, data);
-    console.log('[professeurService] updateEmploye - Réponse:', response);
     return response;
 };
 

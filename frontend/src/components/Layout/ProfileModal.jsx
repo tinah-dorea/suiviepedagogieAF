@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { updateEmploye } from '../../services/employeService';
+import apprenantService from '../../services/apprenantService';
 import api from '../../services/api';
 
 export default function ProfileModal({ isOpen, onClose }) {
@@ -23,7 +24,7 @@ export default function ProfileModal({ isOpen, onClose }) {
   const [editingPassword, setEditingPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
-  const [messageType, setMessageType] = useState(''); // 'success' ou 'error'
+  const [messageType, setMessageType] = useState('');
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -78,8 +79,15 @@ export default function ProfileModal({ isOpen, onClose }) {
       }
 
       const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
-      const updatedData = await updateEmploye(storedUser.id, userData);
-      
+      let updatedData;
+
+      // Use appropriate service based on user type
+      if (storedUser.service === 'apprenants') {
+        updatedData = await apprenantService.update(storedUser.id, userData);
+      } else {
+        updatedData = await updateEmploye(storedUser.id, userData);
+      }
+
       // Update the local storage with new data
       const updatedUser = { ...storedUser, ...updatedData };
       localStorage.setItem('user', JSON.stringify(updatedUser));
@@ -87,7 +95,7 @@ export default function ProfileModal({ isOpen, onClose }) {
       setMessage('✓ Profil mis à jour avec succès!');
       setMessageType('success');
       setEditing(false);
-      
+
       // Auto-clear success message after 3 seconds
       setTimeout(() => setMessage(''), 3000);
     } catch (err) {
@@ -145,9 +153,14 @@ export default function ProfileModal({ isOpen, onClose }) {
       }
 
       const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
-      
+
+      // Determine endpoint based on user type
+      const endpoint = storedUser.service === 'apprenants'
+        ? `/apprenants/${storedUser.id}/password`
+        : `/employes/${storedUser.id}/password`;
+
       // Call API to update password
-      await api.put(`/employes/${storedUser.id}/password`, {
+      await api.put(endpoint, {
         current_password: passwordData.current_password,
         new_password: passwordData.new_password
       });

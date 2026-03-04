@@ -6,7 +6,6 @@ import {
   AcademicCapIcon,
   CalendarIcon,
   CogIcon,
-  UserCircleIcon,
   HomeIcon,
   BookOpenIcon,
   PresentationChartLineIcon,
@@ -15,7 +14,7 @@ import {
   ChevronDownIcon,
   ChevronUpIcon
 } from '@heroicons/react/24/outline';
-import { Link, useLocation, Outlet, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import ProfileModal from './ProfileModal';
 
 export default function DashboardLayout({ 
@@ -181,35 +180,23 @@ export default function DashboardLayout({
       }
     ],
     apprenant: [
-      { 
-        name: "Tableau de bord", 
-        path: "/dashboard-apprenant", 
+      {
+        name: "Tableau de bord",
+        path: "/dashboard-apprenant",
         icon: HomeIcon,
         activePaths: ["/dashboard-apprenant"]
       },
-      { 
-        name: "Mes Cours", 
-        path: "/mes-cours", 
+      {
+        name: "Mes Cours",
+        path: "/mes-cours",
         icon: BookOpenIcon,
         activePaths: ["/mes-cours", "/cours"]
       },
-      { 
-        name: "Mon Planning", 
-        path: "/mon-planning", 
-        icon: CalendarIcon,
-        activePaths: ["/mon-planning", "/planning"]
-      },
-      { 
-        name: "Ma Présence", 
-        path: "/ma-presence", 
+      {
+        name: "Absence",
+        path: "/ma-presence",
         icon: ClipboardDocumentCheckIcon,
         activePaths: ["/ma-presence", "/presence"]
-      },
-      { 
-        name: "Profil", 
-        path: "/profile", 
-        icon: UserCircleIcon,
-        activePaths: ["/profile"]
       }
     ]
   };
@@ -478,42 +465,56 @@ export default function DashboardLayout({
             <h1 className="text-lg sm:text-xl font-semibold truncate max-w-[50vw]" style={{ color: primaryColor }}>{title}</h1>
           </div>
           <div className="flex items-center space-x-4">
-            {/* Bouton du profil utilisateur */}
-            <div className="relative">
+            {/* Bouton du profil utilisateur - masqué pour les apprenants */}
+            {userType !== 'apprenant' && (
+              <div className="relative">
+                <button
+                  onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+                  className="flex items-center space-x-2 text-gray-500 hover:text-gray-700"
+                >
+                  <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-sm font-bold" style={{ color: primaryColor }}>
+                    {user.prenom?.charAt(0)}{user.nom?.charAt(0)}
+                  </div>
+                  <span className="hidden sm:block">{user.prenom} {user.nom}</span>
+                </button>
+
+                {/* Dropdown du profil */}
+                {profileDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50" style={{ boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)' }}>
+                    <button
+                      onClick={() => {
+                        setProfileModalOpen(true);
+                        setProfileDropdownOpen(false);
+                      }}
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      Mon Profil
+                    </button>
+                    <button
+                      onClick={() => {
+                        handleLogout();
+                        setProfileDropdownOpen(false);
+                      }}
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      Déconnexion
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+            {/* Bouton déconnexion pour apprenants */}
+            {userType === 'apprenant' && (
               <button
-                onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-                className="flex items-center space-x-2 text-gray-500 hover:text-gray-700"
+                onClick={handleLogout}
+                className="flex items-center space-x-2 text-gray-500 hover:text-red-600 transition-colors"
+                title="Déconnexion"
               >
-                <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-sm font-bold" style={{ color: primaryColor }}>
-                  {user.prenom?.charAt(0)}{user.nom?.charAt(0)}
-                </div>
-                <span className="hidden sm:block">{user.prenom} {user.nom}</span>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
               </button>
-              
-              {/* Dropdown du profil */}
-              {profileDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50" style={{ boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)' }}>
-                  <button
-                    onClick={() => {
-                      setProfileModalOpen(true);
-                      setProfileDropdownOpen(false);
-                    }}
-                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  >
-                    Mon Profil
-                  </button>
-                  <button
-                    onClick={() => {
-                      handleLogout();
-                      setProfileDropdownOpen(false);
-                    }}
-                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  >
-                    Déconnexion
-                  </button>
-                </div>
-              )}
-            </div>
+            )}
           </div>
         </header>
 

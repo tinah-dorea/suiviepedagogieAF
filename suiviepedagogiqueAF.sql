@@ -5,7 +5,7 @@
 -- Dumped from database version 17.5
 -- Dumped by pg_dump version 17.5
 
--- Started on 2026-03-03 21:03:13
+-- Started on 2026-03-04 05:20:56
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -1037,13 +1037,13 @@ COPY public.a_propos (id, nom_etablissement, tel, email, adresse, heure_ouvertur
 
 COPY public.apprenant (id, nom, prenom, date_n, sexe, adresse, tel, email, nationalite, lieu_n, etablissement, niveau_scolaire, date_premiere_inscription, statut, mot_passe) FROM stdin;
 2	MIARILAZA	Juditch	2003-04-30	Femme	Antanimasatsa	0324442269	juditch@gmail.com	Malagasy	Mahajanga	Saint Gabriel	L3	2026-02-17	actif	$2b$10$LtSGA842bjqnSQ9MyIexc.n24M19kZ5lq3905WiVxJ91JtGE4aJEC
+9	Ba	Aïssatou	2004-09-17	Homme	Quartier Escale	775678901	aissatou.ba@example.com	malagasy	Kaolack	CEM Ndoffane	4ème	2026-03-03	actif	$2b$10$XYZhash123
 1	tinah	dorea	2004-10-05	F	Sotema	0325896471	dorea@gmail.com	Malagasy	Mahajanga	Saint Gabriel	L3	2026-02-17	actif	$2b$10$LtSGA842bjqnSQ9MyIexc.n24M19kZ5lq3905WiVxJ91JtGE4aJEC
 3	tinah	dorea	2004-05-01	F	Sotema	0325896472				Saint Gabriel	L3	2026-02-17	actif	$2b$10$LtSGA842bjqnSQ9MyIexc.n24M19kZ5lq3905WiVxJ91JtGE4aJEC
 5	Mendy	Aminata	2005-03-15	Femme	Rue 12, Parcelles Assainies	771234567	aminata.mendy@example.com	malagasy	Dakar	Lycée Blaise Diagne	Terminale	2026-03-03	actif	$2b$10$XYZhash123
 6	Diop	Moussa	2004-07-22	Homme	Avenue 10, Grand Dakar	772345678	moussa.diop@example.com	malagasy	Thiès	CEM Liberté	3ème	2026-03-03	actif	$2b$10$XYZhash123
 7	Fall	Fatou	2006-01-10	Femme	Rue 5, Médina	773456789	fatou.fall@example.com	malagasy	Rufisque	Lycée Seydina Limamou Laye	2nde	2026-03-03	actif	$2b$10$XYZhash123
 8	Ndiaye	Cheikh	2005-11-05	Homme	Cité 1000 logements	774567890	cheikh.ndiaye@example.com	malagasy	Saint-Louis	Lycée Ameth Fall	1ère	2026-03-03	actif	$2b$10$XYZhash123
-9	Ba	Aïssatou	2004-09-18	Femme	Quartier Escale	775678901	aissatou.ba@example.com	malagasy	Kaolack	CEM Ndoffane	4ème	2026-03-03	actif	$2b$10$XYZhash123
 10	Sow	Ibrahima	2006-05-30	Homme	Rue 15, HLM	776789012	ibrahima.sow@example.com	malagasy	Ziguinchor	Lycée Djignabo	2nde	2026-03-03	actif	$2b$10$XYZhash123
 11	Diallo	Mariama 	2005-08-12	Femme	Avenue 3, Point E	777890123	mariama.diallo@example.com	malagasy	Tambacounda	CEM Gueule Tapée	3ème	2026-03-03	actif	$2b$10$XYZhash123
 12	Gueye	Ousmane	2004-12-25	Homme	Rue 8, Fass	778901234	ousmane.gueye@example.com	malagasy	Mbour	Lycée Malick Sy	Terminale	2026-03-03	actif	$2b$10$XYZhash123
@@ -1099,6 +1099,7 @@ COPY public.apprenant (id, nom, prenom, date_n, sexe, adresse, tel, email, natio
 --
 
 COPY public.attribution_salle (id, id_groupe, date_cours, id_salle) FROM stdin;
+2	3	2026-03-03	6
 \.
 
 
@@ -1137,11 +1138,11 @@ COPY public.creneau (id, id_horaire_cours, jour_semaine, heure_debut, heure_fin)
 
 COPY public.employe (id, nom, prenom, age, adresse, tel, mot_passe, date_creation, email, is_active, deactivated_at, deactivated_by, role) FROM stdin;
 3	tina	dorea	30	Sotema	0341234567	$2b$10$04NbXg9BoiTBAs7HGhlqoui7onox9BMakWrjyJpTFQRVfpkiWzBAa	2025-11-04 17:32:55.930466	tinahdorea@gmail.com	t	\N	\N	Admin
-2	Tokys	jerrys	25	Sotema	0325896471	$2b$10$04NbXg9BoiTBAs7HGhlqoui7onox9BMakWrjyJpTFQRVfpkiWzBAa	2025-10-25 16:44:31.615915	toky@gmail.com	t	\N	\N	Admin
-6	IRATA	Andry Nandrandraiana	25	Sotema	0321654987	$2b$10$6JTwrgNE0H4KK3zIBIFhVeNDlAYYSVqC2bapc035rWi4ofsQrqetC	2026-02-28 10:34:46.792388	irata@gmail.com	t	\N	\N	Professeurs
 4	toky	jerrys	23	sotema	0325689741	$2b$10$6JTwrgNE0H4KK3zIBIFhVeNDlAYYSVqC2bapc035rWi4ofsQrqetC	2025-12-12 16:41:52.876033	jerrys@gmail.com	t	\N	\N	Professeurs
-1	tinah	dorea	21	Sotema	0324442269	$2b$10$yvkY1oRfuxVNvrGz10tEP.YCaL5vHThrVhBfqsF3/ad9tA/dfIu6a	2025-10-24 17:36:44.301241	tdorea@gmail.com	t	\N	\N	Pédagogie
 5	Shania	Amara	21	Mahabibo	0325869855	$2b$10$6JTwrgNE0H4KK3zIBIFhVeNDlAYYSVqC2bapc035rWi4ofsQrqetC	2026-01-10 01:54:58.034594	shania@gmail.com	t	\N	\N	Professeurs
+2	HERITINA	Dorea	25	Sotema	0325896471	$2b$10$3Qk1oJLWa2gfbKNlVcdonObc.3a1YWKC2oewMjlMR3wPtTsjvYKQa	2025-10-25 16:44:31.615915	tdorea@gmail.com	t	\N	\N	Pédagogie
+6	IRATA	Andry Nandrandraiana	25	Sotema	0321654987	$2b$10$6JTwrgNE0H4KK3zIBIFhVeNDlAYYSVqC2bapc035rWi4ofsQrqetC	2026-02-28 10:34:46.792388	irata@gmail.com	t	\N	\N	Professeurs
+1	toky	jerrys	22	Antanimasatsa	0325689741	$2b$10$vfIXTqyX2jfjUkc3L75L0OvDLrgmhDp1R6q5oUmnWIToGht0LAJwq	2025-10-24 17:36:44.301241	tokyjerrys@gmail.com	t	\N	\N	Pédagogie
 \.
 
 
@@ -1178,12 +1179,12 @@ COPY public.groupe (id, nom_groupe, id_professeur, date_creation, id_creneau) FR
 --
 
 COPY public.horaire_cours (id, id_niveau, id_categorie, duree_heures, duree_semaines, id_type_cours) FROM stdin;
-4	{6,7,8,9,10}	4	30	2	2
 5	{2,3,4,12,5,11,13,1}	4	30	5	3
-7	{1,2,3,4,5,11,12,13}	2	30	5	8
 3	{1,2,3,4,5,11,12,13}	4	30	2	2
 8	{1,4,2,3,11,5,12,13}	4	24	4	4
 6	{10,9,8,7,6}	4	30	5	3
+4	{6,7,8,9,10,21,22,23}	4	30	2	2
+7	{1,2,3,4,5,11,12,13}	2	30	5	8
 \.
 
 
@@ -1206,8 +1207,9 @@ COPY public.inscription (id, id_apprenant, id_employe, id_session, id_motivation
 6	34	\N	20	\N	5689	\N	inscription	2026-03-03 10:01:21.799638	3	4	1	2	\N	\N
 3	33	\N	20	\N	2056	\N	inscription	2026-03-03 05:59:05.333021	1	4	1	\N	\N	\N
 13	2	\N	13	1	2036	\N	inscription	2026-03-03 10:24:31.968161	21	4	2	\N	\N	\N
-14	50	\N	13	2	2356	\N	inscription	2026-03-03 17:29:19.322417	13	4	1	\N	\N	\N
-15	9	\N	13	1	2356	\N	inscription	2026-03-03 17:30:43.615703	11	\N	1	\N	\N	\N
+14	50	\N	13	2	2356	\N	inscription	2026-03-03 17:29:19.322417	13	4	1	4	\N	\N
+15	9	\N	13	1	2356	\N	inscription	2026-03-03 17:30:43.615703	11	4	1	2	\N	\N
+16	20	\N	13	1	2563	\N	inscription	2026-03-03 21:31:45.827599	13	4	1	2	\N	\N
 \.
 
 
@@ -1253,6 +1255,7 @@ COPY public.niveau (id, nom_niveau, sous_niveau) FROM stdin;
 20	C1	1
 21	B1	1
 22	B1	2
+23	B1	3
 \.
 
 
@@ -1263,6 +1266,7 @@ COPY public.niveau (id, nom_niveau, sous_niveau) FROM stdin;
 --
 
 COPY public.presence (id, id_inscription, id_groupe, date_cours, est_present, remarque, id_employe_saisie, date_saisie) FROM stdin;
+1	15	2	2026-03-03	f	Absent	5	2026-03-04 00:44:42.402844
 \.
 
 
@@ -1303,11 +1307,9 @@ COPY public.salle (id, nom_salle, capacite_max) FROM stdin;
 --
 
 COPY public.session (id, mois, annee, id_type_cours, date_fin_inscription, date_debut, date_fin, date_exam, nom_session, duree_cours) FROM stdin;
-7	Avril	2026	1	2026-04-04	2026-04-09	2026-06-14	2026-06-19	\N	0
 12	février	2026	1	2026-01-31	2026-02-02	2026-02-27	2026-02-27	session fevrier	0
 8	juillet	2026	\N	2026-06-30	2026-07-04	2026-08-19	2026-08-24	\N	30
 10	janvier	2027	3	2027-01-08	2027-01-13	2027-03-23	2027-03-28	\N	30
-11	avril	2027	2	2027-03-30	2027-04-03	2027-06-08	2027-06-13	\N	30
 1	octobre	2025	2	2025-10-27	2025-11-03	2025-11-14	\N	session Octobre Cours Intensifs	30
 3	mars	2025	2	2025-03-15	2025-03-25	2025-04-07	\N	session mars Cours Intensifs	30
 2	janvier	2025	2	2025-01-20	2025-01-27	2025-02-07	\N	session janvier Cours Intensifs	30
@@ -1319,10 +1321,11 @@ COPY public.session (id, mois, annee, id_type_cours, date_fin_inscription, date_
 18	juillet	2025	2	2025-07-21	2025-07-28	2025-08-08	\N	session juillet Cours Intensifs	30
 19	août	2025	2	2025-08-18	2025-08-25	2025-09-15	\N	session août Cours Intensifs	30
 20	septembre	2025	2	2025-09-22	2025-09-29	2025-10-17	\N	session septembre Cours Intensifs	30
-9	octobre	2026	\N	2026-09-24	2026-09-30	2026-12-14	2026-12-19	\N	30
-6	janvier	2026	\N	2026-01-14	2026-01-19	2026-03-19	2026-03-24	\N	30
 21	novembre	2025	4	2025-10-10	2025-10-19	2025-11-12	2025-11-17	session novembre Prepa TP	24
 13	février	2026	2	2026-02-15	2026-02-22	2026-03-05	\N	session février cours intensif	30
+7	Avril	2026	1	2026-04-03	2026-04-08	2026-06-13	2026-06-18		30
+6	janvier	2026	1	2026-01-13	2026-01-18	2026-03-18	2026-03-23		30
+9	octobre	2024	1	2026-09-22	2026-09-28	2026-12-12	2026-12-17		30
 \.
 
 
@@ -1389,7 +1392,7 @@ SELECT pg_catalog.setval('public.apprenant_id_seq', 54, true);
 -- Name: attribution_salle_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.attribution_salle_id_seq', 1, false);
+SELECT pg_catalog.setval('public.attribution_salle_id_seq', 2, true);
 
 
 --
@@ -1452,7 +1455,7 @@ SELECT pg_catalog.setval('public.horaire_cours_id_seq', 8, true);
 -- Name: inscription_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.inscription_id_seq', 15, true);
+SELECT pg_catalog.setval('public.inscription_id_seq', 16, true);
 
 
 --
@@ -1470,7 +1473,7 @@ SELECT pg_catalog.setval('public.motivation_id_seq', 12, true);
 -- Name: niveau_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.niveau_id_seq', 22, true);
+SELECT pg_catalog.setval('public.niveau_id_seq', 23, true);
 
 
 --
@@ -1479,7 +1482,7 @@ SELECT pg_catalog.setval('public.niveau_id_seq', 22, true);
 -- Name: presence_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.presence_id_seq', 1, false);
+SELECT pg_catalog.setval('public.presence_id_seq', 1, true);
 
 
 --
@@ -1533,7 +1536,7 @@ SELECT pg_catalog.setval('public.type_cours_id_seq', 9, true);
 -- Name: type_service_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.type_service_id_seq', 15, true);
+SELECT pg_catalog.setval('public.type_service_id_seq', 16, true);
 
 
 --
@@ -2046,7 +2049,7 @@ ALTER TABLE ONLY public.type_cours
     ADD CONSTRAINT type_cours_id_type_service_fkey FOREIGN KEY (id_type_service) REFERENCES public.type_service(id) ON UPDATE CASCADE ON DELETE RESTRICT;
 
 
--- Completed on 2026-03-03 21:03:14
+-- Completed on 2026-03-04 05:20:57
 
 --
 -- PostgreSQL database dump complete

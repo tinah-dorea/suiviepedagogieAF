@@ -32,4 +32,7 @@ router.put(
 // Route pour supprimer un apprenant
 router.delete('/:id', authenticateToken, apprenantController.deleteApprenant);
 
+// Route pour mettre à jour le mot de passe d'un apprenant
+router.put('/:id/password', authenticateToken, apprenantController.updatePassword);
+
 export default router;

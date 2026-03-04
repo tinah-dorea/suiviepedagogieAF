@@ -216,13 +216,60 @@ const deleteApprenant = async (req, res) => {
   }
 };
 
+// Mettre à jour le mot de passe d'un apprenant
+const updatePassword = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { current_password, new_password } = req.body;
+
+    if (!current_password || !new_password) {
+      return res.status(400).json({ message: 'Le mot de passe actuel et le nouveau mot de passe sont requis' });
+    }
+
+    if (new_password.length < 6) {
+      return res.status(400).json({ message: 'Le mot de passe doit contenir au moins 6 caractères' });
+    }
+
+    // Récupérer l'apprenant pour vérifier le mot de passe actuel
+    const selectQuery = 'SELECT mot_passe FROM apprenant WHERE id = $1';
+    const result = await pool.query(selectQuery, [id]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Apprenant non trouvé' });
+    }
+
+    const apprenant = result.rows[0];
+
+    // Vérifier le mot de passe actuel
+    const bcrypt = await import('bcrypt');
+    const passwordMatch = await bcrypt.default.compare(current_password, apprenant.mot_passe);
+
+    if (!passwordMatch) {
+      return res.status(401).json({ message: 'Mot de passe actuel incorrect' });
+    }
+
+    // Hacher le nouveau mot de passe
+    const hashedPassword = await bcrypt.default.hash(new_password, 10);
+
+    // Mettre à jour le mot de passe
+    const updateQuery = 'UPDATE apprenant SET mot_passe = $1 WHERE id = $2 RETURNING *';
+    const updateResult = await pool.query(updateQuery, [hashedPassword, id]);
+
+    res.json({ message: 'Mot de passe mis à jour avec succès' });
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour du mot de passe:', error);
+    res.status(500).json({ message: 'Erreur serveur lors de la mise à jour du mot de passe' });
+  }
+};
+
 export {
   getAllApprenants,
   searchApprenants,
   getApprenantById,
   createApprenant,
   updateApprenant,
-  deleteApprenant
+  deleteApprenant,
+  updatePassword
 };
 
 export default {
@@ -231,5 +278,6 @@ export default {
   getApprenantById,
   createApprenant,
   updateApprenant,
-  deleteApprenant
+  deleteApprenant,
+  updatePassword
 };
