@@ -244,12 +244,132 @@ const getPresencesByApprenant = async (req, res) => {
     }
 };
 
-export { 
-    getAllPresences, 
-    getPresenceById, 
-    createPresence, 
-    updatePresence, 
+// Obtenir les présences/absences par professeur (id_employe_saisie)
+const getPresencesByProfesseur = async (req, res) => {
+    const { employeId } = req.params;
+    try {
+        const result = await pool.query(`
+            SELECT p.*,
+                   i.id_apprenant,
+                   a.nom AS nom_apprenant,
+                   a.prenom AS prenom_apprenant,
+                   g.nom_groupe,
+                   s.nom_session,
+                   e.nom AS nom_employe_saisie,
+                   e.prenom AS prenom_employe_saisie
+            FROM presence p
+            LEFT JOIN inscription i ON p.id_inscription = i.id
+            LEFT JOIN apprenant a ON i.id_apprenant = a.id
+            LEFT JOIN groupe g ON p.id_groupe = g.id
+            LEFT JOIN session s ON i.id_session = s.id
+            LEFT JOIN employe e ON p.id_employe_saisie = e.id
+            WHERE p.id_employe_saisie = $1
+            ORDER BY p.date_saisie DESC
+        `, [employeId]);
+        res.json(result.rows);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// Enregistrer les présences en batch (plusieurs à la fois)
+const createPresenceBatch = async (req, res) => {
+    const presencesData = req.body;
+
+    if (!Array.isArray(presencesData) || presencesData.length === 0) {
+        return res.status(400).json({ message: 'Les données doivent être un tableau non vide' });
+    }
+
+    try {
+        const client = await pool.connect();
+        const results = [];
+
+        try {
+            await client.query('BEGIN');
+
+            for (const presenceData of presencesData) {
+                const {
+                    id_inscription,
+                    id_groupe,
+                    date_cours,
+                    est_present,
+                    remarque,
+                    id_employe_saisie
+                } = presenceData;
+
+                if (!id_inscription || !id_groupe || !date_cours) {
+                    await client.query('ROLLBACK');
+                    return res.status(400).json({ message: 'id_inscription, id_groupe et date_cours sont requis pour chaque présence' });
+                }
+
+                // Vérifier s'il existe déjà une présence pour cette combinaison
+                const existingPresence = await client.query(
+                    'SELECT id FROM presence WHERE id_inscription = $1 AND date_cours = $2',
+                    [id_inscription, date_cours]
+                );
+
+                if (existingPresence.rows.length > 0) {
+                    // Mettre à jour la présence existante
+                    const result = await client.query(
+                        `UPDATE presence SET
+                            est_present = $1,
+                            remarque = $2,
+                            id_employe_saisie = COALESCE($3, id_employe_saisie)
+                        WHERE id_inscription = $4 AND date_cours = $5 RETURNING *`,
+                        [
+                            est_present !== undefined ? est_present : true,
+                            remarque || null,
+                            id_employe_saisie || null,
+                            id_inscription,
+                            date_cours
+                        ]
+                    );
+                    results.push(result.rows[0]);
+                } else {
+                    // Créer une nouvelle présence
+                    const result = await client.query(
+                        `INSERT INTO presence (
+                            id_inscription,
+                            id_groupe,
+                            date_cours,
+                            est_present,
+                            remarque,
+                            id_employe_saisie
+                        ) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+                        [
+                            id_inscription,
+                            id_groupe,
+                            date_cours,
+                            est_present !== undefined ? est_present : true,
+                            remarque || null,
+                            id_employe_saisie || null
+                        ]
+                    );
+                    results.push(result.rows[0]);
+                }
+            }
+
+            await client.query('COMMIT');
+            res.status(201).json(results);
+        } catch (error) {
+            await client.query('ROLLBACK');
+            throw error;
+        } finally {
+            client.release();
+        }
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export {
+    getAllPresences,
+    getPresenceById,
+    createPresence,
+    updatePresence,
     deletePresence,
     getPresencesByGroupe,
-    getPresencesByApprenant
+    getPresencesByApprenant,
+    getPresencesByProfesseur,
+    createPresenceBatch
 };

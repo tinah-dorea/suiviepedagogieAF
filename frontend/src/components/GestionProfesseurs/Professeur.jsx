@@ -188,26 +188,33 @@ const Professeur = () => {
 
     try {
       const payload = sanitizePayload(formData);
-
+      console.log('[Professeur] Payload envoyé:', payload);
 
       if (modalMode === 'edit') {
         if (!payload.mot_passe) {
           delete payload.mot_passe;
         }
-        await professeurService.updateEmploye(currentProfesseur.id, payload);
+        console.log('[Professeur] Modification du professeur ID:', currentProfesseur.id);
+        const response = await professeurService.updateEmploye(currentProfesseur.id, payload);
+        console.log('[Professeur] Réponse modification:', response);
         toast.success('Professeur modifié avec succès');
       } else {
         if (!payload.mot_passe) {
           throw new Error("Un mot de passe est requis pour créer un professeur.");
         }
-        await professeurService.createEmploye(payload);
+        console.log('[Professeur] Création du professeur');
+        const response = await professeurService.createEmploye(payload);
+        console.log('[Professeur] Réponse création:', response);
         toast.success('Professeur créé avec succès');
       }
 
+      console.log('[Professeur] Rafraîchissement de la liste...');
       await refreshProfesseurs();
+      console.log('[Professeur] Fermeture du modal...');
       closeModal();
     } catch (err) {
-      console.error('Erreur lors de la soumission:', err);
+      console.error('[Professeur] Erreur lors de la soumission:', err);
+      console.error('[Professeur] Détails erreur:', err.response?.data);
       setError(err.response?.data?.message || err.message || "Une erreur est survenue.");
       toast.error(err.response?.data?.message || err.message || "Une erreur est survenue.");
     } finally {

@@ -508,21 +508,48 @@ const getInscriptionsByGroupe = async (req, res) => {
             WHERE i.id_groupe = $1
             ORDER BY a.nom, a.prenom
         `, [groupeId]);
-        
+
         res.json(result.rows);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
 
-export { 
-    getAllInscriptions, 
-    getInscriptionById, 
-    createInscription, 
-    updateInscription, 
+// Obtenir les inscriptions par session et groupe
+const getInscriptionsBySessionAndGroupe = async (req, res) => {
+    const { sessionId, groupeId } = req.params;
+    try {
+        const result = await pool.query(`
+            SELECT i.*,
+                   a.nom AS nom_apprenant,
+                   a.prenom AS prenom_apprenant,
+                   a.email AS email_apprenant,
+                   a.tel AS tel_apprenant,
+                   g.nom_groupe,
+                   s.nom_session
+            FROM inscription i
+            LEFT JOIN apprenant a ON i.id_apprenant = a.id
+            LEFT JOIN groupe g ON i.id_groupe = g.id
+            LEFT JOIN session s ON i.id_session = s.id
+            WHERE i.id_session = $1 AND i.id_groupe = $2
+            ORDER BY a.nom, a.prenom
+        `, [sessionId, groupeId]);
+
+        res.json(result.rows);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export {
+    getAllInscriptions,
+    getInscriptionById,
+    createInscription,
+    updateInscription,
     deleteInscription,
     getInscriptionsByEmail,
     getInscriptionsBySession,
     getInscriptionsByTypeCours,
-    getInscriptionsByGroupe
+    getInscriptionsByGroupe,
+    getInscriptionsBySessionAndGroupe
 };

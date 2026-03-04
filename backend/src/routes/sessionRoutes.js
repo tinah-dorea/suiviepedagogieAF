@@ -23,14 +23,14 @@ router.get('/', getAllSessions);
 // GET /api/sessions/actives - Récupérer les sessions actives
 router.get('/actives', getSessionsActives);
 
-// GET /api/sessions/:id - Récupérer une session par ID
-router.get('/:id', getSessionById);
+// GET /api/sessions/professeur - Récupérer les sessions d'un professeur (DOIT ÊTRE AVANT /:id)
+router.get('/professeur', getSessionsByProfesseur);
 
 // GET /api/sessions/type-cours/:typeCoursId - Récupérer les sessions par type de cours
 router.get('/type-cours/:typeCoursId', getSessionsByTypeCours);
 
-// GET /api/sessions/professeur - Récupérer les sessions d'un professeur
-router.get('/professeur', getSessionsByProfesseur);
+// GET /api/sessions/:id - Récupérer une session par ID
+router.get('/:id', getSessionById);
 
 // POST /api/sessions - Créer une nouvelle session (validation disabled for testing)
 router.post('/', createSession);

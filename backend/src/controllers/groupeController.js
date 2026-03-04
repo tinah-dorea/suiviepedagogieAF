@@ -144,7 +144,7 @@ const deleteGroupe = async (req, res) => {
         if (inscriptionsCheck.rows.length > 0) {
             return res.status(409).json({ message: 'Impossible de supprimer le groupe car des inscriptions y sont associées' });
         }
-        
+
         const result = await pool.query('DELETE FROM groupe WHERE id=$1 RETURNING *', [id]);
         if (result.rows.length === 0) return res.status(404).json({ message: 'Groupe non trouvé' });
         res.json({ message: 'Supprimé' });
@@ -153,10 +153,50 @@ const deleteGroupe = async (req, res) => {
     }
 };
 
-export { 
-    getAllGroupes, 
-    getGroupeById, 
-    createGroupe, 
-    updateGroupe, 
-    deleteGroupe
+// Obtenir les groupes d'un professeur
+const getGroupesByProfesseur = async (req, res) => {
+    try {
+        const employeId = req.user.id; // L'ID de l'employé connecté
+        
+        // Trouver l'ID du professeur correspondant à cet employé
+        const profResult = await pool.query(
+            'SELECT id FROM professeur WHERE id_employe = $1',
+            [employeId]
+        );
+        
+        if (profResult.rows.length === 0) {
+            return res.status(404).json({ message: 'Professeur non trouvé' });
+        }
+        
+        const profId = profResult.rows[0].id;
+        
+        const result = await pool.query(`
+            SELECT g.*,
+                   c.id AS id_creneau,
+                   hc.id AS id_horaire_cours,
+                   tc.nom_type_cours,
+                   e.nom AS nom_prof,
+                   e.prenom AS prenom_prof
+            FROM groupe g
+            LEFT JOIN creneau c ON g.id_creneau = c.id
+            LEFT JOIN horaire_cours hc ON c.id_horaire_cours = hc.id
+            LEFT JOIN type_cours tc ON hc.id_type_cours = tc.id
+            LEFT JOIN professeur p ON g.id_professeur = p.id
+            LEFT JOIN employe e ON p.id_employe = e.id
+            WHERE g.id_professeur = $1
+            ORDER BY g.nom_groupe ASC
+        `, [profId]);
+        res.json(result.rows);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export {
+    getAllGroupes,
+    getGroupeById,
+    createGroupe,
+    updateGroupe,
+    deleteGroupe,
+    getGroupesByProfesseur
 };

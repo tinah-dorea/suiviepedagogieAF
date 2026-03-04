@@ -81,6 +81,17 @@ const inscriptionService = {
       console.error('Erreur lors de la récupération des apprenants du groupe:', error);
       throw error;
     }
+  },
+
+  // Récupérer les inscriptions par session et groupe
+  getInscriptionsBySessionAndGroupe: async (sessionId, groupeId) => {
+    try {
+      const response = await api.get(`/inscriptions/session/${sessionId}/groupe/${groupeId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Erreur lors de la récupération des inscriptions:', error);
+      throw error;
+    }
   }
 };
 

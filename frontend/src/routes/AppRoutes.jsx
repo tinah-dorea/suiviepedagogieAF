@@ -325,7 +325,7 @@ const router = createBrowserRouter([
         index: true,
         element: (
           <ProtectedRoute allowedServices={['professeurs']}>
-            <DashboardAccueil />
+            <DashboardPedagogiqueAccueil />
           </ProtectedRoute>
         ),
       },

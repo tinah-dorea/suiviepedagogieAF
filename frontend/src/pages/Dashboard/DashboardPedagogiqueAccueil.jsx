@@ -145,18 +145,6 @@ const DashboardPedagogiqueAccueil = () => {
 
   return (
     <div className="p-6 min-h-screen" style={{ backgroundColor: COLORS.bg }}>
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #6B9080 0%, #A4C3B2 100%)' }}>
-            <AcademicCapIcon className="h-6 w-6 text-white" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold" style={{ color: COLORS.text }}>Tableau de Bord Pédagogique</h1>
-            <p className="text-sm" style={{ color: COLORS.textLight }}>Vue d'ensemble de vos activités pédagogiques</p>
-          </div>
-        </div>
-      </div>
 
       {/* Statistiques */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">

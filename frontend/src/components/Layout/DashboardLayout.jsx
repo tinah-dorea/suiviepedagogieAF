@@ -35,9 +35,13 @@ export default function DashboardLayout({
   
   // Fonction pour déterminer si le lien est actif
   const isActive = (path) => {
-    // Pour la page d'accueil, vérifier uniquement si on est exactement sur cette route
-    if (path === '/dashboard-pedagogique') {
-      return location.pathname === '/dashboard-pedagogique';
+    // Pour les pages d'accueil, vérifier uniquement si on est exactement sur cette route
+    if (path === '/dashboard-pedagogique' || 
+        path === '/dashboard' || 
+        path === '/dashboard-professeur' || 
+        path === '/dashboard-apprenant' || 
+        path === '/dashboard-accueil') {
+      return location.pathname === path;
     }
     // Pour les autres routes, vérifier si le chemin est inclus dans la route actuelle
     return location.pathname.includes(path);
@@ -233,7 +237,7 @@ export default function DashboardLayout({
       >
         <div className="flex items-center justify-center mb-8 px-4">
           <div className="text-xl sm:text-2xl font-bold text-center" style={{ color: '#FFFFFF' }}>
-            Alliance Française
+            Alliance Française Mahajanga
           </div>
         </div>
         
@@ -249,7 +253,7 @@ export default function DashboardLayout({
                   <button
                     onClick={() => toggleMenu(item.name)}
                     className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
-                      isItemActive ? 'bg-white/90' : 'hover:bg-white/10'
+                      isItemActive ? 'bg-white/90' : 'hover:bg-white/20'
                     }`}
                     style={{
                       color: isItemActive ? primaryColor : '#FFFFFF',
@@ -275,7 +279,7 @@ export default function DashboardLayout({
                             key={subItem.name}
                             to={subItem.path}
                             className={`block px-3 py-2 rounded-md text-xs font-medium transition-all duration-200 ${
-                              isSubItemActive ? 'bg-white/80' : 'hover:bg-white/10'
+                              isSubItemActive ? 'bg-white/80' : 'hover:bg-white/20'
                             }`}
                             style={{
                               color: isSubItemActive ? primaryColor : 'rgba(255,255,255,0.85)',
@@ -297,7 +301,7 @@ export default function DashboardLayout({
                 key={item.name}
                 to={item.path}
                 className={`flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
-                  isItemActive ? 'bg-white/90' : 'hover:bg-white/10'
+                  isItemActive ? 'bg-white/90' : 'hover:bg-white/20'
                 }`}
                 style={{
                   color: isItemActive ? primaryColor : '#FFFFFF',
@@ -346,7 +350,7 @@ export default function DashboardLayout({
           >
             <div className="flex items-center justify-center mb-8 px-4">
               <div className="text-lg sm:text-xl font-bold truncate" style={{ color: '#FFFFFF' }}>
-                Alliance Française
+                Alliance Française Mahajanga
               </div>
               <button
                 className="ml-auto text-gray-300 hover:text-white"
@@ -369,7 +373,7 @@ export default function DashboardLayout({
                       <button
                         onClick={() => toggleMenu(item.name)}
                         className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
-                          isItemActive ? 'bg-white/90' : 'hover:bg-white/10'
+                          isItemActive ? 'bg-white/90' : 'hover:bg-white/20'
                         }`}
                         style={{
                           color: isItemActive ? primaryColor : '#FFFFFF',
@@ -395,7 +399,7 @@ export default function DashboardLayout({
                                 key={subItem.name}
                                 to={subItem.path}
                                 className={`block px-3 py-2 rounded-md text-xs font-medium transition-all duration-200 ${
-                                  isSubItemActive ? 'bg-white/80' : 'hover:bg-white/10'
+                                  isSubItemActive ? 'bg-white/80' : 'hover:bg-white/20'
                                 }`}
                                 style={{
                                   color: isSubItemActive ? primaryColor : 'rgba(255,255,255,0.85)',
@@ -418,7 +422,7 @@ export default function DashboardLayout({
                     key={item.name}
                     to={item.path}
                     className={`flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
-                      isItemActive ? 'bg-white/90' : 'hover:bg-white/10'
+                      isItemActive ? 'bg-white/90' : 'hover:bg-white/20'
                     }`}
                     style={{
                       color: isItemActive ? primaryColor : '#FFFFFF',

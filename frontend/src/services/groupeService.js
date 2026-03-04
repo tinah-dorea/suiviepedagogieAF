@@ -11,6 +11,16 @@ const groupeService = {
     }
   },
 
+  getByProfesseur: async () => {
+    try {
+      const response = await api.get('/groupes/professeur');
+      return response.data;
+    } catch (error) {
+      console.error("Erreur lors de la récupération des groupes du professeur:", error);
+      throw error;
+    }
+  },
+
   getById: async (id) => {
     try {
       const response = await api.get(`/groupes/${id}`);

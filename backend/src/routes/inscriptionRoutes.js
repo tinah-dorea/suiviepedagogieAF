@@ -8,7 +8,8 @@ import {
     getInscriptionsByTypeCours,
     getInscriptionsBySession,
     getInscriptionsByEmail,
-    getInscriptionsByGroupe
+    getInscriptionsByGroupe,
+    getInscriptionsBySessionAndGroupe
 } from '../controllers/inscriptionController.js';
 import { authenticateToken } from '../middlewares/authMiddleware.js';
 
@@ -34,6 +35,9 @@ router.get('/session/:sessionId', getInscriptionsBySession);
 
 // GET /api/inscriptions/groupe/:groupeId - Récupérer les apprenants par groupe
 router.get('/groupe/:groupeId', getInscriptionsByGroupe);
+
+// GET /api/inscriptions/session/:sessionId/groupe/:groupeId - Récupérer les inscriptions par session et groupe
+router.get('/session/:sessionId/groupe/:groupeId', getInscriptionsBySessionAndGroupe);
 
 // POST /api/inscriptions - Créer une nouvelle inscription
 router.post('/', createInscription);

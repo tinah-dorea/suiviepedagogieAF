@@ -61,6 +61,9 @@ export const createEmploye = async (req, res) => {
 
 // PUT: Mettre à jour un employé
 export const updateEmploye = async (req, res) => {
+  console.log('[EmployeController] updateEmploye - req.params:', req.params);
+  console.log('[EmployeController] updateEmploye - req.body:', req.body);
+  
   const { id } = req.params;
   const { nom, prenom, age, adresse, tel, email, mot_passe, role } = req.body;
 
@@ -84,15 +87,19 @@ export const updateEmploye = async (req, res) => {
     query += ` WHERE id = $${values.length + 1} RETURNING id, nom, prenom, age, adresse, tel, email, role, is_active, date_creation, deactivated_at, deactivated_by`;
     values.push(id);
 
+    console.log('[EmployeController] updateEmploye - Requête SQL');
+    console.log('[EmployeController] updateEmploye - Values:', values);
+
     const result = await pool.query(query, values);
 
     if (result.rows.length === 0) {
       return res.status(404).json({ message: "Employé non trouvé" });
     }
 
+    console.log('[EmployeController] updateEmploye - Succès:', result.rows[0]);
     res.status(200).json(result.rows[0]);
   } catch (error) {
-    console.error("Erreur lors de la mise à jour de l'employé :", error);
+    console.error("[EmployeController] Erreur lors de la mise à jour de l'employé :", error);
     res.status(500).json({ message: "Erreur serveur" });
   }
 };

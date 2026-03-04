@@ -267,7 +267,32 @@ const getSessionsActives = async (req, res) => {
 // Récupérer les sessions pour un professeur spécifique
 const getSessionsByProfesseur = async (req, res) => {
     try {
-        const profId = req.user.id; // L'ID du professeur connecté
+        console.log('[SESSIONS PROF] req.user:', JSON.stringify(req.user));
+        
+        const employeId = req.user.id; // L'ID de l'employé connecté
+        
+        // Vérifier que employeId est un nombre valide
+        const numericId = parseInt(employeId, 10);
+        if (!employeId || isNaN(numericId)) {
+            console.error('[SESSIONS PROF] ID invalide:', employeId, 'type:', typeof employeId);
+            return res.status(400).json({ 
+                message: 'ID utilisateur invalide. Veuillez vous reconnecter.',
+                debug: { id: employeId, type: typeof employeId }
+            });
+        }
+
+        // Trouver l'ID du professeur correspondant à cet employé
+        const profResult = await pool.query(
+            'SELECT id FROM professeur WHERE id_employe = $1',
+            [numericId]
+        );
+        
+        if (profResult.rows.length === 0) {
+            return res.status(404).json({ message: 'Professeur non trouvé' });
+        }
+        
+        const profId = profResult.rows[0].id;
+        console.log('[SESSIONS PROF] profId:', profId);
 
         const result = await pool.query(`
             SELECT DISTINCT s.*, tc.nom_type_cours, s.duree_cours,
@@ -284,6 +309,7 @@ const getSessionsByProfesseur = async (req, res) => {
 
         res.json(result.rows);
     } catch (error) {
+        console.error('[SESSIONS PROF] Erreur:', error);
         res.status(500).json({ message: error.message });
     }
 };

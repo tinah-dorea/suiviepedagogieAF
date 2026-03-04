@@ -34,6 +34,17 @@ const presenceService = {
     }
   },
 
+  // Enregistrer les présences (multiple)
+  recordPresence: async (presencesData) => {
+    try {
+      const response = await api.post('/presences/batch', presencesData);
+      return response.data;
+    } catch (error) {
+      console.error('Erreur lors de l\'enregistrement des présences:', error);
+      throw error;
+    }
+  },
+
   // Mettre à jour une présence
   update: async (id, data) => {
     try {
@@ -74,6 +85,17 @@ const presenceService = {
       return response.data;
     } catch (error) {
       console.error('Erreur lors de la récupération des présences de l\'apprenant:', error);
+      throw error;
+    }
+  },
+
+  // Récupérer les absences d'un professeur (par id_employe)
+  getAbsencesByProfesseur: async (employeId) => {
+    try {
+      const response = await api.get(`/presences/professeur/${employeId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Erreur lors de la récupération des absences du professeur:', error);
       throw error;
     }
   }
